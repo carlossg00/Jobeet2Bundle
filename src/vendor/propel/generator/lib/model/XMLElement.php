@@ -14,7 +14,7 @@ require_once 'model/VendorInfo.php';
  * An abstract class for elements represented by XML tags (e.g. Column, Table).
  *
  * @author     Hans Lellelid <hans@xmpl.org>
- * @version    $Revision: 1612 $
+ * @version    $Revision: 1963 $
  * @package    propel.generator.model
  */
 abstract class XMLElement
@@ -148,7 +148,7 @@ abstract class XMLElement
     }
     // first fallback: maybe the behavior is loaded or autoloaded
     $gen = new PhpNameGenerator();
-    if(class_exists($class = $gen->generateName($bname, PhpNameGenerator::CONV_METHOD_PHPNAME) . 'Behavior')) {
+    if(class_exists($class = $gen->generateName(array($bname, PhpNameGenerator::CONV_METHOD_PHPNAME)) . 'Behavior')) {
       return $class;
     }
     // second fallback: use parent behavior class (mostly for unit tests)

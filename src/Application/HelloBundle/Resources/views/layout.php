@@ -1,4 +1,4 @@
-<?php $view->extend('::layout') ?>
+<?php $view->extend('::layout.php') ?>
 
 <h1>Hello Application</h1>
 
