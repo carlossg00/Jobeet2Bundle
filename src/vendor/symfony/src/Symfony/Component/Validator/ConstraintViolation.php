@@ -2,6 +2,15 @@
 
 namespace Symfony\Component\Validator;
 
+/*
+ * This file is part of the Symfony framework.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 class ConstraintViolation
 {
     protected $messageTemplate;
@@ -31,14 +40,7 @@ class ConstraintViolation
 
     public function getMessage()
     {
-        $sources = array();
-        $targets = array();
-        foreach ($this->messageParameters as $key => $value) {
-            $sources[] = '{{ '.$key.' }}';
-            $targets[] = (string) $value;
-        }
-
-        return str_replace($sources, $targets, $this->messageTemplate);
+        return str_replace(array_keys($this->messageParameters), array_values($this->messageParameters), $this->messageTemplate);
     }
 
     public function getRoot()
