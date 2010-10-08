@@ -12,4 +12,4 @@ webprofiler.config:
 zend.config:
     logger:
         priority: debug
-        path:     %kernel.root_dir%/logs/%kernel.environment%.log
+        path:     %kernel.logs_dir%/%kernel.environment%.log
