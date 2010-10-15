@@ -15,7 +15,7 @@ require_once 'platform/DefaultPlatform.php';
  *
  * @author     Hans Lellelid <hans@xmpl.org> (Propel)
  * @author     Martin Poeschl <mpoeschl@marmot.at> (Torque)
- * @version    $Revision: 1612 $
+ * @version    $Revision: 2012 $
  * @package    propel.generator.platform
  */
 class PgsqlPlatform extends DefaultPlatform
@@ -104,7 +104,7 @@ class PgsqlPlatform extends DefaultPlatform
 	 */
 	public function hasSize($sqlType)
 	{
-		return !("BYTEA" == $sqlType || "TEXT" == $sqlType);
+		return !("BYTEA" == $sqlType || "TEXT" == $sqlType || "DOUBLE PRECISION" == $sqlType);
 	}
 
 	/**

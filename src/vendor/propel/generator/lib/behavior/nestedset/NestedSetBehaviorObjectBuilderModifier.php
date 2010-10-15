@@ -831,7 +831,7 @@ public function getSiblings(\$includeNode = false, \$query = null, PropelPDO \$c
 	} else {
 		 \$query = $queryClassname::create(null, \$query)
 				->childrenOf(\$this->getParent(\$con))
-				->orderByBranch(true);
+				->orderByBranch();
 		if (!\$includeNode) {
 			\$query->prune(\$this);
 		}
@@ -1545,7 +1545,9 @@ public function retrieveLastChild(PropelPDO \$con = null)
  */
 public function getPath(PropelPDO \$con = null)
 {
-	return \$this->getAncestors(null, \$con);
+	\$path = \$this->getAncestors(null, \$con);
+	\$path []= \$this;
+	return \$path;
 }
 ";
 	}
