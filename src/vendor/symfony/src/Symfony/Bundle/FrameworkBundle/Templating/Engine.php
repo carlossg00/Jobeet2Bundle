@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
  * This engine knows how to render Symfony templates and automatically
  * escapes template parameters.
  *
- * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class Engine extends BaseEngine
 {
@@ -167,7 +167,7 @@ class Engine extends BaseEngine
         $elements = explode('.', $parts[2]);
         if (3 === count($elements)) {
             $parts[2] = $elements[0];
-            $options['format'] = $elements[1];
+            $options['format'] = '.'.$elements[1];
             $options['renderer'] = $elements[2];
         } elseif (2 === count($elements)) {
             $parts[2] = $elements[0];

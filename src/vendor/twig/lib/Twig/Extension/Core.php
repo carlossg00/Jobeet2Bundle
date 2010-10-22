@@ -55,7 +55,7 @@ class Twig_Extension_Core extends Twig_Extension
             'upper'      => new Twig_Filter_Function('strtoupper'),
             'lower'      => new Twig_Filter_Function('strtolower'),
             'striptags'  => new Twig_Filter_Function('strip_tags'),
-            'constant'   => new Twig_Filter_Function('twig_constant_filter'),
+            'constant'   => new Twig_Filter_Function('constant'),
 
             // array helpers
             'join'    => new Twig_Filter_Function('twig_join_filter'),
@@ -201,11 +201,6 @@ function twig_cycle_filter($values, $i)
     return $values[$i % count($values)];
 }
 
-function twig_constant_filter($constant)
-{
-    return constant($constant);
-}
-
 function twig_strtr($pattern, $replacements)
 {
     return str_replace(array_keys($replacements), array_values($replacements), $pattern);
@@ -296,8 +291,8 @@ if (function_exists('mb_get_info')) {
 
     function twig_upper_filter(Twig_Environment $env, $string)
     {
-        if (!is_null($env->getCharset())) {
-            return mb_strtoupper($string, $env->getCharset());
+        if (!is_null($charset = $env->getCharset())) {
+            return mb_strtoupper($string, $charset);
         }
 
         return strtoupper($string);
@@ -305,8 +300,8 @@ if (function_exists('mb_get_info')) {
 
     function twig_lower_filter(Twig_Environment $env, $string)
     {
-        if (!is_null($env->getCharset())) {
-            return mb_strtolower($string, $env->getCharset());
+        if (!is_null($charset = $env->getCharset())) {
+            return mb_strtolower($string, $charset);
         }
 
         return strtolower($string);
@@ -314,21 +309,21 @@ if (function_exists('mb_get_info')) {
 
     function twig_title_string_filter(Twig_Environment $env, $string)
     {
-        if (is_null($env->getCharset())) {
-            return ucwords(strtolower($string));
+        if (!is_null($charset = $env->getCharset())) {
+            return mb_convert_case($string, MB_CASE_TITLE, $charset);
         }
 
-        return mb_convert_case($string, MB_CASE_TITLE, $env->getCharset());
+        return ucwords(strtolower($string));
     }
 
     function twig_capitalize_string_filter(Twig_Environment $env, $string)
     {
-        if (is_null($env->getCharset())) {
-            return ucfirst(strtolower($string));
+        if (!is_null($charset = $env->getCharset())) {
+            return mb_strtoupper(mb_substr($string, 0, 1, $charset)).
+                         mb_strtolower(mb_substr($string, 1, mb_strlen($string), $charset), $charset);
         }
 
-        return mb_strtoupper(mb_substr($string, 0, 1, $env->getCharset())).
-                     mb_strtolower(mb_substr($string, 1, mb_strlen($string), $env->getCharset()), $env->getCharset());
+        return ucfirst(strtolower($string));
     }
 }
 // and byte fallback

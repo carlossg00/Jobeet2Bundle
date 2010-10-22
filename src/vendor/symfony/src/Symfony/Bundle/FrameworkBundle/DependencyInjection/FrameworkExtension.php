@@ -9,6 +9,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpFoundation\RequestMatcher;
 
 /*
  * This file is part of the Symfony framework.
@@ -22,7 +23,7 @@ use Symfony\Component\Finder\Finder;
 /**
  * FrameworkExtension.
  *
- * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
 class FrameworkExtension extends Extension
 {
@@ -90,6 +91,11 @@ class FrameworkExtension extends Extension
 
         if (isset($config['templating'])) {
             $this->registerTemplatingConfiguration($config, $container);
+        }
+
+        if (isset($config['security'])) {
+            $security = new SecurityLoader();
+            $security->registerSecurityConfiguration($config, $container);
         }
 
         if (array_key_exists('test', $config)) {
