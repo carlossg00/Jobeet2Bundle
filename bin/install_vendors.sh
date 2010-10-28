@@ -41,12 +41,6 @@ cd doctrine-mongodb
 git checkout -b v1.0.0BETA1 1.0.0BETA1
 cd $DIR/vendor
 
-# Propel
-svn co http://svn.propelorm.org/branches/1.5/ propel
-
-# Phing
-svn co http://svn.phing.info/tags/2.3.3 phing
-
 # Swiftmailer
 git clone git://github.com/swiftmailer/swiftmailer.git swiftmailer
 cd swiftmailer

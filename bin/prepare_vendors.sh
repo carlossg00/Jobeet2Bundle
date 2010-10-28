@@ -27,15 +27,6 @@ cd $TARGET
 cd doctrine-mongodb && rm -rf tests build* tools
 cd $TARGET
 
-# Propel
-# git clone git://github.com/fzaninotto/propel.git propel
-cd propel && rm -rf contrib docs test WHATS_NEW INSTALL CHANGELOG
-cd $TARGET
-
-# Phing
-cd phing && rm -rf README bin docs etc pear test
-cd $TARGET
-
 # Swiftmailer
 cd swiftmailer && rm -rf CHANGES README* build* docs notes test-suite tests create_pear_package.php package*
 cd $TARGET

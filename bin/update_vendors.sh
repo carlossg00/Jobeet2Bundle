@@ -40,12 +40,6 @@ git pull
 git checkout -b v1.0.0BETA1 1.0.0BETA1
 git checkout v1.0.0BETA1
 
-# Propel
-cd $VENDOR/propel && svn up
-
-# Phing
-cd $VENDOR/phing && svn up
-
 # Swiftmailer
 cd $VENDOR/swiftmailer && git pull
 
