@@ -54,3 +54,4 @@ cd $VENDOR/twig && git pull
 
 # Zend Framework
 cd $VENDOR/zend && git pull
+git submodule update --recursive --init

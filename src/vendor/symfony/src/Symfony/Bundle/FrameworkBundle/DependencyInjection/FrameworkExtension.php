@@ -41,8 +41,22 @@ class FrameworkExtension extends Extension
             $loader->load('web.xml');
         }
 
-        if (isset($config['ide']) && 'textmate' === $config['ide']) {
-            $container->setParameter('debug.file_link_format', 'txmt://open?url=file://%%f&line=%%l');
+        if (isset($config['ide'])) {
+            switch ($config['ide']) {
+                case 'textmate':
+                    $pattern = 'txmt://open?url=file://%%f&line=%%l';
+                    break;
+
+                case 'macvim':
+                    $pattern = 'mvim://open?url=file://%%f&line=%%l';
+                    break;
+
+                default:
+                    // should be the link pattern then
+                    $pattern = $config['ide'];
+            }
+
+            $container->setParameter('debug.file_link_format', $pattern);
         }
 
         foreach (array('csrf_secret', 'csrf-secret') as $key) {
@@ -91,11 +105,6 @@ class FrameworkExtension extends Extension
 
         if (isset($config['templating'])) {
             $this->registerTemplatingConfiguration($config, $container);
-        }
-
-        if (isset($config['security'])) {
-            $security = new SecurityLoader();
-            $security->registerSecurityConfiguration($config, $container);
         }
 
         if (array_key_exists('test', $config)) {
