@@ -28,6 +28,10 @@ cd $TARGET
 cd doctrine-migrations && rm -rf tests build*
 cd $TARGET
 
+# Doctrine data fixtures
+cd doctrine-data-fixtures && rm -rf tests README* lib/vendor
+cd $TARGET
+
 # Doctrine MongoDB
 cd doctrine-mongodb && rm -rf tests build* tools
 cd $TARGET

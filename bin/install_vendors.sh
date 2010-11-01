@@ -35,6 +35,9 @@ cd $DIR/vendor
 # Doctrine migrations
 git clone git://github.com/doctrine/migrations.git doctrine-migrations
 
+# Doctrine data fixtures
+git clone git://github.com/doctrine/data-fixtures.git doctrine-data-fixtures
+
 # Doctrine MongoDB
 git clone git://github.com/doctrine/mongodb-odm.git doctrine-mongodb
 cd doctrine-mongodb

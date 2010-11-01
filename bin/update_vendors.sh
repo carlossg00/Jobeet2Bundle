@@ -30,6 +30,9 @@ git checkout master
 # Doctrine migrations
 cd $VENDOR/doctrine-migrations && git pull
 
+# Doctrine data fixtures
+cd $VENDOR/doctrine-data-fixtures && git pull
+
 # Doctrine MongoDB
 cd $VENDOR/doctrine-mongodb
 git checkout master
