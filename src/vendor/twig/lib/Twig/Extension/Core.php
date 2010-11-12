@@ -46,7 +46,7 @@ class Twig_Extension_Core extends Twig_Extension
             'replace' => new Twig_Filter_Function('twig_strtr'),
 
             // encoding
-            'url_encode'  => new Twig_Filter_Function('twig_urlencode_filter', array('is_escaper' => true)),
+            'url_encode'  => new Twig_Filter_Function('twig_urlencode_filter'),
             'json_encode' => new Twig_Filter_Function('json_encode'),
 
             // string filters
@@ -72,8 +72,8 @@ class Twig_Extension_Core extends Twig_Extension
             'items'   => new Twig_Filter_Function('twig_get_array_items_filter'),
 
             // escaping
-            'escape' => new Twig_Filter_Function('twig_escape_filter', array('needs_environment' => true, 'is_escaper' => true)),
-            'e'      => new Twig_Filter_Function('twig_escape_filter', array('needs_environment' => true, 'is_escaper' => true)),
+            'escape' => new Twig_Filter_Function('twig_escape_filter', array('needs_environment' => true, 'is_safe_callback' => 'twig_escape_filter_is_safe')),
+            'e'      => new Twig_Filter_Function('twig_escape_filter', array('needs_environment' => true, 'is_safe_callback' => 'twig_escape_filter_is_safe')),
         );
 
         if (function_exists('mb_get_info')) {
@@ -235,7 +235,7 @@ function twig_escape_filter(Twig_Environment $env, $string, $type = 'html')
             }
 
             if (null === $string = preg_replace_callback('#[^\p{L}\p{N} ]#u', '_twig_escape_js_callback', $string)) {
-                throw new InvalidArgumentException('The string to escape is not a valid UTF-8 string.');
+                throw new Twig_Error_Runtime('The string to escape is not a valid UTF-8 string.');
             }
 
             if ('UTF-8' != $charset) {
@@ -245,9 +245,26 @@ function twig_escape_filter(Twig_Environment $env, $string, $type = 'html')
             return $string;
 
         case 'html':
-        default:
             return htmlspecialchars($string, ENT_QUOTES, $env->getCharset());
+
+        default:
+            throw new Twig_Error_Runtime(sprintf('Invalid escape type "%s".', $type));
     }
+}
+
+function twig_escape_filter_is_safe(Twig_Node $filterArgs)
+{
+    foreach ($filterArgs as $arg) {
+        if ($arg instanceof Twig_Node_Expression_Constant) {
+            return array($arg->getAttribute('value'));
+        } else {
+            return array();
+        }
+
+        break;
+    }
+
+    return array('html');
 }
 
 if (function_exists('iconv')) {
@@ -263,7 +280,7 @@ if (function_exists('iconv')) {
 } else {
     function _twig_convert_encoding($string, $to, $from)
     {
-        throw new RuntimeException('No suitable convert encoding function (use UTF-8 as your encoding or install the iconv or mbstring extension).');
+        throw new Twig_Error_Runtime('No suitable convert encoding function (use UTF-8 as your encoding or install the iconv or mbstring extension).');
     }
 }
 

@@ -10,12 +10,11 @@
  */
 
 /**
- * Represents a template filter.
+ * Exception thrown when an error occurs during template loading.
  *
  * @package    twig
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-interface Twig_FilterInterface
+class Twig_Error_Loader extends Twig_Error
 {
-    public function compile();
 }

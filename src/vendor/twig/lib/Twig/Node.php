@@ -15,7 +15,6 @@
  *
  * @package    twig
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id$
  */
 class Twig_Node implements Twig_NodeInterface, Countable, IteratorAggregate
 {
@@ -140,7 +139,7 @@ class Twig_Node implements Twig_NodeInterface, Countable, IteratorAggregate
     public function getAttribute($name)
     {
         if (!array_key_exists($name, $this->attributes)) {
-            throw new InvalidArgumentException(sprintf('Attribute "%s" does not exist for Node "%s".', $name, get_class($this)));
+            throw new Twig_Error_Runtime(sprintf('Attribute "%s" does not exist for Node "%s".', $name, get_class($this)));
         }
 
         return $this->attributes[$name];
@@ -189,7 +188,7 @@ class Twig_Node implements Twig_NodeInterface, Countable, IteratorAggregate
     public function getNode($name)
     {
         if (!array_key_exists($name, $this->nodes)) {
-            throw new InvalidArgumentException(sprintf('Node "%s" does not exist for Node "%s".', $name, get_class($this)));
+            throw new Twig_Error_Runtime(sprintf('Node "%s" does not exist for Node "%s".', $name, get_class($this)));
         }
 
         return $this->nodes[$name];

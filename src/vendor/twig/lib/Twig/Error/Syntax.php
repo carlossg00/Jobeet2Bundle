@@ -15,9 +15,8 @@
  *
  * @package    twig
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id$
  */
-class Twig_SyntaxError extends Twig_Error
+class Twig_Error_Syntax extends Twig_Error
 {
     protected $lineno;
     protected $filename;

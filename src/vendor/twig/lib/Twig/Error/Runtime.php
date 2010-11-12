@@ -15,8 +15,7 @@
  *
  * @package    twig
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id$
  */
-class Twig_RuntimeError extends Twig_Error
+class Twig_Error_Runtime extends Twig_Error
 {
 }
