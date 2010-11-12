@@ -18,11 +18,7 @@
         <app:router resource="%kernel.root_dir%/config/routing.xml" />
         <app:validation enabled="true" annotations="true" />
         <app:templating escaping="htmlspecialchars" />
-        <!--
-        <app:user default-locale="fr">
-            <app:session name="SYMFONY" type="Native" lifetime="3600" />
-        </app:user>
-        //-->
+        <app:session default-locale="en" lifetime="3600" />
     </app:config>
 
     <!-- Twig Configuration -->

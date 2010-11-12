@@ -7,12 +7,9 @@ app.config:
     templating:
         escaping:       htmlspecialchars
         #assets_version: SomeVersionScheme
-    #user:
-    #    default_locale: fr
-    #    session:
-    #        name:     SYMFONY
-    #        type:     Native
-    #        lifetime: 3600
+    session:
+        default_locale: en
+        lifetime: 3600
 
 ## Twig Configuration
 #twig.config:

@@ -10,14 +10,10 @@ $container->loadFromExtension('app', 'config', array(
         'escaping'        => 'htmlspecialchars'
         #'assets_version' => "SomeVersionScheme",
     ),
-    #'user' => array(
-    #    'default_locale' => "fr",
-    #    'session' => array(
-    #        'name' => "SYMFONY",
-    #        'type' => "Native",
-    #        'lifetime' => "3600",
-    #    )
-    #),
+    'session' => array(
+        'default_locale' => "en",
+        'lifetime' => "3600",
+    ),
 ));
 
 // Twig Configuration
