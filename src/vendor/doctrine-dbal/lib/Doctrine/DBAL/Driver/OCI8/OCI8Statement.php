@@ -1,7 +1,5 @@
 <?php
 /*
- *  $Id: Interface.php 3882 2008-02-22 18:11:35Z jwage $
- *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -33,7 +31,7 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
 {
     /** Statement handle. */
     private $_sth;
-    private $_paramCounter = 0;
+    private $_executeMode;
     private static $_PARAM = ':param';
     private static $fetchStyleMap = array(
         PDO::FETCH_BOTH => OCI_BOTH,
@@ -48,30 +46,52 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
      * @param resource $dbh The connection handle.
      * @param string $statement The SQL statement.
      */
-    public function __construct($dbh, $statement)
+    public function __construct($dbh, $statement, $executeMode)
     {
-        $this->_sth = oci_parse($dbh, $this->_convertPositionalToNamedPlaceholders($statement));
+        list($statement, $paramMap) = self::convertPositionalToNamedPlaceholders($statement);
+        $this->_sth = oci_parse($dbh, $statement);
+        $this->_paramMap = $paramMap;
+        $this->_executeMode = $executeMode;
     }
 
     /**
+     * Convert positional (?) into named placeholders (:param<num>)
+     *
      * Oracle does not support positional parameters, hence this method converts all
      * positional parameters into artificially named parameters. Note that this conversion
      * is not perfect. All question marks (?) in the original statement are treated as
      * placeholders and converted to a named parameter.
      *
-     * @param string $statement The SQL statement to convert.
+     * The algorithm uses a state machine with two possible states: InLiteral and NotInLiteral.
+     * Question marks inside literal strings are therefore handled correctly by this method.
+     * This comes at a cost, the whole sql statement has to be looped over.
+     *
+     * @todo extract into utility class in Doctrine\DBAL\Util namespace
      * @todo review and test for lost spaces. we experienced missing spaces with oci8 in some sql statements.
+     * @param string $statement The SQL statement to convert.
+     * @return string
      */
-    private function _convertPositionalToNamedPlaceholders($statement)
-    {
+    static public function convertPositionalToNamedPlaceholders($statement)
+    {   
         $count = 1;
-        while (($pos = strpos($statement, '?')) !== false) {
-            $this->_paramMap[$count] = ":param$count";
-            $statement = substr_replace($statement, ":param$count", $pos, 1);
-            ++$count;
+        $inLiteral = false; // a valid query never starts with quotes
+        $stmtLen = strlen($statement);
+        $paramMap = array();
+        for ($i = 0; $i < $stmtLen; $i++) {
+            if ($statement[$i] == '?' && !$inLiteral) {
+                // real positional parameter detected
+                $paramMap[$count] = ":param$count";
+                $len = strlen($paramMap[$count]);
+                $statement = substr_replace($statement, ":param$count", $i, 1);
+                $i += $len-1; // jump ahead
+                $stmtLen = strlen($statement); // adjust statement length
+                ++$count;
+            } else if ($statement[$i] == "'" || $statement[$i] == '"') {
+                $inLiteral = ! $inLiteral; // switch state!
+            }
         }
 
-        return $statement;
+        return array($statement, $paramMap);
     }
 
     /**
@@ -146,7 +166,7 @@ class OCI8Statement implements \Doctrine\DBAL\Driver\Statement
             }
         }
 
-        $ret = @oci_execute($this->_sth, OCI_DEFAULT);
+        $ret = @oci_execute($this->_sth, $this->_executeMode);
         if ( ! $ret) {
             throw OCI8Exception::fromErrorInfo($this->errorInfo());
         }

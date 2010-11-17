@@ -258,17 +258,6 @@ class MySqlPlatform extends AbstractPlatform
     {
         return true;
     }
-    
-    /**
-     * Whether the platform supports savepoints. MySql does not.
-     *
-     * @return boolean
-     * @override
-     */
-    public function supportsSavepoints()
-    {
-        return false;
-    }
 
     public function getShowDatabasesSQL()
     {
@@ -575,11 +564,6 @@ class MySqlPlatform extends AbstractPlatform
     public function getName()
     {
         return 'mysql';
-    }
-
-    public function createsExplicitIndexForForeignKeys()
-    {
-        return true;
     }
 
     public function getReadLockSQL()

@@ -85,6 +85,11 @@ abstract class AbstractAsset
         // using implicit schema support of DB2 and Postgres there might be dots in the auto-generated
         // identifier names which can easily be replaced by underscores.
         $identifier = str_replace(".", "_", $identifier);
+
+        if (is_numeric(substr($identifier, 0, 1))) {
+            $identifier = "i" . substr($identifier, 0, strlen($identifier)-1);
+        }
+
         return $identifier;
     }
 }

@@ -86,6 +86,74 @@ abstract class AbstractPlatform
     public function __construct() {}
 
     /**
+     * Gets the SQL snippet that declares a boolean column.
+     *
+     * @param array $columnDef
+     * @return string
+     */
+    abstract public function getBooleanTypeDeclarationSQL(array $columnDef);
+
+    /**
+     * Gets the SQL snippet that declares a 4 byte integer column.
+     *
+     * @param array $columnDef
+     * @return string
+     */
+    abstract public function getIntegerTypeDeclarationSQL(array $columnDef);
+
+    /**
+     * Gets the SQL snippet that declares an 8 byte integer column.
+     *
+     * @param array $columnDef
+     * @return string
+     */
+    abstract public function getBigIntTypeDeclarationSQL(array $columnDef);
+
+    /**
+     * Gets the SQL snippet that declares a 2 byte integer column.
+     *
+     * @param array $columnDef
+     * @return string
+     */
+    abstract public function getSmallIntTypeDeclarationSQL(array $columnDef);
+
+    /**
+     * Gets the SQL snippet that declares common properties of an integer column.
+     *
+     * @param array $columnDef
+     * @return string
+     */
+    abstract protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef);
+
+    /**
+     * Lazy load Doctrine Type Mappings
+     *
+     * @return void
+     */
+    abstract protected function initializeDoctrineTypeMappings();
+
+    /**
+     * Gets the SQL snippet used to declare a VARCHAR column type.
+     *
+     * @param array $field
+     */
+    abstract public function getVarcharTypeDeclarationSQL(array $field);
+
+    /**
+     * Gets the SQL snippet used to declare a CLOB column type.
+     *
+     * @param array $field
+     */
+    abstract public function getClobTypeDeclarationSQL(array $field);
+
+    /**
+     * Gets the name of the platform.
+     *
+     * @return string
+     */
+    abstract public function getName();
+
+    /**
      * Register a doctrine type to be used in conjunction with a column type of this platform.
      *
      * @param string $dbType
@@ -140,13 +208,6 @@ abstract class AbstractPlatform
         $dbType = strtolower($dbType);
         return isset($this->doctrineTypeMapping[$dbType]);
     }
-
-    /**
-     * Lazy load Doctrine Type Mappings
-     *
-     * @return void
-     */
-    abstract protected function initializeDoctrineTypeMappings();
 
     /**
      * Gets the character used for identifier quoting.
@@ -1091,46 +1152,6 @@ abstract class AbstractPlatform
     }
 
     /**
-     * Gets the SQL snippet that declares a boolean column.
-     *
-     * @param array $columnDef
-     * @return string
-     */
-    abstract public function getBooleanTypeDeclarationSQL(array $columnDef);
-
-    /**
-     * Gets the SQL snippet that declares a 4 byte integer column.
-     *
-     * @param array $columnDef
-     * @return string
-     */
-    abstract public function getIntegerTypeDeclarationSQL(array $columnDef);
-
-    /**
-     * Gets the SQL snippet that declares an 8 byte integer column.
-     *
-     * @param array $columnDef
-     * @return string
-     */
-    abstract public function getBigIntTypeDeclarationSQL(array $columnDef);
-
-    /**
-     * Gets the SQL snippet that declares a 2 byte integer column.
-     *
-     * @param array $columnDef
-     * @return string
-     */
-    abstract public function getSmallIntTypeDeclarationSQL(array $columnDef);
-
-    /**
-     * Gets the SQL snippet that declares common properties of an integer column.
-     *
-     * @param array $columnDef
-     * @return string
-     */
-    abstract protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef);
-
-    /**
      * Obtain DBMS specific SQL code portion needed to set a default value
      * declaration to be used in statements like CREATE TABLE.
      *
@@ -1703,6 +1724,11 @@ abstract class AbstractPlatform
         throw DBALException::notSupported(__METHOD__);
     }
 
+    public function getFloatDeclarationSQL(array $fieldDeclaration)
+    {
+        return 'DOUBLE PRECISION';
+    }
+
     /**
      * Gets the default transaction isolation level of the platform.
      *
@@ -1774,6 +1800,16 @@ abstract class AbstractPlatform
     }
 
     /**
+     * Whether the platform supports releasing savepoints.
+     *
+     * @return boolean
+     */
+    public function supportsReleaseSavepoints()
+    {
+        return $this->supportsSavepoints();
+    }
+
+    /**
      * Whether the platform supports primary key constraints.
      *
      * @return boolean
@@ -1821,14 +1857,6 @@ abstract class AbstractPlatform
     public function supportsCreateDropDatabase()
     {
         return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function createsExplicitIndexForForeignKeys()
-    {
-        return false;
     }
 
     /**
@@ -1903,27 +1931,6 @@ abstract class AbstractPlatform
 
         return $query;
     }
-
-    /**
-     * Gets the SQL snippet used to declare a VARCHAR column type.
-     *
-     * @param array $field
-     */
-    abstract public function getVarcharTypeDeclarationSQL(array $field);
-    
-    /**
-     * Gets the SQL snippet used to declare a CLOB column type.
-     *
-     * @param array $field
-     */
-    abstract public function getClobTypeDeclarationSQL(array $field);
-
-    /**
-     * Gets the name of the platform.
-     *
-     * @return string
-     */
-    abstract public function getName();
     
     /**
      * Gets the character casing of a column in an SQL result set of this platform.
@@ -1993,5 +2000,38 @@ abstract class AbstractPlatform
     public function getDummySelectSQL()
     {
         return 'SELECT 1';
+    }
+
+    /**
+     * Generate SQL to create a new savepoint
+     *
+     * @param string $savepoint
+     * @return string
+     */
+    public function createSavePoint($savepoint)
+    {
+        return 'SAVEPOINT ' . $savepoint;
+    }
+
+    /**
+     * Generate SQL to release a savepoint
+     *
+     * @param string $savepoint
+     * @return string
+     */
+    public function releaseSavePoint($savepoint)
+    {
+        return 'RELEASE SAVEPOINT ' . $savepoint;
+    }
+
+    /**
+     * Generate SQL to rollback a savepoint
+     *
+     * @param string $savepoint
+     * @return string
+     */
+    public function rollbackSavePoint($savepoint)
+    {
+        return 'ROLLBACK TO SAVEPOINT ' . $savepoint;
     }
 }

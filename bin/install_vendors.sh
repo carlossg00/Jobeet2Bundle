@@ -23,13 +23,13 @@ cd $DIR/vendor
 # Doctrine DBAL
 git clone git://github.com/doctrine/dbal.git doctrine-dbal
 cd doctrine-dbal
-git checkout -b v2.0.0-BETA4 2.0.0-BETA4
+git checkout -b v2.0.0-RC1 2.0.0-RC1
 cd $DIR/vendor
 
 # Doctrine Common
 git clone git://github.com/doctrine/common.git doctrine-common
 cd doctrine-common
-git checkout -b v2.0.0-RC1 2.0.0-RC1
+git checkout -b v2.0.0-RC2 2.0.0-RC2
 cd $DIR/vendor
 
 # Doctrine migrations

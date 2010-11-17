@@ -14,6 +14,12 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
         parent::setUp();
     }
 
+    public function tearDown()
+    {
+        parent::tearDown();
+        $this->resetSharedConn();
+    }
+
     public function testGetWrappedConnection()
     {
         $this->assertType('Doctrine\DBAL\Driver\Connection', $this->_conn->getWrappedConnection());
@@ -44,7 +50,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
                 //no rethrow                
             }
             $this->assertTrue($this->_conn->isRollbackOnly());
-              
+
             $this->_conn->commit(); // should throw exception
             $this->fail('Transaction commit after failed nested transaction should fail.');
         } catch (ConnectionException $e) {
@@ -53,7 +59,105 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
             $this->assertEquals(0, $this->_conn->getTransactionNestingLevel());
         }
     }
-    
+
+    public function testTransactionNestingBehaviorWithSavepoints()
+    {
+        if (!$this->_conn->getDatabasePlatform()->supportsSavepoints()) {
+            $this->markTestSkipped('This test requires the platform to support savepoints.');
+        }
+
+        $this->_conn->setNestTransactionsWithSavepoints(true);
+        try {
+            $this->_conn->beginTransaction();
+            $this->assertEquals(1, $this->_conn->getTransactionNestingLevel());
+
+            try {
+                $this->_conn->beginTransaction();
+                $this->assertEquals(2, $this->_conn->getTransactionNestingLevel());
+                $this->_conn->beginTransaction();
+                $this->assertEquals(3, $this->_conn->getTransactionNestingLevel());
+                $this->_conn->commit();
+                $this->assertEquals(2, $this->_conn->getTransactionNestingLevel());
+                throw new \Exception;
+                $this->_conn->commit(); // never reached
+            } catch (\Exception $e) {
+                $this->_conn->rollback();
+                $this->assertEquals(1, $this->_conn->getTransactionNestingLevel());
+                //no rethrow
+            }
+            $this->assertFalse($this->_conn->isRollbackOnly());
+            try {
+                $this->_conn->setNestTransactionsWithSavepoints(false);
+                $this->fail('Should not be able to disable savepoints in usage for nested transactions inside an open transaction.');
+            } catch (ConnectionException $e) {
+                $this->assertTrue($this->_conn->getNestTransactionsWithSavepoints());
+            }
+            $this->_conn->commit(); // should not throw exception
+        } catch (ConnectionException $e) {
+            $this->fail('Transaction commit after failed nested transaction should not fail when using savepoints.');
+            $this->_conn->rollback();
+        }
+    }
+
+    public function testTransactionNestingBehaviorCantBeChangedInActiveTransaction()
+    {
+        if (!$this->_conn->getDatabasePlatform()->supportsSavepoints()) {
+            $this->markTestSkipped('This test requires the platform to support savepoints.');
+        }
+
+        $this->_conn->beginTransaction();
+        try {
+            $this->_conn->setNestTransactionsWithSavepoints(true);
+            $this->fail('An exception should have been thrown by chaning the nesting transaction behavior within an transaction.');
+        } catch(ConnectionException $e) {
+            $this->_conn->rollBack();
+        }
+    }
+
+    public function testSetNestedTransactionsThroughSavepointsNotSupportedThrowsException()
+    {
+        if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
+            $this->markTestSkipped('This test requires the platform not to support savepoints.');
+        }
+
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+
+        $this->_conn->setNestTransactionsWithSavepoints(true);
+    }
+
+    public function testCreateSavepointsNotSupportedThrowsException()
+    {
+        if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
+            $this->markTestSkipped('This test requires the platform not to support savepoints.');
+        }
+
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+
+        $this->_conn->createSavepoint('foo');
+    }
+
+    public function testReleaseSavepointsNotSupportedThrowsException()
+    {
+        if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
+            $this->markTestSkipped('This test requires the platform not to support savepoints.');
+        }
+
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+
+        $this->_conn->releaseSavepoint('foo');
+    }
+
+    public function testRollbackSavepointsNotSupportedThrowsException()
+    {
+        if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
+            $this->markTestSkipped('This test requires the platform not to support savepoints.');
+        }
+
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+
+        $this->_conn->rollbackSavepoint('foo');
+    }
+
     public function testTransactionBehaviorWithRollback()
     {
         try {
@@ -62,7 +166,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
             
             throw new \Exception;
               
-            $this->_connx->commit(); // never reached
+            $this->_conn->commit(); // never reached
         } catch (\Exception $e) {
             $this->assertEquals(1, $this->_conn->getTransactionNestingLevel());
             $this->_conn->rollback();

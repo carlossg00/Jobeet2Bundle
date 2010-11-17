@@ -20,15 +20,15 @@ git checkout v2.0.0-BETA4
 cd $VENDOR/doctrine-dbal
 git checkout master
 git pull
-git checkout -b v2.0.0-BETA4 2.0.0-BETA4
-git checkout v2.0.0-BETA4
+git checkout -b v2.0.0-RC1 2.0.0-RC1
+git checkout v2.0.0-RC1
 
 # Doctrine common
 cd $VENDOR/doctrine-common
 git checkout master
 git pull
-git checkout -b v2.0.0-RC1 2.0.0-RC1
-git checkout v2.0.0-RC1
+git checkout -b v2.0.0-RC2 2.0.0-RC2
+git checkout v2.0.0-RC2
 
 # Doctrine migrations
 cd $VENDOR/doctrine-migrations && git pull
