@@ -11,9 +11,9 @@ app.config:
         default_locale: en
         lifetime: 3600
 
-## Twig Configuration
-#twig.config:
-#    auto_reload: true
+# Twig Configuration
+twig.config:
+    debug: "%kernel.debug%"
 
 ## Doctrine Configuration
 #doctrine.dbal:

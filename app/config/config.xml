@@ -22,9 +22,7 @@
     </app:config>
 
     <!-- Twig Configuration -->
-    <!--
-    <twig:config auto_reload="true" />
-    -->
+    <twig:config debug="%kernel.debug%" />
 
     <!-- Doctrine Configuration -->
     <!--

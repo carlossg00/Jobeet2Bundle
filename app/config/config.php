@@ -17,9 +17,7 @@ $container->loadFromExtension('app', 'config', array(
 ));
 
 // Twig Configuration
-/*
-$container->loadFromExtension('twig', 'config', array('auto_reload' => true));
-*/
+$container->loadFromExtension('twig', 'config', array('debug' => '%kernel.debug%'));
 
 // Doctrine Configuration
 /*
