@@ -7,7 +7,6 @@ $container->loadFromExtension('app', 'config', array(
     'router'        => array('resource' => '%kernel.root_dir%/config/routing.php'),
     'validation'    => array('enabled' => true, 'annotations' => true),
     'templating'    => array(
-        'escaping'        => 'htmlspecialchars'
         #'assets_version' => "SomeVersionScheme",
     ),
     'session' => array(

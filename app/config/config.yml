@@ -5,7 +5,6 @@ app.config:
     router:        { resource: "%kernel.root_dir%/config/routing.yml" }
     validation:    { enabled: true, annotations: true }
     templating:
-        escaping:       htmlspecialchars
         #assets_version: SomeVersionScheme
     session:
         default_locale: en

@@ -332,6 +332,8 @@ class FieldGroup extends Field implements \IteratorAggregate, FieldGroupInterfac
             }
         }
 
+        $taintedData = $this->preprocessData($taintedData);
+
         foreach ($taintedData as $key => $value) {
             if ($this->has($key)) {
                 $this->fields[$key]->bind($value);
@@ -356,6 +358,19 @@ class FieldGroup extends Field implements \IteratorAggregate, FieldGroupInterfac
                 $this->extraFields[] = $key;
             }
         }
+    }
+
+    /**
+     * Processes the bound data before it is passed to the individual fields
+     *
+     * The data is in the user format.
+     *
+     * @param  array $data
+     * @return array
+     */
+    protected function preprocessData(array $data)
+    {
+        return $data;
     }
 
     /**
@@ -392,7 +407,7 @@ class FieldGroup extends Field implements \IteratorAggregate, FieldGroupInterfac
     /**
      * {@inheritDoc}
      */
-    public function addError($messageTemplate, array $messageParameters = array(), PropertyPathIterator $pathIterator = null, $type = null)
+    public function addError(FieldError $error, PropertyPathIterator $pathIterator = null, $type = null)
     {
         if ($pathIterator !== null) {
             if ($type === self::FIELD_ERROR && $pathIterator->hasNext()) {
@@ -403,7 +418,7 @@ class FieldGroup extends Field implements \IteratorAggregate, FieldGroupInterfac
                 }
 
                 if ($this->has($pathIterator->current()) && !$this->get($pathIterator->current())->isHidden()) {
-                    $this->get($pathIterator->current())->addError($messageTemplate, $messageParameters, $pathIterator, $type);
+                    $this->get($pathIterator->current())->addError($error, $pathIterator, $type);
 
                     return;
                 }
@@ -418,7 +433,7 @@ class FieldGroup extends Field implements \IteratorAggregate, FieldGroupInterfac
                                 $pathIterator->next();
                             }
 
-                            $field->addError($messageTemplate, $messageParameters, $pathIterator, $type);
+                            $field->addError($error, $pathIterator, $type);
 
                             return;
                         }
@@ -427,7 +442,7 @@ class FieldGroup extends Field implements \IteratorAggregate, FieldGroupInterfac
             }
         }
 
-        parent::addError($messageTemplate, $messageParameters);
+        parent::addError($error);
     }
 
     /**

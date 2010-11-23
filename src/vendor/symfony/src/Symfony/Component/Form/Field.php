@@ -46,7 +46,7 @@ use Symfony\Component\Form\ValueTransformer\TransformationFailedException;
  *
  * @author Bernhard Schussek <bernhard.schussek@symfony-project.com>
  */
-abstract class Field extends Configurable implements FieldInterface
+class Field extends Configurable implements FieldInterface
 {
     protected $taintedData = null;
     protected $locale = null;
@@ -162,7 +162,7 @@ abstract class Field extends Configurable implements FieldInterface
      */
     public function getName()
     {
-        return is_null($this->parent) ? $this->key : $this->parent->getName().'['.$this->key.']';
+        return null === $this->parent ? $this->key : $this->parent->getName().'['.$this->key.']';
     }
 
     /**
@@ -170,7 +170,7 @@ abstract class Field extends Configurable implements FieldInterface
      */
     public function getId()
     {
-        return is_null($this->parent) ? $this->key : $this->parent->getId().'_'.$this->key;
+        return null === $this->parent ? $this->key : $this->parent->getId().'_'.$this->key;
     }
 
     /**
@@ -186,7 +186,7 @@ abstract class Field extends Configurable implements FieldInterface
      */
     public function isRequired()
     {
-        if (is_null($this->parent) || $this->parent->isRequired()) {
+        if (null === $this->parent || $this->parent->isRequired()) {
             return $this->required;
         }
         return false;
@@ -197,7 +197,7 @@ abstract class Field extends Configurable implements FieldInterface
      */
     public function isDisabled()
     {
-        if (is_null($this->parent) || !$this->parent->isDisabled()) {
+        if (null === $this->parent || !$this->parent->isDisabled()) {
             return $this->getOption('disabled');
         }
         return true;
@@ -275,7 +275,7 @@ abstract class Field extends Configurable implements FieldInterface
         } catch (TransformationFailedException $e) {
             // TODO better text
             // TESTME
-            $this->addError('invalid (localized)');
+            $this->addError(new FieldError('invalid (localized)'));
         }
     }
 
@@ -317,9 +317,9 @@ abstract class Field extends Configurable implements FieldInterface
      *
      * @see FieldInterface
      */
-    public function addError($messageTemplate, array $messageParameters = array(), PropertyPathIterator $pathIterator = null, $type = null)
+    public function addError(FieldError $error, PropertyPathIterator $pathIterator = null, $type = null)
     {
-        $this->errors[] = array($messageTemplate, $messageParameters);
+        $this->errors[] = $error;
     }
 
     /**
@@ -349,7 +349,11 @@ abstract class Field extends Configurable implements FieldInterface
      */
     public function hasErrors()
     {
-        return $this->isBound() && !$this->isValid();
+        // Don't call isValid() here, as its semantics are slightly different
+        // Field groups are not valid if their children are invalid, but
+        // hasErrors() returns only true if a field/field group itself has
+        // errors
+        return count($this->errors) > 0;
     }
 
     /**

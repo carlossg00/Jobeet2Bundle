@@ -104,7 +104,7 @@ class Request
         $this->cookies = new ParameterBag(null !== $cookies ? $cookies : $_COOKIE);
         $this->files = new ParameterBag($this->convertFileInformation(null !== $files ? $files : $_FILES));
         $this->server = new ParameterBag(null !== $server ? $server : $_SERVER);
-        $this->headers = new HeaderBag($this->initializeHeaders(), 'request');
+        $this->headers = new HeaderBag($this->initializeHeaders());
 
         $this->languages = null;
         $this->charsets = null;
@@ -617,7 +617,7 @@ class Request
 
     public function isNoCache()
     {
-        return $this->headers->getCacheControl()->isNoCache() || 'no-cache' == $this->headers->get('Pragma');
+        return $this->headers->hasCacheControlDirective('no-cache') || 'no-cache' == $this->headers->get('Pragma');
     }
 
     /**
@@ -919,10 +919,12 @@ class Request
                 $keys = array_keys($data);
                 sort($keys);
 
-                if ($keys == $fileKeys) {
-                    $fixedFiles[$key] = new UploadedFile($data['tmp_name'], $data['name'], $data['type'], $data['size'], $data['error']);
-                } else {
+                if ($keys != $fileKeys) {
                     $fixedFiles[$key] = $this->convertFileInformation($data);
+                } else if ($data['error'] === UPLOAD_ERR_NO_FILE) {
+                    $fixedFiles[$key] = null;
+                } else {
+                    $fixedFiles[$key] = new UploadedFile($data['tmp_name'], $data['name'], $data['type'], $data['size'], $data['error']);
                 }
             }
         }
@@ -949,8 +951,8 @@ class Request
     {
         if (!is_array($data)) {
             return $data;
-        }    
-        
+        }
+
         $fileKeys = array('error', 'name', 'size', 'tmp_name', 'type');
         $keys = array_keys($data);
         sort($keys);

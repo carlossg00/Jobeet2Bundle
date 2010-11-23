@@ -47,7 +47,6 @@ class WebProfilerExtension extends Extension
                 if (!$container->hasDefinition('debug.toolbar')) {
                     $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
                     $loader->load('toolbar.xml');
-                    $loader->load('web_profiler.xml');
                 }
             } elseif ($container->hasDefinition('debug.toolbar')) {
                 $container->getDefinition('debug.toolbar')->clearTags();
