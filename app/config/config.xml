@@ -22,7 +22,7 @@
     </app:config>
 
     <!-- Twig Configuration -->
-    <twig:config debug="%kernel.debug%" />
+    <twig:config debug="%kernel.debug%" strict-variables="%kernel.debug%" />
 
     <!-- Doctrine Configuration -->
     <!--

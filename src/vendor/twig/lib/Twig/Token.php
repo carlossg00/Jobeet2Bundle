@@ -25,6 +25,7 @@ class Twig_Token
     const NUMBER_TYPE      = 6;
     const STRING_TYPE      = 7;
     const OPERATOR_TYPE    = 8;
+    const PUNCTUATION_TYPE = 9;
 
     public function __construct($type, $value, $lineno)
     {
@@ -47,13 +48,13 @@ class Twig_Token
      */
     public function test($type, $values = null)
     {
-        if (is_null($values) && !is_int($type)) {
+        if (null === $values && !is_int($type)) {
             $values = $type;
             $type = self::NAME_TYPE;
         }
 
         return ($this->type === $type) && (
-            is_null($values) ||
+            null === $values ||
             (is_array($values) && in_array($this->value, $values)) ||
             $this->value == $values
         );
@@ -111,6 +112,9 @@ class Twig_Token
                 break;
             case self::OPERATOR_TYPE:
                 $name = 'OPERATOR_TYPE';
+                break;
+            case self::PUNCTUATION_TYPE:
+                $name = 'PUNCTUATION_TYPE';
                 break;
             default:
                 throw new Twig_Error_Syntax(sprintf('Token of type %s does not exist.', $type));

@@ -11,7 +11,8 @@ app.config:
 
 # Twig Configuration
 twig.config:
-    debug: "%kernel.debug%"
+    debug:            %kernel.debug%
+    strict_variables: %kernel.debug%
 
 ## Doctrine Configuration
 #doctrine.dbal:

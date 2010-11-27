@@ -63,7 +63,6 @@ class Twig_Extension_Core extends Twig_Extension
             'reverse' => new Twig_Filter_Function('twig_reverse_filter'),
             'length'  => new Twig_Filter_Function('twig_length_filter', array('needs_environment' => true)),
             'sort'    => new Twig_Filter_Function('twig_sort_filter'),
-            'in'      => new Twig_Filter_Function('twig_in_filter'),
             'range'   => new Twig_Filter_Function('twig_range_filter'),
             'cycle'   => new Twig_Filter_Function('twig_cycle_filter'),
 
@@ -95,12 +94,68 @@ class Twig_Extension_Core extends Twig_Extension
         return array(
             'even'        => new Twig_Test_Function('twig_test_even'),
             'odd'         => new Twig_Test_Function('twig_test_odd'),
-            //'defined'     => new Twig_Test_Function(),
+            'defined'     => new Twig_Test_Function('twig_test_defined'),
             'sameas'      => new Twig_Test_Function('twig_test_sameas'),
             'none'        => new Twig_Test_Function('twig_test_none'),
             'divisibleby' => new Twig_Test_Function('twig_test_divisibleby'),
             'constant'    => new Twig_Test_Function('twig_test_constant'),
         );
+    }
+
+    /**
+     * Returns a list of operators to add to the existing list.
+     *
+     * @return array An array of operators
+     */
+    public function getOperators()
+    {
+        return array(
+            array(
+                'not' => array('precedence' => 50, 'class' => 'Twig_Node_Expression_Unary_Not'),
+                '-'   => array('precedence' => 50, 'class' => 'Twig_Node_Expression_Unary_Neg'),
+                '+'   => array('precedence' => 50, 'class' => 'Twig_Node_Expression_Unary_Pos'),
+            ),
+            array(
+                'or'     => array('precedence' => 10, 'class' => 'Twig_Node_Expression_Binary_Or', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                'and'    => array('precedence' => 15, 'class' => 'Twig_Node_Expression_Binary_And', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '=='     => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_Equal', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '!='     => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_NotEqual', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '<'      => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_Less', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '>'      => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_Greater', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '>='     => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_GreaterEqual', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '<='     => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_LessEqual', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                'not in' => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_NotIn', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                'in'     => array('precedence' => 20, 'class' => 'Twig_Node_Expression_Binary_In', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '+'      => array('precedence' => 30, 'class' => 'Twig_Node_Expression_Binary_Add', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '-'      => array('precedence' => 30, 'class' => 'Twig_Node_Expression_Binary_Sub', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '~'      => array('precedence' => 40, 'class' => 'Twig_Node_Expression_Binary_Concat', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '*'      => array('precedence' => 60, 'class' => 'Twig_Node_Expression_Binary_Mul', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '/'      => array('precedence' => 60, 'class' => 'Twig_Node_Expression_Binary_Div', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '//'     => array('precedence' => 60, 'class' => 'Twig_Node_Expression_Binary_FloorDiv', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '%'      => array('precedence' => 60, 'class' => 'Twig_Node_Expression_Binary_Mod', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                'is'     => array('precedence' => 100, 'callable' => array($this, 'parseTestExpression'), 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                'is not' => array('precedence' => 100, 'callable' => array($this, 'parseNotTestExpression'), 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '..'     => array('precedence' => 110, 'class' => 'Twig_Node_Expression_Binary_Range', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '**'     => array('precedence' => 200, 'class' => 'Twig_Node_Expression_Binary_Power', 'associativity' => Twig_ExpressionParser::OPERATOR_RIGHT),
+            ),
+        );
+    }
+
+    public function parseNotTestExpression($parser, $node)
+    {
+        return new Twig_Node_Expression_Unary_Not($this->parseTestExpression($parser, $node), $parser->getCurrentToken()->getLine());
+    }
+
+    public function parseTestExpression($parser, $node)
+    {
+        $stream = $parser->getStream();
+        $name = $stream->expect(Twig_Token::NAME_TYPE);
+        $arguments = null;
+        if ($stream->test(Twig_Token::PUNCTUATION_TYPE, '(')) {
+            $arguments = $parser->getExpressionParser()->parseArguments($node);
+        }
+
+        return new Twig_Node_Expression_Test($node, $name->getValue(), $arguments, $parser->getCurrentToken()->getLine());
     }
 
     /**
@@ -139,7 +194,7 @@ function twig_join_filter($value, $glue = '')
 
 function twig_default_filter($value, $default = '')
 {
-    return is_null($value) ? $default : $value;
+    return null === $value ? $default : $value;
 }
 
 function twig_get_array_keys_filter($array)
@@ -309,7 +364,7 @@ if (function_exists('mb_get_info')) {
 
     function twig_upper_filter(Twig_Environment $env, $string)
     {
-        if (!is_null($charset = $env->getCharset())) {
+        if (null !== ($charset = $env->getCharset())) {
             return mb_strtoupper($string, $charset);
         }
 
@@ -318,7 +373,7 @@ if (function_exists('mb_get_info')) {
 
     function twig_lower_filter(Twig_Environment $env, $string)
     {
-        if (!is_null($charset = $env->getCharset())) {
+        if (null !== ($charset = $env->getCharset())) {
             return mb_strtolower($string, $charset);
         }
 
@@ -327,7 +382,7 @@ if (function_exists('mb_get_info')) {
 
     function twig_title_string_filter(Twig_Environment $env, $string)
     {
-        if (!is_null($charset = $env->getCharset())) {
+        if (null !== ($charset = $env->getCharset())) {
             return mb_convert_case($string, MB_CASE_TITLE, $charset);
         }
 
@@ -336,7 +391,7 @@ if (function_exists('mb_get_info')) {
 
     function twig_capitalize_string_filter(Twig_Environment $env, $string)
     {
-        if (!is_null($charset = $env->getCharset())) {
+        if (null !== ($charset = $env->getCharset())) {
             return mb_strtoupper(mb_substr($string, 0, 1, $charset)).
                          mb_strtolower(mb_substr($string, 1, mb_strlen($string), $charset), $charset);
         }
@@ -409,4 +464,9 @@ function twig_test_odd($value)
 function twig_test_constant($value, $constant)
 {
     return constant($constant) === $value;
+}
+
+function twig_test_defined($name, $context)
+{
+    return array_key_exists($name, $context);
 }

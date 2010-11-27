@@ -15,6 +15,11 @@ fi
 
 cp -r $DIR/vendor/* .
 
+# Default configuration
+cp $DIR/../symfony-bootstrapper/src/skeleton/application/php/config/config* $DIR/app/config/
+cp $DIR/../symfony-bootstrapper/src/skeleton/application/yml/config/config* $DIR/app/config/
+cp $DIR/../symfony-bootstrapper/src/skeleton/application/xml/config/config* $DIR/app/config/
+
 # Doctrine
 cd doctrine && rm -rf UPGRADE* build* bin tests tools lib/vendor/doctrine-common/build* lib/vendor/doctrine-common/tests lib/vendor/doctrine-dbal/bin lib/vendor/doctrine-dbal/tests lib/vendor/doctrine-dbal/tools lib/vendor/doctrine-dbal/build* lib/vendor/doctrine-dbal/UPGRADE*
 cd $TARGET

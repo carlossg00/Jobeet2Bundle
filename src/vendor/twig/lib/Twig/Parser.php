@@ -50,7 +50,7 @@ class Twig_Parser implements Twig_ParserInterface
         $this->visitors = $this->env->getNodeVisitors();
 
         if (null === $this->expressionParser) {
-            $this->expressionParser = new Twig_ExpressionParser($this);
+            $this->expressionParser = new Twig_ExpressionParser($this, $this->env->getUnaryOperators(), $this->env->getBinaryOperators());
         }
 
         $this->stream = $stream;
@@ -62,7 +62,7 @@ class Twig_Parser implements Twig_ParserInterface
         try {
             $body = $this->subparse(null);
         } catch (Twig_Error_Syntax $e) {
-            if (is_null($e->getFilename())) {
+            if (null === $e->getFilename()) {
                 $e->setFilename($this->stream->getFilename());
             }
 
@@ -106,7 +106,7 @@ class Twig_Parser implements Twig_ParserInterface
                         throw new Twig_Error_Syntax('A block must start with a tag name', $token->getLine());
                     }
 
-                    if (!is_null($test) && call_user_func($test, $token)) {
+                    if (null !== $test && call_user_func($test, $token)) {
                         if ($dropNeedle) {
                             $this->stream->next();
                         }
@@ -122,7 +122,7 @@ class Twig_Parser implements Twig_ParserInterface
                     $this->stream->next();
 
                     $node = $subparser->parse($token);
-                    if (!is_null($node)) {
+                    if (null !== $node) {
                         $rv[] = $node;
                     }
                     break;
@@ -220,7 +220,7 @@ class Twig_Parser implements Twig_ParserInterface
                 ||
                 (!$node instanceof Twig_Node_Text && !$node instanceof Twig_Node_BlockReference && !$node instanceof Twig_Node_Import)
             ) {
-                throw new Twig_Error_Syntax('A template that extends another one cannot have a body', $node->getLine(), $this->stream->getFilename());
+                throw new Twig_Error_Syntax(sprintf('A template that extends another one cannot have a body (%s).', $node), $node->getLine(), $this->stream->getFilename());
             }
         }
     }
