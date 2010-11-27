@@ -7,7 +7,8 @@ app.config:
     templating:    {} #assets_version: SomeVersionScheme
     session:
         default_locale: en
-        lifetime: 3600
+        lifetime:       3600
+        auto_start:     true
 
 # Twig Configuration
 twig.config:

@@ -18,7 +18,7 @@
         <app:router resource="%kernel.root_dir%/config/routing.xml" />
         <app:validation enabled="true" annotations="true" />
         <app:templating assets_version="SomeVersionScheme" />
-        <app:session default-locale="en" lifetime="3600" />
+        <app:session default-locale="en" lifetime="3600" auto-start="true" />
     </app:config>
 
     <!-- Twig Configuration -->
