@@ -19,12 +19,13 @@
 
 namespace Doctrine\ODM\MongoDB\Mapping;
 
-use Doctrine\ODM\MongoDB\MongoDBException;
+use Doctrine\ODM\MongoDB\MongoDBException,
+    Doctrine\ODM\MongoDB\LockException;
 
 /**
  * A <tt>ClassMetadata</tt> instance holds all the object-document mapping metadata
  * of a document and it's references.
- * 
+ *
  * Once populated, ClassMetadata instances are usually cached in a serialized form.
  *
  * <b>IMPORTANT NOTE:</b>
@@ -43,6 +44,34 @@ use Doctrine\ODM\MongoDB\MongoDBException;
  */
 class ClassMetadata
 {
+    /* The Id generator types. */
+    /**
+     * AUTO means Doctrine will automatically create a new \MongoId instance for us.
+     */
+    const GENERATOR_TYPE_AUTO = 1;
+
+    /**
+     * INCREMENT means a separate collection is used for maintaining and incrementing id generation.
+     * Offers full portability.
+     */
+    const GENERATOR_TYPE_INCREMENT = 2;
+
+    /**
+     * UUID means Doctrine will generate a uuid for us.
+     */
+    const GENERATOR_TYPE_UUID = 3;
+
+    /**
+     * NONE means Doctrine will not generate any id for us and you are responsible for manually
+     * assigning an id.
+     */
+    const GENERATOR_TYPE_NONE = 4;
+
+    const REFERENCE_ONE  = 1;
+    const REFERENCE_MANY = 2;
+    const EMBED_ONE      = 3;
+    const EMBED_MANY     = 4;
+
     /* The inheritance mapping types */
     /**
      * NONE means the class does not participate in an inheritance hierarchy
@@ -96,15 +125,36 @@ class ClassMetadata
     public $collection;
 
     /**
+     * READ-ONLY: If the collection should be a fixed size.
+     */
+    public $collectionCapped;
+
+    /**
+     * READ-ONLY: If the collection is fixed size, its size in bytes.
+     */
+    public $collectionSize;
+
+    /**
+     * READ-ONLY: If the collection is fixed size, the maximum number of elements to store in the collection.
+     */
+    public $collectionMax;
+
+    /**
      * READ-ONLY: The field name of the document identifier.
      */
     public $identifier;
 
     /**
-     * READ-ONLY: The field that stores a file reference and indicates the 
+     * READ-ONLY: The field that stores a file reference and indicates the
      * document is a file and should be stored on the MongoGridFS.
      */
     public $file;
+
+    /**
+     * READ-ONLY: The field that stores the calculated distance when performing geo spatial
+     * queries.
+     */
+    public $distance;
 
     /**
      * READ-ONLY: The array of indexes for the document collection.
@@ -142,13 +192,6 @@ class ClassMetadata
     public $customRepositoryClassName;
 
     /**
-     * Whether custom id value is allowed or not
-     * 
-     * @var bool
-     */
-    public $allowCustomID = false;
-
-    /**
      * READ-ONLY: The names of the parent classes (ancestors).
      *
      * @var array
@@ -168,10 +211,10 @@ class ClassMetadata
      * @var array
      */
     public $reflFields = array();
-    
+
     /**
      * The prototype from which new instances of the mapped class are created.
-     * 
+     *
      * @var object
      */
     private $prototype;
@@ -182,6 +225,13 @@ class ClassMetadata
      * @var integer
      */
     public $inheritanceType = self::INHERITANCE_TYPE_NONE;
+
+    /**
+     * READ-ONLY: The Id generator type used by the class.
+     *
+     * @var string
+     */
+    public $generatorType = self::GENERATOR_TYPE_AUTO;
 
     /**
      * READ-ONLY: The field mappings of the class.
@@ -199,6 +249,13 @@ class ClassMetadata
      * @var array
      */
     public $fieldMappings = array();
+
+    /**
+     * READ-ONLY: The ID generator used for generating IDs for this class.
+     *
+     * @var AbstractIdGenerator
+     */
+    public $idGenerator;
 
     /**
      * READ-ONLY: Array of fields to also load with a given method.
@@ -271,6 +328,36 @@ class ClassMetadata
      * @var integer
      */
     public $changeTrackingPolicy = self::CHANGETRACKING_DEFERRED_IMPLICIT;
+
+    /**
+     * READ-ONLY: A flag for whether or not instances of this class are to be versioned
+     * with optimistic locking.
+     *
+     * @var boolean $isVersioned
+     */
+    public $isVersioned;
+
+    /**
+     * READ-ONLY: The name of the field which is used for versioning in optimistic locking (if any).
+     *
+     * @var mixed $versionField
+     */
+    public $versionField;
+
+    /**
+     * READ-ONLY: A flag for whether or not instances of this class are to allow pessimistic
+     * locking.
+     *
+     * @var boolean $isLockable
+     */
+    public $isLockable;
+
+    /**
+     * READ-ONLY: The name of the field which is used for locking a document.
+     *
+     * @var mixed $lockField
+     */
+    public $lockField;
 
     /**
      * Initializes a new ClassMetadata instance that will hold the object-document mapping
@@ -477,11 +564,16 @@ class ClassMetadata
      * @param array $keys Array of keys for the index.
      * @param array $options Array of options for the index.
      */
-    public function addIndex($keys, $options)
+    public function addIndex($keys, array $options = array())
     {
         $this->indexes[] = array(
             'keys' => array_map(function($value) {
-                return strtolower($value) == 'asc' ? 1 : -1;
+                $lower = strtolower($value);
+                if ($lower === 'asc' || $lower === 'desc') {
+                    return $lower === 'asc' ? 1 : -1;
+                } else {
+                    return $value;
+                }
             }, $keys),
             'options' => $options
         );
@@ -548,7 +640,7 @@ class ClassMetadata
     }
 
     /**
-     * Gets the ReflectionPropertys of the mapped class.
+     * Gets the ReflectionProperties of the mapped class.
      *
      * @return array An array of ReflectionProperty instances.
      */
@@ -623,13 +715,83 @@ class ClassMetadata
      *
      * @param string $collection The collection name.
      */
-    public function setCollection($collection)
+    public function setCollection($name)
     {
-        $this->collection = $collection;
+        if (is_array($name)) {
+            if ( ! isset($name['name'])) {
+                throw new \InvalidArgumentException('A name key is required when passing an array to setCollection()');
+            }
+            $this->collectionCapped = isset($name['capped']) ? $name['capped'] : false;
+            $this->collectionSize = isset($name['size']) ? $name['size'] : 0;
+            $this->collectionMax = isset($name['max']) ? $name['max'] : 0;
+            $this->collection = $name['name'];
+        } else {
+            $this->collection = $name;
+        }
     }
 
     /**
-     * Reeturns TRUE if this Document is mapped to a collection FALSE otherwise.
+     * Get whether or not the documents collection is capped.
+     *
+     * @return boolean
+     */
+    public function getCollectionCapped()
+    {
+        return $this->collectionCapped;
+    }
+
+    /**
+     * Set whether or not the documents collection is capped.
+     *
+     * @param boolean $bool
+     */
+    public function setCollectionCapped($bool)
+    {
+        $this->collectionCapped = $bool;
+    }
+
+    /**
+     * Get the collection size
+     *
+     * @return integer
+     */
+    public function getCollectionSize()
+    {
+        return $this->collectionSize;
+    }
+
+    /**
+     * Set the collection size.
+     *
+     * @param integer $size
+     */
+    public function setCollectionSize($size)
+    {
+        $this->collectionSize = $size;
+    }
+
+    /**
+     * Get the collection max.
+     *
+     * @return integer
+     */
+    public function getCollectionMax()
+    {
+        return $this->collectionMax;
+    }
+
+    /**
+     * Set the collection max.
+     *
+     * @param integer $max
+     */
+    public function setCollectionMax($max)
+    {
+        $this->collectionMax = $max;
+    }
+
+    /**
+     * Returns TRUE if this Document is mapped to a collection FALSE otherwise.
      *
      * @return boolean
      */
@@ -669,17 +831,40 @@ class ClassMetadata
     }
 
     /**
+     * Returns the distance field name.
+     *
+     * @return string $distance The distance field name.
+     */
+    public function getDistance()
+    {
+        return $this->distance;
+    }
+
+    /**
+     * Set the field name that stores the distance.
+     *
+     * @param string $distance
+     */
+    public function setDistance($distance)
+    {
+        $this->distance = $distance;
+    }
+
+    /**
      * Map a field.
      *
      * @param array $mapping The mapping information.
      */
     public function mapField(array $mapping)
     {
-        if (isset($mapping['name'])) {
+        if ( ! isset($mapping['fieldName']) && isset($mapping['name'])) {
             $mapping['fieldName'] = $mapping['name'];
         }
         if ( ! isset($mapping['fieldName'])) {
             throw MongoDBException::missingFieldName($this->name);
+        }
+        if ( ! isset($mapping['name'])) {
+            $mapping['name'] = $mapping['fieldName'];
         }
         if (isset($this->fieldMappings[$mapping['fieldName']])) {
             throw MongoDBException::duplicateFieldMapping($this->name, $mapping['fieldName']);
@@ -719,6 +904,7 @@ class ClassMetadata
         $mapping['isCascadeRefresh'] = $default;
         $mapping['isCascadeMerge'] = $default;
         $mapping['isCascadeDetach'] = $default;
+        $mapping['isCascadeCallbacks'] = $default;
         if (isset($mapping['cascade']) && is_array($mapping['cascade'])) {
             foreach ($mapping['cascade'] as $cascade) {
                 $mapping['isCascade' . ucfirst($cascade)] = true;
@@ -728,12 +914,40 @@ class ClassMetadata
         if (isset($mapping['file']) && $mapping['file'] === true) {
             $this->file = $mapping['fieldName'];
         }
+        if (isset($mapping['distance']) && $mapping['distance'] === true) {
+            $this->distance = $mapping['fieldName'];
+        }
         if (isset($mapping['id']) && $mapping['id'] === true) {
             $mapping['type'] = isset($mapping['type']) ? $mapping['type'] : 'id';
             $this->identifier = $mapping['fieldName'];
+            if (isset($mapping['strategy'])) {
+                $generatorType = constant('Doctrine\ODM\MongoDB\Mapping\ClassMetadata::GENERATOR_TYPE_' . strtoupper($mapping['strategy']));
+                if ($generatorType !== self::GENERATOR_TYPE_AUTO) {
+                    $mapping['type'] = 'custom_id';
+                }
+                $this->generatorType = $generatorType;
+            }
         }
         if ( ! isset($mapping['nullable'])) {
             $mapping['nullable'] = false;
+        }
+        if (isset($mapping['reference']) && $mapping['type'] === 'one') {
+            $mapping['association'] = self::REFERENCE_ONE;
+        }
+        if (isset($mapping['reference']) && $mapping['type'] === 'many') {
+            $mapping['association'] = self::REFERENCE_MANY;
+        }
+        if (isset($mapping['embedded']) && $mapping['type'] === 'one') {
+            $mapping['association'] = self::EMBED_ONE;
+        }
+        if (isset($mapping['embedded']) && $mapping['type'] === 'many') {
+            $mapping['association'] = self::EMBED_MANY;
+        }
+        if (isset($mapping['version'])) {
+            $this->setVersionMapping($mapping);
+        }
+        if (isset($mapping['lock'])) {
+            $this->setLockMapping($mapping);
         }
         $this->fieldMappings[$mapping['fieldName']] = $mapping;
     }
@@ -822,6 +1036,52 @@ class ClassMetadata
     }
 
     /**
+     * Checks whether the class has a mapped embed with the given field name.
+     *
+     * @param string $fieldName
+     * @return boolean
+     */
+    public function hasEmbed($fieldName)
+    {
+        return isset($this->fieldMappings[$fieldName]['embedded']);
+    }
+
+    /**
+     * Checks whether the class has a mapped association (embed or reference) with the given field name.
+     *
+     * @param string $fieldName
+     * @return boolean
+     */
+    public function hasAssociation($fieldName)
+    {
+        return $this->hasReference($fieldName) || $this->hasEmbed($fieldName);
+    }
+
+    /**
+     * Checks whether the class has a mapped reference or embed for the specified field and
+     * is a single valued association.
+     *
+     * @param string $fieldName
+     * @return boolean TRUE if the association exists and is single-valued, FALSE otherwise.
+     */
+    public function isSingleValuedAssociation($fieldName)
+    {
+        return $this->isSingleValuedReference($fieldName) || $this->isSingleValuedEmbed($fieldName);
+    }
+
+    /**
+     * Checks whether the class has a mapped reference or embed for the specified field and
+     * is a collection valued association.
+     *
+     * @param string $fieldName
+     * @return boolean TRUE if the association exists and is collection-valued, FALSE otherwise.
+     */
+    public function isCollectionValuedAssociation($fieldName)
+    {
+        return $this->isCollectionValuedReference($fieldName) || $this->isCollectionValuedEmbed($fieldName);
+    }
+
+    /**
      * Checks whether the class has a mapped association for the specified field
      * and if yes, checks whether it is a single-valued association (to-one).
      *
@@ -830,8 +1090,8 @@ class ClassMetadata
      */
     public function isSingleValuedReference($fieldName)
     {
-        return isset($this->fieldMappings[$fieldName]['reference']) &&
-                $this->fieldMappings[$fieldName]['type'] === 'one';
+        return isset($this->fieldMappings[$fieldName]['association']) &&
+                $this->fieldMappings[$fieldName]['association'] === self::REFERENCE_ONE;
     }
 
     /**
@@ -843,8 +1103,8 @@ class ClassMetadata
      */
     public function isCollectionValuedReference($fieldName)
     {
-        return isset($this->fieldMappings[$fieldName]['reference']) &&
-                $this->fieldMappings[$fieldName]['type'] === 'many';
+        return isset($this->fieldMappings[$fieldName]['association']) &&
+                $this->fieldMappings[$fieldName]['association'] === self::REFERENCE_MANY;
     }
 
     /**
@@ -856,8 +1116,8 @@ class ClassMetadata
      */
     public function isSingleValuedEmbed($fieldName)
     {
-        return isset($this->fieldMappings[$fieldName]['embedded']) &&
-                $this->fieldMappings[$fieldName]['type'] === 'one';
+        return isset($this->fieldMappings[$fieldName]['association']) &&
+                $this->fieldMappings[$fieldName]['association'] === self::EMBED_ONE;
     }
 
     /**
@@ -869,16 +1129,38 @@ class ClassMetadata
      */
     public function isCollectionValuedEmbed($fieldName)
     {
-        return isset($this->fieldMappings[$fieldName]['embedded']) &&
-                $this->fieldMappings[$fieldName]['type'] === 'many';
+        return isset($this->fieldMappings[$fieldName]['association']) &&
+                $this->fieldMappings[$fieldName]['association'] === self::EMBED_MANY;
     }
 
+    /**
+     * Sets the ID generator used to generate IDs for instances of this class.
+     *
+     * @param AbstractIdGenerator $generator
+     */
+    public function setIdGenerator($generator)
+    {
+        $this->idGenerator = $generator;
+    }
+
+    /**
+     * Casts the identifier to its portable PHP type.
+     *
+     * @param mixed $id
+     * @return mixed $id
+     */
     public function getPHPIdentifierValue($id)
     {
         $idType = $this->fieldMappings[$this->identifier]['type'];
         return Types\Type::getType($idType)->convertToPHPValue($id);
     }
 
+    /**
+     * Casts the identifier to its database type.
+     *
+     * @param mixed $id
+     * @return mixed $id
+     */
     public function getDatabaseIdentifierValue($id)
     {
         $idType = $this->fieldMappings[$this->identifier]['type'];
@@ -984,6 +1266,14 @@ class ClassMetadata
     }
 
     /**
+     * Sets the type of Id generator to use for the mapped class.
+     */
+    public function setIdGeneratorType($generatorType)
+    {
+        $this->generatorType = $generatorType;
+    }
+
+    /**
      * @return boolean
      */
     public function isInheritanceTypeNone()
@@ -1043,28 +1333,120 @@ class ClassMetadata
     }
 
     /**
-     * Set whether or not a custom id is allowed.
+     * Checks whether the class will generate a new \MongoId instance for us.
      *
-     * @param bool $bool
+     * @return boolean TRUE if the class uses the AUTO generator, FALSE otherwise.
      */
-    public function setAllowCustomId($bool)
+    public function isIdGeneratorAuto()
     {
-        $this->allowCustomID = (bool) $bool;
+        return $this->generatorType == self::GENERATOR_TYPE_AUTO;
     }
 
     /**
-     * Get whether or not a custom id is allowed.
+     * Checks whether the class will use a collection to generate incremented identifiers.
      *
-     * @param bool $bool
+     * @return boolean TRUE if the class uses the INCREMENT generator, FALSE otherwise.
      */
-    public function getAllowCustomID()
+    public function isIdGeneratorIncrement()
     {
-        return $this->allowCustomID;
+        return $this->generatorType == self::GENERATOR_TYPE_INCREMENT;
+    }
+
+    /**
+     * Checks whether the class will generate a uuid id.
+     *
+     * @return boolean TRUE if the class uses the UUID generator, FALSE otherwise.
+     */
+    public function isIdGeneratorUuid()
+    {
+        return $this->generatorType == self::GENERATOR_TYPE_UUID;
+    }
+
+    /**
+     * Checks whether the class uses no id generator.
+     *
+     * @return boolean TRUE if the class does not use any id generator, FALSE otherwise.
+     */
+    public function isIdGeneratorNone()
+    {
+        return $this->generatorType == self::GENERATOR_TYPE_NONE;
+    }
+
+    /**
+     * Sets the version field mapping used for versioning. Sets the default
+     * value to use depending on the column type.
+     *
+     * @param array $mapping   The version field mapping array
+     */
+    public function setVersionMapping(array &$mapping)
+    {
+        if ($mapping['type'] !== 'int' && $mapping['type'] !== 'date') {
+            throw LockException::invalidVersionFieldType($mapping['type']);
+        }
+        $this->isVersioned = true;
+        $this->versionField = $mapping['fieldName'];
+    }
+
+    /**
+     * Sets whether this class is to be versioned for optimistic locking.
+     *
+     * @param boolean $bool
+     */
+    public function setVersioned($bool)
+    {
+        $this->isVersioned = $bool;
+    }
+
+    /**
+     * Sets the name of the field that is to be used for versioning if this class is
+     * versioned for optimistic locking.
+     *
+     * @param string $versionField
+     */
+    public function setVersionField($versionField)
+    {
+        $this->versionField = $versionField;
+    }
+
+    /**
+     * Sets the version field mapping used for versioning. Sets the default
+     * value to use depending on the column type.
+     *
+     * @param array $mapping   The version field mapping array
+     */
+    public function setLockMapping(array &$mapping)
+    {
+        if ($mapping['type'] !== 'int') {
+            throw LockException::invalidLockFieldType($mapping['type']);
+        }
+        $this->isLockable = true;
+        $this->lockField = $mapping['fieldName'];
+    }
+
+    /**
+     * Sets whether this class is to allow pessimistic locking.
+     *
+     * @param boolean $bool
+     */
+    public function setLockable($bool)
+    {
+        $this->isLockable = $bool;
+    }
+
+    /**
+     * Sets the name of the field that is to be used for storing whether a document
+     * is currently locked or not.
+     *
+     * @param string $lockField
+     */
+    public function setLockField($lockField)
+    {
+        $this->lockField = $lockField;
     }
 
     /**
      * Creates a new instance of the mapped class, without invoking the constructor.
-     * 
+     *
      * @return object
      */
     public function newInstance()
@@ -1081,11 +1463,11 @@ class ClassMetadata
      * It is only serialized what is necessary for best unserialization performance.
      * That means any metadata properties that are not set or empty or simply have
      * their default value are NOT serialized.
-     * 
+     *
      * Parts that are also NOT serialized because they can not be properly unserialized:
      *      - reflClass (ReflectionClass)
      *      - reflFields (ReflectionProperty array)
-     * 
+     *
      * @return array The names of all the fields that should be serialized.
      */
     public function __sleep()
@@ -1099,6 +1481,7 @@ class ClassMetadata
             'db',
             'collection',
             'rootDocumentName',
+            'idGenerator'
         );
 
         // The rest of the metadata is only serialized if necessary.
@@ -1127,6 +1510,11 @@ class ClassMetadata
             $serialized[] = 'isEmbeddedDocument';
         }
 
+        if ($this->isVersioned) {
+            $serialized[] = 'isVersioned';
+            $serialized[] = 'versionField';
+        }
+
         if ($this->lifecycleCallbacks) {
             $serialized[] = 'lifecycleCallbacks';
         }
@@ -1136,7 +1524,7 @@ class ClassMetadata
 
     /**
      * Restores some state that can not be serialized/unserialized.
-     * 
+     *
      * @return void
      */
     public function __wakeup()

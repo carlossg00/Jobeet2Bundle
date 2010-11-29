@@ -93,19 +93,15 @@ class MsSqlPlatform extends AbstractPlatform
      */
     public function getDropDatabaseSQL($name)
     {
-        // @todo do we really need to force drop?
-        return 'ALTER DATABASE [' . $name . ']
-SET SINGLE_USER
-WITH ROLLBACK IMMEDIATE;
-DROP DATABASE ' . $name . ';';
+        return 'DROP DATABASE ' . $name;
     }
 
     /**
      * @override
      */
-    public function quoteIdentifier($str)
+	public function supportsCreateDropDatabase()
     {
-        return '[' . $str . ']';
+        return false;
     }
 
     /**
@@ -114,11 +110,11 @@ DROP DATABASE ' . $name . ';';
     public function getDropForeignKeySQL($foreignKey, $table)
     {
         if ($foreignKey instanceof \Doctrine\DBAL\Schema\ForeignKeyConstraint) {
-            $foreignKey = $foreignKey->getName();
+            $foreignKey = $foreignKey->getQuotedName($this);
         }
 
         if ($table instanceof \Doctrine\DBAL\Schema\Table) {
-            $table = $table->getName();
+            $table = $table->getQuotedName($this);
         }
 
         return 'ALTER TABLE ' . $table . ' DROP CONSTRAINT ' . $foreignKey;
@@ -131,7 +127,7 @@ DROP DATABASE ' . $name . ';';
     {
         if ($index instanceof \Doctrine\DBAL\Schema\Index) {
             $index_ = $index;
-            $index = $index->getName();
+            $index = $index->getQuotedName($this);
         } else if (!is_string($index)) {
             throw new \InvalidArgumentException('AbstractPlatform::getDropIndexSQL() expects $index parameter to be string or \Doctrine\DBAL\Schema\Index.');
         }
@@ -140,42 +136,14 @@ DROP DATABASE ' . $name . ';';
             return 'DROP INDEX ' . $index;
         } else {
             if ($table instanceof \Doctrine\DBAL\Schema\Table) {
-                $table = $table->getName();
+                $table = $table->getQuotedName($this);
             }
 
             return "IF EXISTS (SELECT * FROM sysobjects WHERE name = '$index')
-						ALTER TABLE " . $this->quoteIdentifier($table) . " DROP CONSTRAINT " . $this->quoteIdentifier($index) . "
+						ALTER TABLE " . $table . " DROP CONSTRAINT " . $index . "
 					ELSE
-						DROP INDEX " . $this->quoteIdentifier($index) . " ON " . $this->quoteIdentifier($table);
+						DROP INDEX " . $index . " ON " . $table;
         }
-    }
-
-    /**
-     * @override
-     */
-    public function getCreateTableSQL(Table $table, $createFlags=self::CREATE_INDEXES)
-    {
-        $sql = parent::getCreateTableSQL($table, $createFlags);
-
-        $primary = array();
-
-        foreach ($table->getIndexes() AS $index) {
-            /* @var $index Index */
-            if ($index->isPrimary()) {
-                $primary = $index->getColumns();
-            }
-        }
-
-        if (count($primary) === 1) {
-            foreach ($table->getForeignKeys() AS $definition) {
-                $columns = $definition->getLocalColumns();
-                if (count($columns) === 1 && in_array($columns[0], $primary)) {
-                    $sql[0] = str_replace(' IDENTITY', '', $sql[0]);
-                }
-            }
-        }
-
-        return $sql;
     }
 
     /**
@@ -183,6 +151,14 @@ DROP DATABASE ' . $name . ';';
      */
     protected function _getCreateTableSQL($tableName, array $columns, array $options = array())
     {
+		// @todo does other code breaks because of this?
+		// foce primary keys to be not null
+		foreach ($columns as &$column) {
+			if (isset($column['primary']) && $column['primary']) {
+				$column['notnull'] = true;
+			}
+		}
+	
         $columnListSql = $this->getColumnDeclarationListSQL($columns);
 
         if (isset($options['uniqueConstraints']) && !empty($options['uniqueConstraints'])) {
@@ -219,6 +195,53 @@ DROP DATABASE ' . $name . ';';
 
         return $sql;
     }
+	
+	/**
+     * @override
+     */
+	public function getUniqueConstraintDeclarationSQL($name, Index $index)
+    {
+        $constraint = parent::getUniqueConstraintDeclarationSQL($name, $index);
+		
+		$constraint = $this->_appendUniqueConstraintDefinition($constraint, $index);
+		
+		return $constraint;
+    }
+	
+	/**
+     * @override
+     */
+	public function getCreateIndexSQL(Index $index, $table)
+    {	
+		$constraint = parent::getCreateIndexSQL($index, $table);
+		
+		if ($index->isUnique()) {
+			$constraint = $this->_appendUniqueConstraintDefinition($constraint, $index);
+		}
+		
+		return $constraint;
+	}
+	
+	/**
+     * Extend unique key constraint with required filters
+	 *
+	 * @param string $sql
+	 * @param Index $index
+	 * @return string
+     */
+	private function _appendUniqueConstraintDefinition($sql, Index $index)
+	{
+		$fields = array();
+        foreach ($index->getColumns() as $field => $definition) {
+            if (!is_array($definition)) {
+                $field = $definition;
+            }
+			
+			$fields[] = $field . ' IS NOT NULL';
+        }
+	
+		return $sql . ' WHERE ' . implode(' AND ', $fields);
+	}
 
     /**
      * @override
@@ -231,23 +254,23 @@ DROP DATABASE ' . $name . ';';
         }
 
         foreach ($diff->addedColumns AS $fieldName => $column) {
-            $queryParts[] = 'ADD ' . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
+            $queryParts[] = 'ADD ' . $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
         }
 
         foreach ($diff->removedColumns AS $column) {
-            $queryParts[] = 'DROP COLUMN ' . $column->getName();
+            $queryParts[] = 'DROP COLUMN ' . $column->getQuotedName($this);
         }
 
         foreach ($diff->changedColumns AS $columnDiff) {
             /* @var $columnDiff Doctrine\DBAL\Schema\ColumnDiff */
             $column = $columnDiff->column;
             $queryParts[] = 'CHANGE ' . ($columnDiff->oldColumnName) . ' '
-                    . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
+                    . $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
         }
 
         foreach ($diff->renamedColumns AS $oldColumnName => $column) {
             $queryParts[] = 'CHANGE ' . $oldColumnName . ' '
-                    . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
+                    . $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
         }
 
         $sql = array();
@@ -393,19 +416,38 @@ DROP DATABASE ' . $name . ';';
      */
     public function getTrimExpression($str, $pos = self::TRIM_UNSPECIFIED, $char = false)
     {
-        // @todo
         $trimFn = '';
-        $trimChar = ($char != false) ? (', ' . $char) : '';
 
-        if ($pos == self::TRIM_LEADING) {
-            $trimFn = 'LTRIM';
-        } else if ($pos == self::TRIM_TRAILING) {
-            $trimFn = 'RTRIM';
-        } else {
-            return 'LTRIM(RTRIM(' . $str . '))';
-        }
+		if (!$char) {
+			if ($pos == self::TRIM_LEADING) {
+				$trimFn = 'LTRIM';
+			} else if ($pos == self::TRIM_TRAILING) {
+				$trimFn = 'RTRIM';
+			} else {
+				return 'LTRIM(RTRIM(' . $str . '))';
+			}
 
-        return $trimFn . '(' . $str . ')';
+			return $trimFn . '(' . $str . ')';
+		} else {
+			/** Original query used to get those expressions
+				declare @c varchar(100) = 'xxxBarxxx', @trim_char char(1) = 'x';
+				declare @pat varchar(10) = '%[^' + @trim_char + ']%';
+				select @c as string
+					 , @trim_char as trim_char
+					 , stuff(@c, 1, patindex(@pat, @c) - 1, null) as trim_leading
+					 , reverse(stuff(reverse(@c), 1, patindex(@pat, reverse(@c)) - 1, null)) as trim_trailing
+					 , reverse(stuff(reverse(stuff(@c, 1, patindex(@pat, @c) - 1, null)), 1, patindex(@pat, reverse(stuff(@c, 1, patindex(@pat, @c) - 1, null))) - 1, null)) as trim_both;
+			 */
+			$pattern = "'%[^' + $char + ']%'";
+			
+			if ($pos == self::TRIM_LEADING) {
+				return 'stuff(' . $str . ', 1, patindex(' . $pattern .', ' . $str . ') - 1, null)';
+			} else if ($pos == self::TRIM_TRAILING) {
+				return 'reverse(stuff(reverse(' . $str . '), 1, patindex(' . $pattern .', reverse(' . $str . ')) - 1, null))';
+			} else {
+				return 'reverse(stuff(reverse(stuff(' . $str . ', 1, patindex(' . $pattern .', ' . $str . ') - 1, null)), 1, patindex(' . $pattern .', reverse(stuff(' . $str . ', 1, patindex(' . $pattern .', ' . $str . ') - 1, null))) - 1, null))';
+			}
+		}
     }
 
     /**
@@ -478,7 +520,7 @@ DROP DATABASE ' . $name . ';';
     {
         if (!isset($field['length'])) {
             if (array_key_exists('default', $field)) {
-                $field['length'] = $this->getVarcharMaxLength();
+                $field['length'] = $this->getVarcharDefaultLength();
             } else {
                 $field['length'] = false;
             }
@@ -650,6 +692,9 @@ DROP DATABASE ' . $name . ';';
         return 'mssql';
     }
 
+    /**
+     * @override
+     */
     protected function initializeDoctrineTypeMappings()
     {
         $this->doctrineTypeMapping = array(
@@ -715,5 +760,29 @@ DROP DATABASE ' . $name . ';';
     public function rollbackSavePoint($savepoint)
     {
         return 'ROLLBACK TRANSACTION ' . $savepoint;
+    }
+	
+	/**
+     * @override
+     */
+	public function appendLockHint($fromClause, $lockMode)
+    {
+		// @todo coorect
+		if ($lockMode == \Doctrine\DBAL\LockMode::PESSIMISTIC_READ) {
+            return $fromClause . ' WITH (tablockx)';
+        } else if ($lockMode == \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE) {
+            return $fromClause . ' WITH (tablockx)';
+        }
+		else {
+			return $fromClause;
+		}
+    }
+
+    /**
+     * @override
+     */
+    public function getForUpdateSQL()
+    {
+        return ' ';
     }
 }

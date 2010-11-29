@@ -170,9 +170,16 @@ class MappingException extends \Doctrine\ORM\ORMException
         );
     }
 
-    public static function fileMappingDriversRequireConfiguredDirectoryPath()
+    public static function fileMappingDriversRequireConfiguredDirectoryPath($path = null)
     {
-        return new self('File mapping drivers must have a valid directory path, however the given path seems to be incorrect!');
+        if ( ! empty($path)) {
+            $path = '[' . $path . ']';
+        }
+        
+        return new self(
+            'File mapping drivers must have a valid directory path, ' .
+            'however the given path ' . $path . ' seems to be incorrect!'
+        );
     }
 
     /**
@@ -200,6 +207,16 @@ class MappingException extends \Doctrine\ORM\ORMException
         return new self("Entity class '$className' is using inheritance but no discriminator column was defined.");
     }
 
+    public static function invalidDiscriminatorColumnType($className, $type)
+    {
+        return new self("Discriminator column type on entity class '$className' is not allowed to be '$type'. 'string' or 'integer' type variables are suggested!");
+    }
+
+    public static function cannotVersionIdField($className, $fieldName)
+    {
+        return new self("Setting Id field '$fieldName' as versionale in entity class '$className' is not supported.");
+    }
+
     /**
      * @param  string $className
      * @param  string $columnName
@@ -209,4 +226,5 @@ class MappingException extends \Doctrine\ORM\ORMException
     {
         return new self("Duplicate definition of column '".$columnName."' on entity '".$className."' in a field or discriminator column mapping.");
     }
+
 }

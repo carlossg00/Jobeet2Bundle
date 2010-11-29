@@ -6,7 +6,6 @@
 
 <project name="Doctrine DBAL" default="build" basedir=".">
     <taskdef classname="phing.tasks.ext.d51PearPkg2Task" name="d51pearpkg2" />
-    <taskdef classname="NativePhpunitTask" classpath="./tests/" name="nativephpunit" />
 
     <property file="build.properties" />
 
@@ -75,7 +74,7 @@
     <!--
         Builds DBAL package, preparing it for distribution.
     -->
-    <target name="build-dbal" depends="test">
+    <target name="build-dbal" depends="prepare">
         <copy todir="${build.dir}/doctrine-dbal">
             <fileset refid="shared-artifacts"/>
         </copy>
@@ -93,7 +92,7 @@
         <exec command="mv ${build.dir}/doctrine-dbal/Doctrine/DBAL/Version2.php ${build.dir}/doctrine-dbal/Doctrine/DBAL/Version.php" passthru="true" />
     </target>
 
-    <target name="build" depends="test, build-dbal"/>
+    <target name="build" depends="test,build-dbal"/>
 
     <!--
         Runs the full test suite.
@@ -101,17 +100,23 @@
     <target name="test" depends="prepare">
         <if><equals arg1="${test.phpunit_generate_coverage}" arg2="1" />
             <then>
-                <property name="test.phpunit_coverage_file" value="${build.dir}/logs/clover.xml" />
+                <property name="test.phpunit_coverage_option" value="--coverage-clover ${build.dir}/logs/clover.xml" />
             </then>
             <else>
-                <property name="test.phpunit_coverage_file" value="false" />
+                <property name="test.phpunit_coverage_option" value="" />
             </else>
         </if>
 
-        <nativephpunit
-            testfile="./tests/Doctrine/Tests/AllTests.php" junitlogfile="${build.dir}/logs/testsuites.xml"
-            testdirectory="./tests"  coverageclover="${test.phpunit_coverage_file}" configuration="${test.phpunit_configuration_file}"
-        />
+        <if><equals arg1="${test.phpunit_configuration_file}" arg2="" />
+            <then>
+                <property name="test.phpunit_configuration_option" value="" />
+            </then>
+            <else>
+                <property name="test.phpunit_configuration_option" value="--configuration ${test.phpunit_configuration_file}" />
+            </else>
+        </if>
+
+        <exec command="phpunit ${test.phpunit_configuration_option} ${test.phpunit_coverage_option} --log-junit ../${build.dir}/logs/testsuites.xml Doctrine/Tests/AllTests.php" dir="./tests" />
         <phpunitreport infile="${build.dir}/logs/testsuites.xml" format="frames" todir="${report.dir}/tests" />
 
         <tstamp/>
@@ -131,7 +136,7 @@
     <!--
         Builds distributable PEAR packages.
     -->
-    <target name="build-packages" depends="build">
+    <target name="build-packages" depends="build-dbal">
         <d51pearpkg2 baseinstalldir="/" dir="${build.dir}/doctrine-dbal">
            <name>DoctrineDBAL</name>
            <summary>Doctrine Database Abstraction Layer</summary>
@@ -166,4 +171,29 @@
             </fileset>
         </tar>
     </target>
+
+    <target name="git-tag">
+        <exec command="git tag -a ${version}" passthru="true" />
+        <exec command="git push origin ${version}" passthru="true" />
+    </target>
+
+    <target name="pirum-release">
+        <exec command="pirum add ${project.pirum_dir} ${project.basedir}/dist/DoctrineDBAL-${version}.tgz" dir="."  passthru="true" />
+        <exec command="pirum build ${project.pirum_dir}" passthru="true" />
+    </target>
+
+    <target name="distribute-download">
+        <copy file="dist/DoctrineDBAL-${version}-full.tar.gz" todir="${project.download_dir}" />
+    </target>
+
+    <target name="update-dev-version">
+        <propertyprompt propertyName="next_version" defaultValue="${version}" promptText="Enter next version string (without -DEV)" />
+        <exec command="sed 's/${version}-DEV/${next_version}-DEV/' ${project.basedir}/lib/Doctrine/DBAL/Version.php > ${project.basedir}/lib/Doctrine/DBAL/Version2.php" passthru="true" />
+        <exec command="mv ${project.basedir}/lib/Doctrine/DBAL/Version2.php ${project.basedir}/lib/Doctrine/DBAL/Version.php" passthru="true" />
+        <exec command="git add ${project.basedir}/lib/Doctrine/DBAL/Version.php" passthru="true" />
+        <exec command="git commit -m 'Bump Dev Version to ${next_version}'" passthru="true" />
+        <exec command="git push origin master" passthru="true" />
+    </target>
+
+    <target name="release" depends="git-tag,build-packages,distribute-download,pirum-release,update-dev-version" />
 </project>

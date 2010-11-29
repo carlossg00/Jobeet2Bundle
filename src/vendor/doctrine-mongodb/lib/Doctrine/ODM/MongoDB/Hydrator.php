@@ -19,12 +19,16 @@
 
 namespace Doctrine\ODM\MongoDB;
 
+use Doctrine\Common\EventManager;
+
 use Doctrine\ODM\MongoDB\Query,
     Doctrine\ODM\MongoDB\Mapping\ClassMetadata,
     Doctrine\ODM\MongoDB\Mapping\Types\Type,
     Doctrine\ODM\MongoDB\PersistentCollection,
     Doctrine\Common\Collections\ArrayCollection,
-    Doctrine\Common\Collections\Collection;
+    Doctrine\Common\Collections\Collection,
+    Doctrine\ODM\MongoDB\Event\LifecycleEventArgs,
+    Doctrine\ODM\MongoDB\Event\PreLoadEventArgs;
 
 /**
  * The Hydrator class is responsible for converting a document from MongoDB
@@ -38,11 +42,18 @@ use Doctrine\ODM\MongoDB\Query,
 class Hydrator
 {
     /**
-     * The DocumentManager associationed with this Hydrator
+     * The DocumentManager associated with this Hydrator
      *
      * @var Doctrine\ODM\MongoDB\DocumentManager
      */
     private $dm;
+
+    /**
+     * The EventManager associated with this Hydrator
+     *
+     * @var Doctrine\Common\EventManager
+     */
+    private $evm;
 
     /**
      * Mongo command prefix
@@ -54,11 +65,14 @@ class Hydrator
      * Create a new Hydrator instance
      *
      * @param Doctrine\ODM\MongoDB\DocumentManager $dm
+     * @param Doctrine\Common\EventManager $evm
+     * @param string $cmd
      */
-    public function __construct(DocumentManager $dm)
+    public function __construct(DocumentManager $dm, EventManager $evm, $cmd)
     {
         $this->dm = $dm;
-        $this->cmd = $dm->getConfiguration()->getMongoCmd();
+        $this->evm = $evm;
+        $this->cmd = $cmd;
     }
 
     /**
@@ -71,6 +85,15 @@ class Hydrator
     public function hydrate($document, &$data)
     {
         $metadata = $this->dm->getClassMetadata(get_class($document));
+
+        if (isset($metadata->lifecycleCallbacks[ODMEvents::preLoad])) {
+            $args = array(&$data);
+            $metadata->invokeLifecycleCallbacks(ODMEvents::preLoad, $document, $args);
+        }
+        if ($this->evm->hasListeners(ODMEvents::preLoad)) {
+            $this->evm->dispatchEvent(ODMEvents::preLoad, new PreLoadEventArgs($document, $this->dm, $data));
+        }
+
         if (isset($metadata->alsoLoadMethods)) {
             foreach ($metadata->alsoLoadMethods as $fieldName => $method) {
                 if (isset($data[$fieldName])) {
@@ -82,7 +105,7 @@ class Hydrator
             if (isset($mapping['alsoLoadFields'])) {
                 $rawValue = null;
                 $names = isset($mapping['alsoLoadFields']) ? $mapping['alsoLoadFields'] : array();
-                array_unshift($names, $mapping['fieldName']);
+                array_unshift($names, $mapping['name']);
                 foreach ($names as $name) {
                     if (isset($data[$name])) {
                         $rawValue = $data[$name];
@@ -90,33 +113,53 @@ class Hydrator
                     }
                 }
             } else {
-                $rawValue = isset($data[$mapping['fieldName']]) ? $data[$mapping['fieldName']] : null;
+                $rawValue = isset($data[$mapping['name']]) ? $data[$mapping['name']] : null;
             }
-            if ($rawValue === null) {
-                continue;
-            }
-
             $value = null;
 
+            if (isset($mapping['file'])) {
+                $value = new MongoGridFSFile($rawValue);
             // Hydrate embedded
-            if (isset($mapping['embedded'])) {
+            } elseif (isset($mapping['embedded'])) {
+                $uow = $this->dm->getUnitOfWork();
                 if ($mapping['type'] === 'one') {
+                    if ($rawValue === null) {
+                        continue;
+                    }
                     $embeddedDocument = $rawValue;
                     $className = $this->dm->getClassNameFromDiscriminatorValue($mapping, $embeddedDocument);
                     $embeddedMetadata = $this->dm->getClassMetadata($className);
                     $value = $embeddedMetadata->newInstance();
+
+                    // unset a potential discriminator map field (unless it's a persisted property)
+                    $discriminatorField = isset($mapping['discriminatorField']) ? $mapping['discriminatorField'] : '_doctrine_class_name';
+                    if (!isset($embeddedMetadata->fieldMappings[$discriminatorField])) {
+                        unset($embeddedDocument[$discriminatorField]);
+                    }
+
                     $this->hydrate($value, $embeddedDocument);
-                    $this->dm->getUnitOfWork()->registerManagedEmbeddedDocument($value, $embeddedDocument);
+                    $uow->registerManaged($value, null, $embeddedDocument);
+                    $uow->setParentAssociation($value, $mapping, $document, $mapping['name']);
                 } elseif ($mapping['type'] === 'many') {
                     $embeddedDocuments = $rawValue;
-                    $coll = new PersistentCollection(new ArrayCollection());
-                    foreach ($embeddedDocuments as $embeddedDocument) {
-                        $className = $this->dm->getClassNameFromDiscriminatorValue($mapping, $embeddedDocument);
-                        $embeddedMetadata = $this->dm->getClassMetadata($className);
-                        $embeddedDocumentObject = $embeddedMetadata->newInstance();
-                        $this->hydrate($embeddedDocumentObject, $embeddedDocument);
-                        $this->dm->getUnitOfWork()->registerManagedEmbeddedDocument($embeddedDocumentObject, $embeddedDocument);
-                        $coll->add($embeddedDocumentObject);
+                    $coll = new PersistentCollection(new ArrayCollection(), $this->dm, $this->dm->getConfiguration());
+                    if ($embeddedDocuments) {
+                        foreach ($embeddedDocuments as $key => $embeddedDocument) {
+                            $className = $this->dm->getClassNameFromDiscriminatorValue($mapping, $embeddedDocument);
+                            $embeddedMetadata = $this->dm->getClassMetadata($className);
+                            $embeddedDocumentObject = $embeddedMetadata->newInstance();
+
+                            // unset a potential discriminator map field (unless it's a persisted property)
+                            $discriminatorField = isset($mapping['discriminatorField']) ? $mapping['discriminatorField'] : '_doctrine_class_name';
+                            if (!isset($embeddedMetadata->fieldMappings[$discriminatorField])) {
+                                unset($embeddedDocument[$discriminatorField]);
+                            }
+
+                            $this->hydrate($embeddedDocumentObject, $embeddedDocument);
+                            $uow->registerManaged($embeddedDocumentObject, null, $embeddedDocument);
+                            $uow->setParentAssociation($embeddedDocumentObject, $mapping, $document, $mapping['name'].'.'.$key);
+                            $coll->add($embeddedDocumentObject);
+                        }
                     }
                     $coll->setOwner($document, $mapping);
                     $coll->takeSnapshot();
@@ -126,13 +169,16 @@ class Hydrator
             } elseif (isset($mapping['reference'])) {
                 $reference = $rawValue;
                 if ($mapping['type'] === 'one' && isset($reference[$this->cmd . 'id'])) {
+                    if ($reference === null) {
+                        continue;
+                    }
                     $className = $this->dm->getClassNameFromDiscriminatorValue($mapping, $reference);
                     $targetMetadata = $this->dm->getClassMetadata($className);
                     $id = $targetMetadata->getPHPIdentifierValue($reference[$this->cmd . 'id']);
                     $value = $this->dm->getReference($className, $id);
                 } elseif ($mapping['type'] === 'many' && (is_array($reference) || $reference instanceof Collection)) {
                     $references = $reference;
-                    $value = new PersistentCollection(new ArrayCollection(), $this->dm);
+                    $value = new PersistentCollection(new ArrayCollection(), $this->dm, $this->dm->getConfiguration());
                     $value->setInitialized(false);
                     $value->setOwner($document, $mapping);
 
@@ -140,24 +186,32 @@ class Hydrator
                     // accessed and initialized for the first ime
                     $value->setReferences($references);
                 }
-
             // Hydrate regular field
             } else {
                 $value = Type::getType($mapping['type'])->convertToPHPValue($rawValue);
             }
 
+            unset($data[$mapping['name']]);
             // Set hydrated field value to document
             if ($value !== null) {
-                $data[$mapping['fieldName']] = $value;
                 $metadata->setFieldValue($document, $mapping['fieldName'], $value);
+                $data[$mapping['fieldName']] = $value;
             }
         }
         // Set the document identifier
         if (isset($data['_id'])) {
             $metadata->setIdentifierValue($document, $data['_id']);
-            $data[$metadata->identifier] = $data['_id'];
+            $data[$metadata->identifier] = Type::getType($metadata->fieldMappings[$metadata->identifier]['type'])->convertToPHPValue($data['_id']);
             unset($data['_id']);
         }
+
+        if (isset($metadata->lifecycleCallbacks[ODMEvents::postLoad])) {
+            $metadata->invokeLifecycleCallbacks(ODMEvents::postLoad, $document);
+        }
+        if ($this->evm->hasListeners(ODMEvents::postLoad)) {
+            $this->evm->dispatchEvent(ODMEvents::postLoad, new LifecycleEventArgs($document, $this->dm));
+        }
+
         return $document;
     }
 }

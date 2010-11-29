@@ -326,7 +326,8 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $table->addIndex(array("ID"), "my_idx");
 
         $this->assertTrue($table->hasIndex('my_idx'));
-        $this->assertEquals(array("id"), $table->getIndex("my_idx")->getColumns());
+        $this->assertEquals(array("ID"), $table->getIndex("my_idx")->getColumns());
+        $this->assertTrue($table->getIndex('my_idx')->spansColumns(array('id')));
     }
 
     public function testAddPrimaryKey_ColumnsAreExplicitlySetToNotNull()
@@ -399,5 +400,20 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, count($table->getIndexes()));
         $this->assertFalse($table->hasIndex('bar_baz_idx'));
         $this->assertTrue($table->hasIndex('bar_baz_uniq'));
+    }
+
+    /**
+     * @group DBAL-64
+     */
+    public function testQuotedTableName()
+    {
+        $table = new Table("`bar`");
+
+        $mysqlPlatform = new \Doctrine\DBAL\Platforms\MySqlPlatform();
+        $sqlitePlatform = new \Doctrine\DBAL\Platforms\SqlitePlatform();
+
+        $this->assertEquals('bar', $table->getName());
+        $this->assertEquals('`bar`', $table->getQuotedName($mysqlPlatform));
+        $this->assertEquals('"bar"', $table->getQuotedName($sqlitePlatform));
     }
 }

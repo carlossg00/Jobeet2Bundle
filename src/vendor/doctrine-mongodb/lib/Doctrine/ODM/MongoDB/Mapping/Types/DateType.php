@@ -32,19 +32,38 @@ class DateType extends Type
 {
     public function convertToDatabaseValue($value)
     {
-        if ($value instanceof \DateTime) {
-            $value = $value->getTimestamp();
+        if ($value === null) {
+            return null;
         }
-        if (is_string($value)) {
-            $value = strtotime($value);
+        $timestamp = false;
+        if ($value instanceof \DateTime) {
+            $timestamp = $value->getTimestamp();
+        } elseif (is_numeric($value)) {
+            $timestamp = $value;
+        } elseif (is_string($value)) {
+            $timestamp = strtotime($value);
+        }
+        // Could not convert date to timestamp so store ISO 8601 formatted date instead
+        if ($timestamp === false) {
+            $date = new \DateTime($value);
+            return $date->format('c');
+        } else {
+            $value = $timestamp;
         }
         return new \MongoDate($value);
     }
 
     public function convertToPHPValue($value)
     {
-        $date = new \DateTime();
-        $date->setTimestamp($value->sec);
+        if ($value === null) {
+            return null;
+        }
+        if ($value instanceof \MongoDate) {
+            $date = new \DateTime();
+            $date->setTimestamp($value->sec);
+        } else {
+            $date = new \DateTime($value);
+        }
         return $date;
     }
 }
