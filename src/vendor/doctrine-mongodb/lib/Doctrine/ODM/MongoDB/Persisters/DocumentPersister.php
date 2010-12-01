@@ -22,18 +22,18 @@ namespace Doctrine\ODM\MongoDB\Persisters;
 use Doctrine\ODM\MongoDB\DocumentManager,
     Doctrine\ODM\MongoDB\UnitOfWork,
     Doctrine\ODM\MongoDB\Mapping\ClassMetadata,
-    Doctrine\ODM\MongoDB\MongoCursor,
     Doctrine\ODM\MongoDB\Mapping\Types\Type,
     Doctrine\Common\Collections\Collection,
-    Doctrine\ODM\MongoDB\ODMEvents,
+    Doctrine\ODM\MongoDB\Events,
     Doctrine\ODM\MongoDB\Event\OnUpdatePreparedArgs,
     Doctrine\ODM\MongoDB\MongoDBException,
     Doctrine\ODM\MongoDB\LockException,
     Doctrine\ODM\MongoDB\PersistentCollection,
-    Doctrine\ODM\MongoDB\QueryBuilder,
-    Doctrine\ODM\MongoDB\MongoArrayIterator,
+    Doctrine\ODM\MongoDB\Query\Builder,
+    Doctrine\MongoDB\ArrayIterator,
     Doctrine\ODM\MongoDB\Proxy\Proxy,
-    Doctrine\ODM\MongoDB\LockMode;
+    Doctrine\ODM\MongoDB\LockMode,
+    Doctrine\ODM\MongoDB\Cursor;
 
 /**
  * The DocumentPersister is responsible for persisting documents.
@@ -249,9 +249,9 @@ class DocumentPersister
                 }
             }
 
-            if ($this->dm->getEventManager()->hasListeners(ODMEvents::onUpdatePrepared)) {
+            if ($this->dm->getEventManager()->hasListeners(Events::onUpdatePrepared)) {
                 $this->dm->getEventManager()->dispatchEvent(
-                    ODMEvents::onUpdatePrepared, new OnUpdatePreparedArgs($this->dm, $document, $update)
+                    Events::onUpdatePrepared, new OnUpdatePreparedArgs($this->dm, $document, $update)
                 );
             }
 
@@ -272,10 +272,7 @@ class DocumentPersister
     public function delete($document, array $options = array())
     {
         $id = $this->uow->getDocumentIdentifier($document);
-
-        $query = array(
-            '_id' => $this->class->getDatabaseIdentifierValue($id)
-        );
+        $query = array('_id' => $this->class->getDatabaseIdentifierValue($id));
 
         if ($this->class->isVersioned) {
             $query['locked'] = array($this->cmd . 'exists' => false);
@@ -315,9 +312,7 @@ class DocumentPersister
      */
     public function load($criteria, $document = null, array $hints = array(), $lockMode = 0)
     {
-        if (is_scalar($criteria)) {
-            $criteria = array('_id' => $criteria);
-        }
+        $criteria = $this->prepareQuery($criteria);
         $result = $this->collection->findOne($criteria);
 
         if ($this->class->isLockable) {
@@ -338,12 +333,10 @@ class DocumentPersister
      */
     public function loadAll(array $criteria = array())
     {
-        $documents = array();
+        $criteria = $this->prepareQuery($criteria);
         $cursor = $this->collection->find($criteria);
-        foreach ($cursor as $document) {
-            $documents[] = $this->createDocument($document);
-        }
-        return new MongoArrayIterator($documents);
+        $mongoCursor = $cursor->getMongoCursor();
+        return new Cursor($mongoCursor, $this->uow, $this->class);
     }
 
     /**
@@ -366,7 +359,7 @@ class DocumentPersister
      */
     public function lock($document, $lockMode)
     {
-        $criteria = array('_id' => $this->dm->getUnitOfWork()->getDocumentIdentifier($document));
+        $criteria = array('_id' => $this->uow->getDocumentIdentifier($document));
         $lockMapping = $this->class->fieldMappings[$this->class->lockField];
         $this->collection->update($criteria, array($this->cmd.'set' => array($lockMapping['name'] => $lockMode)));
         $this->class->reflFields[$this->class->lockField]->setValue($document, $lockMode);
@@ -379,7 +372,7 @@ class DocumentPersister
      */
     public function unlock($document)
     {
-        $criteria = array('_id' => $this->dm->getUnitOfWork()->getDocumentIdentifier($document));
+        $criteria = array('_id' => $this->uow->getDocumentIdentifier($document));
         $lockMapping = $this->class->fieldMappings[$this->class->lockField];
         $this->collection->update($criteria, array($this->cmd.'unset' => array($lockMapping['name'] => true)));
         $this->class->reflFields[$this->class->lockField]->setValue($document, null);
@@ -400,12 +393,12 @@ class DocumentPersister
         }
 
         if ($document !== null) {
-            $hints[QueryBuilder::HINT_REFRESH] = true;
+            $hints[Builder::HINT_REFRESH] = true;
             $id = $result['_id'];
-            $this->dm->getUnitOfWork()->registerManaged($document, $id, $result);
+            $this->uow->registerManaged($document, $id, $result);
         }
 
-        return $this->dm->getUnitOfWork()->getOrCreateDocument($this->class->name, $result, $hints);
+        return $this->uow->getOrCreateDocument($this->class->name, $result, $hints);
     }
 
     public function loadCollection(PersistentCollection $collection)
@@ -429,10 +422,107 @@ class DocumentPersister
         foreach ($groupedIds as $className => $ids) {
             $mongoCollection = $this->dm->getDocumentCollection($className);
             $data = $mongoCollection->find(array('_id' => array($cmd . 'in' => $ids)));
-            $hints = array(QueryBuilder::HINT_REFRESH => QueryBuilder::HINT_REFRESH);
+            $hints = array(Builder::HINT_REFRESH => true);
             foreach ($data as $id => $documentData) {
-                $document = $this->dm->getUnitOfWork()->getOrCreateDocument($className, $documentData, $hints);
+                $document = $this->uow->getOrCreateDocument($className, $documentData, $hints);
             }
         }
+    }
+
+    /**
+     * Prepares a query and converts values to the types mongodb expects.
+     *
+     * @param string|array $query
+     * @return array $query
+     */
+    public function prepareQuery($query)
+    {
+        if (is_scalar($query)) {
+            $query = array('_id' => $query);
+        }
+        if ($this->class->hasDiscriminator() && ! isset($query[$this->class->discriminatorField['name']])) {
+            $discriminatorValues = $this->getClassDiscriminatorValues($this->class);
+            $query[$this->class->discriminatorField['name']] = array('$in' => $discriminatorValues);
+        }
+        $newQuery = array();
+        foreach ($query as $key => $value) {
+            $value = $this->prepareWhereValue($key, $value);
+            $newQuery[$key] = $value;
+        }
+        return $newQuery;
+    }
+
+    /**
+     * Prepare where values converting document object field names to the document collection
+     * field name.
+     *
+     * @param string $fieldName
+     * @param string $value
+     * @return string $value
+     */
+    private function prepareWhereValue(&$fieldName, $value)
+    {
+        if (strpos($fieldName, '.') !== false) {
+            $e = explode('.', $fieldName);
+
+            $mapping = $this->class->getFieldMapping($e[0]);
+
+            if ($this->class->hasField($e[0])) {
+                $name = $this->class->fieldMappings[$e[0]]['name'];
+                if ($name !== $e[0]) {
+                    $e[0] = $name;
+                }
+            }
+
+            if (isset($mapping['targetDocument'])) {
+                $targetClass = $this->dm->getClassMetadata($mapping['targetDocument']);
+                if ($targetClass->hasField($e[1]) && $targetClass->identifier === $e[1]) {
+                    $fieldName = $e[0] . '.$id';
+                    $value = $targetClass->getDatabaseIdentifierValue($value);
+                } elseif ($e[1] === '$id') {
+                    $value = $targetClass->getDatabaseIdentifierValue($value);
+                }
+            }
+        } elseif ($this->class->hasField($fieldName) && ! $this->class->isIdentifier($fieldName)) {
+            $name = $this->class->fieldMappings[$fieldName]['name'];
+            if ($name !== $fieldName) {
+                $fieldName = $name;
+            }
+        } else {
+            if ($fieldName === $this->class->identifier || $fieldName === '_id') {
+                $fieldName = '_id';
+                if (is_array($value)) {
+                    if (isset($value[$this->cmd.'in'])) {
+                        foreach ($value[$this->cmd.'in'] as $k => $v) {
+                            $value[$this->cmd.'in'][$k] = $this->class->getDatabaseIdentifierValue($v);
+                        }
+                    } else {
+                        foreach ($value as $k => $v) {
+                            $value[$k] = $this->class->getDatabaseIdentifierValue($v);
+                        }
+                    }
+                } else {
+                    $value = $this->class->getDatabaseIdentifierValue($value);
+                }
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * Gets the array of discriminator values for the given ClassMetadata
+     *
+     * @param ClassMetadata $metadata
+     * @return array
+     */
+    private function getClassDiscriminatorValues(ClassMetadata $metadata)
+    {
+        $discriminatorValues = array($metadata->discriminatorValue);
+        foreach ($metadata->subClasses as $className) {
+            if ($key = array_search($className, $metadata->discriminatorMap)) {
+                $discriminatorValues[] = $key;
+            }
+        }
+        return $discriminatorValues;
     }
 }

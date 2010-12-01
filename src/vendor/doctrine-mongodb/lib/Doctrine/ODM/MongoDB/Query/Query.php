@@ -19,79 +19,84 @@
 
 namespace Doctrine\ODM\MongoDB\Query;
 
-use Doctrine\ODM\MongoDB\MongoIterator,
-    Doctrine\ODM\MongoDB\DocumentManager,
-    Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
+use Doctrine\MongoDB\Query\AbstractQuery;
+use Doctrine\MongoDB\Iterator;
+use Doctrine\MongoDB\Query\QueryInterface;
+use Doctrine\MongoDB\Cursor as BaseCursor;
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
+use Doctrine\ODM\MongoDB\Cursor;
+use Doctrine\MongoDB\Query\FindAndRemoveQuery;
+use Doctrine\MongoDB\Query\FindAndUpdateQuery;
 
 /**
- * Abstract executable query class for the different types of queries to implement.
+ * ODM Query wraps the raw Doctrine MongoDB queries to add additional functionality
+ * and to hydrate the raw arrays of data to Doctrine document objects.
  *
  * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @since       1.0
  * @author      Jonathan H. Wage <jonwage@gmail.com>
  */
-abstract class AbstractQuery implements QueryInterface, MongoIterator
+class Query implements QueryInterface, Iterator
 {
-    /**
-     * The DocumentManager instance for this query
-     *
-     * @var DocumentManager
-     */
-    protected $dm;
+    private $query;
+    private $dm;
+    private $class;
+    private $iterator;
+    private $hydrate = true;
 
-    /**
-     * The ClassMetadata instance for the class being queried
-     *
-     * @var ClassMetadata
-     */
-    protected $class;
-
-    /**
-     * Mongo command prefix
-     *
-     * @var string
-     */
-    protected $cmd;
-
-    /**
-     * @var MongoIterator
-     */
-    protected $iterator;
-
-    public function __construct(DocumentManager $dm, ClassMetadata $class, $cmd)
+    public function __construct(AbstractQuery $query, DocumentManager $dm, ClassMetadata $class, $hydrate)
     {
+        $this->query = $query;
         $this->dm = $dm;
         $this->class = $class;
-        $this->cmd = $cmd;
+        $this->hydrate = $hydrate;
     }
 
-    /**
-     * Gets an array of information about this query for debugging.
-     *
-     * @param string $name
-     * @return array $debug
-     */
     public function debug($name = null)
     {
-        $debug = get_object_vars($this);
+        return $this->query->debug($name);
+    }
 
-        unset($debug['dm']);
-        if ($name !== null) {
-            return $debug[$name];
+    public function execute(array $options = array())
+    {
+        $uow = $this->dm->getUnitOfWork();
+
+        $results = $this->query->execute($options);
+
+        // Convert the regular mongodb cursor to the odm cursor
+        if ($results instanceof BaseCursor) {
+            $cursor = $results->getMongoCursor();
+            $results = new Cursor($cursor, $this->dm->getUnitOfWork(), $this->class);
+            $results->hydrate($this->hydrate);
         }
-        foreach ($debug as $key => $value) {
-            if ( ! $value) {
-                unset($debug[$key]);
+
+        // GeoLocationFindQuery just returns an instance of ArrayIterator so we have to
+        // iterator over it and hydrate each object.
+        if ($this->query instanceof \Doctrine\MongoDB\Query\GeoLocationFindQuery && $this->hydrate) {
+            foreach ($results as $key => $result) {
+                $document = $result['obj'];
+                if ($this->class->distance) {
+                    $document[$this->class->distance] = $result['dis'];
+                }
+                $results[$key] = $uow->getOrCreateDocument($this->class->name, $document);
             }
+            $results->reset();
         }
-        return $debug;
+
+        if ($this->hydrate && ($this->query instanceof FindAndRemoveQuery || $this->query instanceof FindAndUpdateQuery) && is_array($results) && isset($results['_id'])) {
+            // Convert a single document array to a document object
+            $results = $uow->getOrCreateDocument($this->class->name, $results);
+        }
+
+        return $results;
     }
 
     public function getIterator(array $options = array())
     {
         if ($this->iterator === null) {
             $iterator = $this->execute($options);
-            if ($iterator !== null && !$iterator instanceof MongoIterator) {
+            if ($iterator !== null && !$iterator instanceof Iterator) {
                 throw new \BadMethodCallException('Query execution did not return an iterator. This query may not support returning iterators. ');
             }
             $this->iterator = $iterator;
@@ -121,9 +126,9 @@ abstract class AbstractQuery implements QueryInterface, MongoIterator
     }
 
     /**
-     * Iterator over the query using the MongoCursor.
+     * Iterator over the query using the Cursor.
      *
-     * @return MongoCursor $cursor
+     * @return Cursor $cursor
      */
     public function iterate()
     {

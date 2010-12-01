@@ -20,7 +20,6 @@
 namespace Doctrine\ODM\MongoDB;
 
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadataFactory;
-
 use InvalidArgumentException;
 
 class SchemaManager
@@ -164,7 +163,7 @@ class SchemaManager
         if ($class->isMappedSuperclass || $class->isEmbeddedDocument) {
             throw new InvalidArgumentException('Cannot create document collection for mapped super classes or embedded documents.');
         }
-        $this->dm->getDocumentDB($documentName)->createCollection(
+        $this->dm->getDocumentDatabase($documentName)->createCollection(
             $class->getCollection(),
             $class->getCollectionCapped(),
             $class->getCollectionSize(),
@@ -196,7 +195,7 @@ class SchemaManager
         if ($class->isMappedSuperclass || $class->isEmbeddedDocument) {
             throw new InvalidArgumentException('Cannot delete document indexes for mapped super classes or embedded documents.');
         }
-        $this->dm->getDocumentDB($documentName)->dropCollection(
+        $this->dm->getDocumentDatabase($documentName)->dropCollection(
             $class->getCollection()
         );
     }
@@ -225,7 +224,7 @@ class SchemaManager
         if ($class->isMappedSuperclass || $class->isEmbeddedDocument) {
             throw new InvalidArgumentException('Cannot drop document database for mapped super classes or embedded documents.');
         }
-        $this->dm->getDocumentDB($documentName)->drop();
+        $this->dm->getDocumentDatabase($documentName)->drop();
     }
 
     /**
@@ -252,6 +251,6 @@ class SchemaManager
         if ($class->isMappedSuperclass || $class->isEmbeddedDocument) {
             throw new InvalidArgumentException('Cannot delete document indexes for mapped super classes or embedded documents.');
         }
-        $this->dm->getDocumentDB($documentName)->execute("function() { return true; }");
+        $this->dm->getDocumentDatabase($documentName)->execute("function() { return true; }");
     }
 }
