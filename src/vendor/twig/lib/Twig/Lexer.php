@@ -51,11 +51,6 @@ class Twig_Lexer implements Twig_LexerInterface
         ), $options);
     }
 
-    public function sortByLength($a, $b)
-    {
-        return strlen($a) > strlen($b) ? -1 : 1;
-    }
-
     /**
      * Tokenizes a source code.
      *
@@ -206,8 +201,16 @@ class Twig_Lexer implements Twig_LexerInterface
                 if (!preg_match('/(.*?)'.preg_quote($this->options['tag_comment'][1], '/').'/As', $this->code, $match, null, $this->cursor)) {
                     throw new Twig_Error_Syntax('unclosed comment', $this->lineno, $this->filename);
                 }
+
                 $this->moveCursor($match[0]);
                 $this->moveLineNo($match[0]);
+
+                //  mimicks the behavior of PHP by removing the newline that follows instructions if present
+                if ("\n" === substr($this->code, $this->cursor, 1)) {
+                    $this->moveCursor("\n");
+                    $this->moveLineNo("\n");
+                }
+
                 break;
 
             case $this->options['tag_block'][0]:
@@ -336,10 +339,12 @@ class Twig_Lexer implements Twig_LexerInterface
         $operators = array('=');
         $operators = array_merge($operators, array_keys($this->env->getUnaryOperators()));
         $operators = array_merge($operators, array_keys($this->env->getBinaryOperators()));
-        usort($operators, array($this, 'sortByLength'));
+
+        $operators = array_combine($operators, array_map('strlen', $operators));
+        arsort($operators);
 
         $regex = array();
-        foreach ($operators as $operator) {
+        foreach (array_keys($operators) as $operator) {
             $last = ord(substr($operator, -1));
             // an operator that ends with a character must be followed by
             // a whitespace or a parenthese

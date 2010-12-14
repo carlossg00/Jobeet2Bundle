@@ -16,6 +16,10 @@
 
         <parameter key="security.user.provider.in_memory.class">Symfony\Component\Security\User\InMemoryUserProvider</parameter>
 
+        <parameter key="security.authentication.trust_resolver.class">Symfony\Component\Security\Authentication\AuthenticationTrustResolver</parameter>
+        <parameter key="security.authentication.trust_resolver.anonymous_class">Symfony\Component\Security\Authentication\Token\AnonymousToken</parameter>
+        <parameter key="security.authentication.trust_resolver.rememberme_class">Symfony\Component\Security\Authentication\Token\RememberMeToken</parameter>
+
         <parameter key="security.authentication.provider.dao.class">Symfony\Component\Security\Authentication\Provider\DaoAuthenticationProvider</parameter>
         <parameter key="security.authentication.provider.pre_authenticated.class">Symfony\Component\Security\Authentication\Provider\PreAuthenticatedAuthenticationProvider</parameter>
 
@@ -49,6 +53,8 @@
         <parameter key="security.logout_listener.class">Symfony\Component\HttpKernel\Security\Firewall\LogoutListener</parameter>
         <parameter key="security.logout.path">/logout</parameter>
         <parameter key="security.logout.target_path">/</parameter>
+        <parameter key="security.logout.handler.session.class">Symfony\Component\HttpKernel\Security\Logout\SessionLogoutHandler</parameter>
+        <parameter key="security.logout.handler.cookie_clearing.class">Symfony\Component\HttpKernel\Security\Logout\CookieClearingLogoutHandler</parameter>
 
         <parameter key="security.authentication.switchuser_listener.class">Symfony\Component\HttpKernel\Security\Firewall\SwitchUserListener</parameter>
         <parameter key="security.authentication.switchuser.role">ROLE_ALLOWED_TO_SWITCH</parameter>
@@ -91,10 +97,17 @@
 
         <service id="security.encoder.plain" class="%security.encoder.plain.class%" />
 
+        <service id="security.logout.handler.session" class="%security.logout.handler.session.class%"></service>
+
         <service id="security.authentication.listener.anonymous" class="%security.authentication.listener.anonymous.class%">
             <argument type="service" id="security.context" />
             <argument>%security.anonymous.key%</argument>
             <argument type="service" id="logger" on-invalid="null" />
+        </service>
+
+        <service id="security.authentication.trust_resolver" class="%security.authentication.trust_resolver.class%">
+            <argument>%security.authentication.trust_resolver.anonymous_class%</argument>
+            <argument>%security.authentication.trust_resolver.rememberme_class%</argument>
         </service>
 
         <service id="security.authentication.retry_entry_point" class="%security.authentication.retry_entry_point.class%" />
@@ -113,12 +126,6 @@
             <argument>%security.authentication.digest_entry_point.key%</argument>
         </service>
 
-        <service id="security.logout_listener" class="%security.logout_listener.class%">
-            <argument type="service" id="security.context" />
-            <argument>%security.logout.path%</argument>
-            <argument>%security.logout.target_path%</argument>
-        </service>
-
         <service id="security.channel_listener" class="%security.channel_listener.class%">
             <argument type="service" id="security.access_map" />
             <argument type="service" id="security.authentication.retry_entry_point" />
@@ -134,6 +141,7 @@
             <tag name="security.voter" />
         </service>
         <service id="security.access.authenticated_voter" class="%security.access.authenticated_voter.class%">
+            <argument type="service" id="security.authentication.trust_resolver" />
             <tag name="security.voter" />
         </service>
         <service id="security.access.role_hierarchy_voter" class="%security.access.role_hierarchy_voter.class%">

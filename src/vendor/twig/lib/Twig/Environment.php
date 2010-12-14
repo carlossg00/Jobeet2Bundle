@@ -57,6 +57,8 @@ class Twig_Environment
      *  * strict_variables: Whether to ignore invalid variables in templates
      *                      (default to false).
      *
+     *  * autoescape: Whether to enable auto-escaping (default to true).
+     *
      * @param Twig_LoaderInterface   $loader  A Twig_LoaderInterface instance
      * @param array                  $options An array of options
      * @param Twig_LexerInterface    $lexer   A Twig_LexerInterface instance
@@ -69,18 +71,40 @@ class Twig_Environment
             $this->setLoader($loader);
         }
 
-        $this->setLexer(null !== $lexer ? $lexer : new Twig_Lexer());
-        $this->setParser(null !== $parser ? $parser : new Twig_Parser());
-        $this->setCompiler(null !== $compiler ? $compiler : new Twig_Compiler());
+        if (null !== $lexer) {
+            $this->setLexer($lexer);
+        }
 
-        $this->debug              = isset($options['debug']) ? (bool) $options['debug'] : false;
-        $this->charset            = isset($options['charset']) ? $options['charset'] : 'UTF-8';
-        $this->baseTemplateClass  = isset($options['base_template_class']) ? $options['base_template_class'] : 'Twig_Template';
-        $this->autoReload         = isset($options['auto_reload']) ? (bool) $options['auto_reload'] : $this->debug;
-        $this->extensions         = array('core' => new Twig_Extension_Core());
-        $this->strictVariables    = isset($options['strict_variables']) ? (bool) $options['strict_variables'] : false;
+        if (null !== $parser) {
+            $this->setParser($parser);
+        }
+
+        if (null !== $compiler) {
+            $this->setCompiler($compiler);
+        }
+
+        $options = array_merge(array(
+            'debug'               => false,
+            'charset'             => 'UTF-8',
+            'base_template_class' => 'Twig_Template',
+            'strict_variables'    => false,
+            'autoescape'          => true,
+            'cache'               => false,
+            'auto_reload'         => null,
+        ), $options);
+
+        $this->debug              = (bool) $options['debug'];
+        $this->charset            = $options['charset'];
+        $this->baseTemplateClass  = $options['base_template_class'];
+        $this->autoReload         = null === $options['auto_reload'] ? $this->debug : (bool) $options['auto_reload'];
+        $this->extensions         = array(
+            'core'      => new Twig_Extension_Core(),
+            'escaper'   => new Twig_Extension_Escaper((bool) $options['autoescape']),
+            'optimizer' => new Twig_Extension_Optimizer(),
+        );
+        $this->strictVariables    = (bool) $options['strict_variables'];
         $this->runtimeInitialized = false;
-        if (isset($options['cache']) && $options['cache']) {
+        if ($options['cache']) {
             $this->setCache($options['cache']);
         }
     }
@@ -207,6 +231,10 @@ class Twig_Environment
 
     public function getLexer()
     {
+        if (null === $this->lexer) {
+            $this->lexer = new Twig_Lexer($this);
+        }
+
         return $this->lexer;
     }
 
@@ -223,6 +251,10 @@ class Twig_Environment
 
     public function getParser()
     {
+        if (null === $this->parser) {
+            $this->parser = new Twig_Parser($this);
+        }
+
         return $this->parser;
     }
 
@@ -239,6 +271,10 @@ class Twig_Environment
 
     public function getCompiler()
     {
+        if (null === $this->compiler) {
+            $this->compiler = new Twig_Compiler($this);
+        }
+
         return $this->compiler;
     }
 

@@ -13,7 +13,9 @@
         </parameter>
         <parameter key="twig.loader.class">Symfony\Bundle\TwigBundle\Loader\Loader</parameter>
         <parameter key="twig.renderer.class">Symfony\Bundle\TwigBundle\Renderer\Renderer</parameter>
-        <parameter key="twig.form.resources" type="collection"></parameter>
+        <parameter key="twig.form.resources" type="collection">
+            <parameter>TwigBundle::form.twig</parameter>
+        </parameter>
     </parameters>
 
     <services>
@@ -32,14 +34,6 @@
         <service id="twig.renderer" class="%twig.renderer.class%">
             <tag name="templating.renderer" alias="twig" />
             <argument type="service" id="twig" />
-        </service>
-
-        <service id="twig.extension.escaper" class="Twig_Extension_Escaper">
-            <tag name="twig.extension" />
-        </service>
-
-        <service id="twig.extension.optimizer" class="Twig_Extension_Optimizer">
-            <tag name="twig.extension" />
         </service>
 
         <service id="twig.extension.trans" class="Symfony\Bundle\TwigBundle\Extension\TransExtension">

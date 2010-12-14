@@ -34,11 +34,15 @@ cd $VENDOR/doctrine-migrations && git pull
 cd $VENDOR/doctrine-data-fixtures && git pull
 
 # Doctrine MongoDB
-cd $VENDOR/doctrine-mongodb
+cd $VENDOR/doctrine-mongodb-odm
 git checkout master
 git pull
 git checkout -b v1.0.0BETA1 1.0.0BETA1
 git checkout master
+
+cd $VENDOR/doctrine-mongodb
+git checkout master
+git pull
 
 # Swiftmailer
 cd $VENDOR/swiftmailer && git pull

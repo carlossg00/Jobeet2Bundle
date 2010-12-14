@@ -3,6 +3,7 @@
 namespace Symfony\Component\HttpKernel\Security\Firewall;
 
 use Symfony\Component\Security\SecurityContext;
+use Symfony\Component\Security\Authentication\AuthenticationTrustResolverInterface;
 use Symfony\Component\Security\Authentication\EntryPoint\AuthenticationEntryPointInterface;
 use Symfony\Component\HttpKernel\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -29,17 +30,19 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  *
  * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class ExceptionListener
+class ExceptionListener implements ListenerInterface
 {
     protected $context;
     protected $authenticationEntryPoint;
+    protected $authenticationTrustResolver;
     protected $errorPage;
     protected $logger;
 
-    public function __construct(SecurityContext $context, AuthenticationEntryPointInterface $authenticationEntryPoint = null, $errorPage = null, LoggerInterface $logger = null)
+    public function __construct(SecurityContext $context, AuthenticationTrustResolverInterface $trustResolver, AuthenticationEntryPointInterface $authenticationEntryPoint = null, $errorPage = null, LoggerInterface $logger = null)
     {
         $this->context = $context;
         $this->authenticationEntryPoint = $authenticationEntryPoint;
+        $this->authenticationTrustResolver = $trustResolver;
         $this->errorPage = $errorPage;
         $this->logger = $logger;
     }
@@ -50,9 +53,17 @@ class ExceptionListener
      * @param EventDispatcher $dispatcher An EventDispatcher instance
      * @param integer         $priority   The priority
      */
-    public function register(EventDispatcher $dispatcher, $priority = 0)
+    public function register(EventDispatcher $dispatcher)
     {
-        $dispatcher->connect('core.exception', array($this, 'handleException'), $priority);
+        $dispatcher->connect('core.exception', array($this, 'handleException'), 0);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function unregister(EventDispatcher $dispatcher)
+    {
+        $dispatcher->disconnect('core.exception', array($this, 'handleException'));
     }
 
     /**
@@ -79,9 +90,9 @@ class ExceptionListener
             }
         } elseif ($exception instanceof AccessDeniedException) {
             $token = $this->context->getToken();
-            if (null === $token || $token instanceof AnonymousToken) {
+            if (!$this->authenticationTrustResolver->isFullFledged($token)) {
                 if (null !== $this->logger) {
-                    $this->logger->info('Access denied (user is anonymous); redirecting to authentication entry point');
+                    $this->logger->info('Access denied (user is not fully authenticated); redirecting to authentication entry point');
                 }
 
                 try {
@@ -93,7 +104,7 @@ class ExceptionListener
                 }
             } else {
                 if (null !== $this->logger) {
-                    $this->logger->info('Access is denied (and user is not anonymous)');
+                    $this->logger->info('Access is denied (and user is neither anonymous, nor remember-me)');
                 }
 
                 if (null === $this->errorPage) {
@@ -137,7 +148,7 @@ class ExceptionListener
             $this->logger->debug('Calling Authentication entry point');
         }
 
-        $request->getSession()->set('_security.target_url', $request->getUri());
+        $request->getSession()->set('_security.target_path', $request->getUri());
 
         return $this->authenticationEntryPoint->start($request, $reason);
     }
