@@ -41,7 +41,7 @@ git clone git://github.com/doctrine/data-fixtures.git doctrine-data-fixtures
 # Doctrine MongoDB
 git clone git://github.com/doctrine/mongodb.git doctrine-mongodb
 git clone git://github.com/doctrine/mongodb-odm.git doctrine-mongodb-odm
-cd doctrine-mongodb-orm
+cd doctrine-mongodb-odm
 git checkout -b v1.0.0BETA1 1.0.0BETA1
 cd $DIR/vendor
 
