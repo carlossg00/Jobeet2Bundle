@@ -14,7 +14,7 @@ $loader->registerNamespaces(array(
     'Doctrine\\Common\\DataFixtures' => $vendorDir.'/doctrine-data-fixtures/lib',
     'Doctrine\\Common'               => $vendorDir.'/doctrine-common/lib',
     'Doctrine\\DBAL\\Migrations'     => $vendorDir.'/doctrine-migrations/lib',
-    'Doctrine\\ODM\\MongoDB'         => $vendorDir.'/doctrine-mongodb/lib',
+    'Doctrine\\ODM\\MongoDB'         => $vendorDir.'/doctrine-mongodb-odm/lib',
     'Doctrine\\DBAL'                 => $vendorDir.'/doctrine-dbal/lib',
     'Doctrine'                       => $vendorDir.'/doctrine/lib',
     'Zend'                           => $vendorDir.'/zend/library',
