@@ -17,13 +17,13 @@ git clone git://github.com/symfony/symfony.git symfony
 # Doctrine ORM
 git clone git://github.com/doctrine/doctrine2.git doctrine
 cd doctrine
-git checkout -b v2.0.0-BETA4 2.0.0-BETA4
+git checkout -b v2.0.0-RC2 2.0.0-RC2
 cd $DIR/vendor
 
 # Doctrine DBAL
 git clone git://github.com/doctrine/dbal.git doctrine-dbal
 cd doctrine-dbal
-git checkout -b v2.0.0-RC1 2.0.0-RC1
+git checkout -b v2.0.0-RC5 2.0.0-RC5
 cd $DIR/vendor
 
 # Doctrine Common

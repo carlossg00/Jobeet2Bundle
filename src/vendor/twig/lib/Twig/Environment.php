@@ -11,7 +11,7 @@
 
 class Twig_Environment
 {
-    const VERSION = '0.9.10-DEV';
+    const VERSION = '1.0.0-BETA1';
 
     protected $charset;
     protected $loader;
@@ -32,6 +32,7 @@ class Twig_Environment
     protected $strictVariables;
     protected $unaryOperators;
     protected $binaryOperators;
+    protected $templateClassPrefix = '__TwigTemplate_';
 
     /**
      * Constructor.
@@ -57,30 +58,19 @@ class Twig_Environment
      *  * strict_variables: Whether to ignore invalid variables in templates
      *                      (default to false).
      *
-     *  * autoescape: Whether to enable auto-escaping (default to true).
+     *  * autoescape: Whether to enable auto-escaping (default to true);
+     *
+     *  * optimizations: A flag that indicates which optimizations to apply
+     *                   (default to -1 which means that all optimizations are enabled;
+     *                   set it to 0 to disable)
      *
      * @param Twig_LoaderInterface   $loader  A Twig_LoaderInterface instance
      * @param array                  $options An array of options
-     * @param Twig_LexerInterface    $lexer   A Twig_LexerInterface instance
-     * @param Twig_ParserInterface   $parser  A Twig_ParserInterface instance
-     * @param Twig_CompilerInterface $compiler A Twig_CompilerInterface instance
      */
-    public function __construct(Twig_LoaderInterface $loader = null, $options = array(), Twig_LexerInterface $lexer = null, Twig_ParserInterface $parser = null, Twig_CompilerInterface $compiler = null)
+    public function __construct(Twig_LoaderInterface $loader = null, $options = array())
     {
         if (null !== $loader) {
             $this->setLoader($loader);
-        }
-
-        if (null !== $lexer) {
-            $this->setLexer($lexer);
-        }
-
-        if (null !== $parser) {
-            $this->setParser($parser);
-        }
-
-        if (null !== $compiler) {
-            $this->setCompiler($compiler);
         }
 
         $options = array_merge(array(
@@ -91,6 +81,7 @@ class Twig_Environment
             'autoescape'          => true,
             'cache'               => false,
             'auto_reload'         => null,
+            'optimizations'       => -1,
         ), $options);
 
         $this->debug              = (bool) $options['debug'];
@@ -100,7 +91,7 @@ class Twig_Environment
         $this->extensions         = array(
             'core'      => new Twig_Extension_Core(),
             'escaper'   => new Twig_Extension_Escaper((bool) $options['autoescape']),
-            'optimizer' => new Twig_Extension_Optimizer(),
+            'optimizer' => new Twig_Extension_Optimizer($options['optimizations']),
         );
         $this->strictVariables    = (bool) $options['strict_variables'];
         $this->runtimeInitialized = false;
@@ -187,7 +178,7 @@ class Twig_Environment
      */
     public function getTemplateClass($name)
     {
-        return '__TwigTemplate_'.md5($this->loader->getCacheKey($name));
+        return $this->templateClassPrefix.md5($this->loader->getCacheKey($name));
     }
 
     /**
@@ -229,6 +220,20 @@ class Twig_Environment
         $this->loadedTemplates = array();
     }
 
+    /**
+     * Clears the template cache files on the filesystem.
+     */
+    public function clearCacheFiles()
+    {
+        if ($this->cache) {
+            foreach(new DirectoryIterator($this->cache) as $fileInfo) {
+                if (0 === strpos($fileInfo->getFilename(), $this->templateClassPrefix)) {
+                    @unlink($fileInfo->getPathname());
+                }
+            }
+        }
+    }
+
     public function getLexer()
     {
         if (null === $this->lexer) {
@@ -241,10 +246,9 @@ class Twig_Environment
     public function setLexer(Twig_LexerInterface $lexer)
     {
         $this->lexer = $lexer;
-        $lexer->setEnvironment($this);
     }
 
-    public function tokenize($source, $name)
+    public function tokenize($source, $name = null)
     {
         return $this->getLexer()->tokenize($source, $name);
     }
@@ -261,7 +265,6 @@ class Twig_Environment
     public function setParser(Twig_ParserInterface $parser)
     {
         $this->parser = $parser;
-        $parser->setEnvironment($this);
     }
 
     public function parse(Twig_TokenStream $tokens)
@@ -281,7 +284,6 @@ class Twig_Environment
     public function setCompiler(Twig_CompilerInterface $compiler)
     {
         $this->compiler = $compiler;
-        $compiler->setEnvironment($this);
     }
 
     public function compile(Twig_NodeInterface $node)
@@ -289,7 +291,7 @@ class Twig_Environment
         return $this->getCompiler()->compile($node)->getSource();
     }
 
-    public function compileSource($source, $name)
+    public function compileSource($source, $name = null)
     {
         return $this->compile($this->parse($this->tokenize($source, $name)));
     }

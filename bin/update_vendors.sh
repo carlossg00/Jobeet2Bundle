@@ -10,14 +10,14 @@ cd $VENDOR/symfony && git pull
 cd $VENDOR/doctrine
 git checkout master
 git pull
-git checkout -b v2.0.0-BETA4 2.0.0-BETA4
+git checkout -b v2.0.0RC2 2.0.0RC2
 git checkout master
 
 # Doctrine DBAL
 cd $VENDOR/doctrine-dbal
 git checkout master
 git pull
-git checkout -b v2.0.0-RC1 2.0.0-RC1
+git checkout -b v2.0.0RC5 2.0.0RC5
 git checkout master
 
 # Doctrine common

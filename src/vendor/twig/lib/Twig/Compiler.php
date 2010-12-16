@@ -28,14 +28,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      *
      * @param Twig_Environment $env The twig environment instance
      */
-    public function __construct(Twig_Environment $env = null)
-    {
-        if (null !== $env) {
-            $this->setEnvironment($env);
-        }
-    }
-
-    public function setEnvironment(Twig_Environment $env)
+    public function __construct(Twig_Environment $env)
     {
         $this->env = $env;
     }
@@ -217,6 +210,10 @@ class Twig_Compiler implements Twig_CompilerInterface
     public function outdent($step = 1)
     {
         $this->indentation -= $step;
+
+        if ($this->indentation < 0) {
+            throw new Twig_Error('Unable to call outdent() as the indentation would become negative');
+        }
 
         return $this;
     }
