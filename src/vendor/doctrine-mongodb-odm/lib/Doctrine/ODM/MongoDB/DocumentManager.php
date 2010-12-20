@@ -89,13 +89,6 @@ class DocumentManager
     private $eventManager;
 
     /**
-     * The Document hydrator instance.
-     *
-     * @var Doctrine\ODM\MongoDB\Hydrator
-     */
-    private $hydrator;
-
-    /**
      * The Hydrator factory instance.
      *
      * @var HydratorFactory
@@ -153,19 +146,19 @@ class DocumentManager
             $this->metadataFactory->setCacheDriver($cacheDriver);
         }
 
-        $this->hydrator = new Hydrator($this, $this->eventManager, $this->cmd);
         $hydratorDir = $this->config->getHydratorDir();
         $hydratorNs = $this->config->getHydratorNamespace();
-        if ($hydratorDir && $hydratorNs) {
-            $this->hydratorFactory = new HydratorFactory($this, $hydratorDir, $hydratorNs, $this->config->getAutoGenerateHydratorClasses());
-            $this->hydrator->setHydratorFactory($this->hydratorFactory);
-        }
+        $this->hydratorFactory = new HydratorFactory(
+          $this,
+          $this->eventManager,
+          $hydratorDir,
+          $hydratorNs,
+          $this->config->getAutoGenerateHydratorClasses(),
+          $this->config->getMongoCmd()
+        );
 
-        $this->unitOfWork = new UnitOfWork($this, $this->eventManager, $this->hydrator, $this->cmd);
-        if ($this->hydratorFactory) {
-            $this->hydratorFactory->setUnitOfWork($this->unitOfWork);
-        }
-        $this->hydrator->setUnitOfWork($this->unitOfWork);
+        $this->unitOfWork = new UnitOfWork($this, $this->eventManager, $this->hydratorFactory, $this->cmd);
+        $this->hydratorFactory->setUnitOfWork($this->unitOfWork);
         $this->schemaManager = new SchemaManager($this, $this->metadataFactory);
         $this->proxyFactory = new ProxyFactory($this,
                 $this->config->getProxyDir(),
@@ -233,17 +226,6 @@ class DocumentManager
     public function getUnitOfWork()
     {
         return $this->unitOfWork;
-    }
-
-    /**
-     * Gets the Hydrator used by the DocumentManager to hydrate document arrays
-     * to document objects.
-     *
-     * @return Doctrine\ODM\MongoDB\Hydrator
-     */
-    public function getHydrator()
-    {
-        return $this->hydrator;
     }
 
     /**
@@ -624,6 +606,35 @@ if (!$this->metadataFactory) throw new \Exception('No MetadataFactory.');
         } else {
             return $mapping['targetDocument'];
         }
+    }
+
+    /**
+     * Returns a DBRef array for the supplied document.
+     *
+     * @param mixed $document A document object
+     * @param array $referenceMapping Mapping for the field the references the document
+     *
+     * @return array A DBRef array
+     */
+    public function createDBRef($document, array $referenceMapping = null)
+    {
+        $class = $this->getClassMetadata(get_class($document));
+        $id = $this->unitOfWork->getDocumentIdentifier($document);
+
+        $dbRef = array(
+            $this->cmd . 'ref' => $class->getCollection(),
+            $this->cmd . 'id'  => $class->getDatabaseIdentifierValue($id),
+            $this->cmd . 'db'  => $class->getDatabase()
+        );
+
+        // add a discriminator value if the referenced document is not mapped explicitely to a targetDocument
+        if ($referenceMapping && ! isset($referenceMapping['targetDocument'])) {
+            $discriminatorField = isset($referenceMapping['discriminatorField']) ? $referenceMapping['discriminatorField'] : '_doctrine_class_name';
+            $discriminatorValue = isset($referenceMapping['discriminatorMap']) ? array_search($class->getName(), $referenceMapping['discriminatorMap']) : $class->getName();
+            $dbRef[$discriminatorField] = $discriminatorValue;
+        }
+
+        return $dbRef;
     }
 
     /**

@@ -28,6 +28,7 @@ class Twig_Extension_Core extends Twig_Extension
             new Twig_TokenParser_Filter(),
             new Twig_TokenParser_Macro(),
             new Twig_TokenParser_Import(),
+            new Twig_TokenParser_From(),
             new Twig_TokenParser_Set(),
             new Twig_TokenParser_Spaceless(),
         );
@@ -56,21 +57,17 @@ class Twig_Extension_Core extends Twig_Extension
             'upper'      => new Twig_Filter_Function('strtoupper'),
             'lower'      => new Twig_Filter_Function('strtolower'),
             'striptags'  => new Twig_Filter_Function('strip_tags'),
-            'constant'   => new Twig_Filter_Function('constant'),
 
             // array helpers
             'join'    => new Twig_Filter_Function('twig_join_filter'),
             'reverse' => new Twig_Filter_Function('twig_reverse_filter'),
             'length'  => new Twig_Filter_Function('twig_length_filter', array('needs_environment' => true)),
             'sort'    => new Twig_Filter_Function('twig_sort_filter'),
-            'range'   => new Twig_Filter_Function('twig_range_filter'),
-            'cycle'   => new Twig_Filter_Function('twig_cycle_filter'),
             'merge'   => new Twig_Filter_Function('twig_array_merge'),
 
             // iteration and runtime
             'default' => new Twig_Filter_Function('twig_default_filter'),
             'keys'    => new Twig_Filter_Function('twig_get_array_keys_filter'),
-            'items'   => new Twig_Filter_Function('twig_get_array_items_filter'),
 
             // escaping
             'escape' => new Twig_Filter_Function('twig_escape_filter', array('needs_environment' => true, 'is_safe_callback' => 'twig_escape_filter_is_safe')),
@@ -83,6 +80,39 @@ class Twig_Extension_Core extends Twig_Extension
         }
 
         return $filters;
+    }
+
+    /**
+     * Returns a list of global functions to add to the existing list.
+     *
+     * @return array An array of global functions
+     */
+    public function getGlobals()
+    {
+        return array(
+            'fn_range'    => new Twig_Function($this, 'getRange'),
+            'fn_constant' => new Twig_Function($this, 'getConstant'),
+            'fn_cycle'    => new Twig_Function($this, 'getCycle'),
+        );
+    }
+
+    public function getRange($start, $end, $step = 1)
+    {
+        return range($start, $end, $step);
+    }
+
+    public function getConstant($value)
+    {
+        return constant($value);
+    }
+
+    public function getCycle($values, $i)
+    {
+        if (!is_array($values) && !$values instanceof ArrayAccess) {
+            return $values;
+        }
+
+        return $values[$i % count($values)];
     }
 
     /**
@@ -100,6 +130,7 @@ class Twig_Extension_Core extends Twig_Extension
             'none'        => new Twig_Test_Function('twig_test_none'),
             'divisibleby' => new Twig_Test_Function('twig_test_divisibleby'),
             'constant'    => new Twig_Test_Function('twig_test_constant'),
+            'empty'       => new Twig_Test_Function('twig_test_empty'),
         );
     }
 
@@ -204,7 +235,7 @@ function twig_join_filter($value, $glue = '')
 
 function twig_default_filter($value, $default = '')
 {
-    return null === $value ? $default : $value;
+    return twig_test_empty($value) ? $default : $value;
 }
 
 function twig_get_array_keys_filter($array)
@@ -253,20 +284,6 @@ function twig_in_filter($value, $compare)
     return false;
 }
 
-function twig_range_filter($start, $end, $step = 1)
-{
-    return range($start, $end, $step);
-}
-
-function twig_cycle_filter($values, $i)
-{
-    if (!is_array($values) && !$values instanceof ArrayAccess) {
-        return $values;
-    }
-
-    return $values[$i % count($values)];
-}
-
 function twig_strtr($pattern, $replacements)
 {
     return str_replace(array_keys($replacements), array_values($replacements), $pattern);
@@ -286,6 +303,10 @@ function twig_strtr($pattern, $replacements)
  */
 function twig_escape_filter(Twig_Environment $env, $string, $type = 'html')
 {
+    if (is_object($string) && $string instanceof Twig_Markup) {
+        return $string;
+    }
+
     if (!is_string($string) && !(is_object($string) && method_exists($string, '__toString'))) {
         return $string;
     }
@@ -428,22 +449,13 @@ else
     }
 }
 
-function twig_iterator_to_array($seq, $useKeys = true)
+function twig_ensure_traversable($seq)
 {
-    if (is_array($seq)) {
-        return $seq;
-    } elseif (is_object($seq) && $seq instanceof Traversable) {
+    if (is_array($seq) || (is_object($seq) && $seq instanceof Traversable)) {
         return $seq;
     } else {
         return array();
     }
-}
-
-// only for backward compatibility
-function twig_get_array_items_filter($array)
-{
-    // noop
-    return $array;
 }
 
 function twig_test_sameas($value, $test)
@@ -479,4 +491,9 @@ function twig_test_constant($value, $constant)
 function twig_test_defined($name, $context)
 {
     return array_key_exists($name, $context);
+}
+
+function twig_test_empty($value)
+{
+    return null === $value || false === $value || '' === (string) $value;
 }
