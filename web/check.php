@@ -48,6 +48,7 @@ check(is_writable(__DIR__.'/../app/logs'), sprintf('Checking that the app/logs/ 
 // warnings
 echo_title("Optional checks");
 check(class_exists('DomDocument'), 'Checking that the PHP-XML module is installed', 'Install and enable the php-xml module', false);
+check(defined('LIBXML_COMPACT'), 'Checking that the libxml version is at least 2.6.21', 'Upgrade your php-xml module with a newer libxml', false);
 check(function_exists('token_get_all'), 'Checking that the token_get_all() function is available', 'Install and enable the Tokenizer extension (highly recommended)', false);
 check(function_exists('mb_strlen'), 'Checking that the mb_strlen() function is available', 'Install and enable the mbstring extension', false);
 check(function_exists('iconv'), 'Checking that the iconv() function is available', 'Install and enable the iconv extension', false);
