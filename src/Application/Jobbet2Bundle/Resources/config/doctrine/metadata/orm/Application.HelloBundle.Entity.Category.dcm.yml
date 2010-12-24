@@ -1,0 +1,24 @@
+# Application/HelloBundle/Resources/config/doctrine/metadata/orm/Application.HelloBundle.Entity.User.dcm.yml
+Application\HelloBundle\Entity\Category:
+    type: entity
+    table: category
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: string
+            length: 255
+    oneToMany:
+      job:
+        targetEntity: Job
+        mappedBy: category
+    manyToMany:
+      affiliates:
+        targetEntity: Category
+        mappedBy: categories
+        
+
+    

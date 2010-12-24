@@ -16,11 +16,12 @@ twig.config:
     strict_variables: %kernel.debug%
 
 ## Doctrine Configuration
-#doctrine.dbal:
-#    dbname:   xxxxxxxx
-#    user:     xxxxxxxx
-#    password: ~
-#doctrine.orm: ~
+doctrine.dbal:
+    driver:   PDOMySql
+    dbname:   Symfony2
+    user:     root
+    password: omar
+doctrine.orm: ~
 
 ## Swiftmailer Configuration
 #swiftmailer.config:

@@ -1,0 +1,13 @@
+# Application/HelloBundle/Resources/config/doctrine/metadata/orm/Application.HelloBundle.Entity.User.dcm.yml
+Application\HelloBundle\Entity\User:
+    type: entity
+    table: ser
+    id:
+        id:
+            type: integer
+            generator:
+                startegy: IDENTITY
+    fields:
+        name:
+            type: string
+            length: 50

@@ -1,0 +1,3 @@
+jobbet2:
+    pattern:  /jobbet2/:name
+    defaults: { _controller: Jobbet2Bundle:Jobbet2:index }
