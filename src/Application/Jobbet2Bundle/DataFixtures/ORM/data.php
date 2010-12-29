@@ -31,22 +31,49 @@ class LoadJobbetData implements FixtureInterface
         $manager->persist($cat4);
         
         $job1 = new Entity\Job();
-        $job1->setCategory($cat1);
+        $job1->setCategory($cat2);
         $job1->setType("full-time");
         $job1->setCompany("Sensio Labs");
         $job1->setLogo("sensio-labs.gif");
         $job1->setUrl("http://www.sensiolabs.com");
         $job1->setPosition("Web Developer");
         $job1->setLocation("Paris, France");
-        $job1->setDescription("Description");
+        $job1->setDescription("You've already developed websites with symfony and you want
+                to work with Open-Source technologies. You have a minimum of 3 years experience
+                in web development with PHP or Java and you wish to participate to development
+                of Web 2.0 sites using the best frameworks available.");
         $job1->setHowToApply("Send your resume to fabien.pontecier [at] sensio.com");
         $job1->setIsActivated(true);
         $job1->setIsPublic(true);
         $job1->setToken("job_sensio_labs");
         $job1->setEmail("job@example.com");
         $job1->setExpiresAt(new \DateTime('now'));
+
+        $job2 = new Entity\Job();
+        $job2->setCategory($cat1);
+        $job2->setType("part-time");
+        $job2->setCompany("Extreme Sensio");
+        $job2->setLogo("extreme-sensio.gif");
+        $job2->setUrl("http://www.extreme-sensio.com");
+        $job2->setPosition("Web Designer");
+        $job2->setLocation("Paris, France");
+        $job2->setDescription("Lorem ipsum dolor sit amet, consectetur adipisicing 
+                elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Utenim ad minim veniam, quis nostrud exercitation ullamco laborisnisi
+                ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit
+                in. Voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                Excepteur sint occaecat cupidatat non proident, sunt in culpa
+                qui officia deserunt mollit anim id est laborum.
+                ");
+        $job2->setHowToApply("Send your resume to fabien.pontecier [at] sensio.com");
+        $job2->setIsActivated(true);
+        $job2->setIsPublic(true);
+        $job2->setToken("job_extreme_sensi");
+        $job2->setEmail("job@example.com");
+        $job2->setExpiresAt(new \DateTime('now'));
         
         $manager->persist($job1);
+        $manager->persist($job2);
         
         $manager->flush();
 

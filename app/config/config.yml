@@ -18,9 +18,9 @@ twig.config:
 ## Doctrine Configuration
 doctrine.dbal:
     driver:   PDOMySql
-    dbname:   Symfony2
+    dbname:   Symfony2Jobbet
     user:     root
-    password: omar
+    password: carlos
 doctrine.orm: ~
 
 ## Swiftmailer Configuration
