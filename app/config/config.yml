@@ -20,7 +20,9 @@ twig.config:
 #    dbname:   xxxxxxxx
 #    user:     xxxxxxxx
 #    password: ~
-#doctrine.orm: ~
+#doctrine.orm:
+#    mappings:
+#        HelloBundle: ~
 
 ## Swiftmailer Configuration
 #swiftmailer.config:

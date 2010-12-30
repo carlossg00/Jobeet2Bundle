@@ -29,7 +29,9 @@ $container->loadFromExtension('doctrine', 'dbal', array(
     'user'     => 'xxxxxxxx',
     'password' => '',
 ));
-$container->loadFromExtension('doctrine', 'orm');
+$container->loadFromExtension('doctrine', 'orm', array(
+    'mappings' => array('HelloBundle' => array()),
+));
 */
 
 // Swiftmailer Configuration

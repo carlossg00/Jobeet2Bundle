@@ -27,7 +27,11 @@
     <!-- Doctrine Configuration -->
     <!--
     <doctrine:dbal dbname="xxxxxxxx" user="xxxxxxxx" password="" />
-    <doctrine:orm />
+    <doctrine:orm>
+        <doctrine:mappings>
+            <doctrine:mapping name="HelloBundle" />
+        </doctrine:mappings>
+    </doctrine:orm>
     -->
 
     <!-- Swiftmailer Configuration -->
