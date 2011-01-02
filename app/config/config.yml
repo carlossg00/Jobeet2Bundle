@@ -20,11 +20,7 @@ doctrine.dbal:
     driver:   PDOMySql
     dbname:   Symfony2Jobbet
     user:     root
-<<<<<<< HEAD
     password: carlos
-=======
-    password: 
->>>>>>> 990257e0a2c399ebaa15d4ce275f7abaa89d4d38
 doctrine.orm: ~
 
 ## Swiftmailer Configuration
