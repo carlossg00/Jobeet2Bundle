@@ -5,7 +5,7 @@
     xmlns:app="http://www.symfony-project.org/schema/dic/symfony"
     xmlns:doctrine="http://www.symfony-project.org/schema/dic/doctrine"
     xmlns:twig="http://www.symfony-project.org/schema/dic/twig"
-    xmlns:swift="http://www.symfony-project.org/schema/dic/swiftmailer"
+    xmlns:swiftmailer="http://www.symfony-project.org/schema/dic/swiftmailer"
     xmlns:zend="http://www.symfony-project.org/schema/dic/zend"
     xsi:schemaLocation="http://www.symfony-project.org/schema/dic/services http://www.symfony-project.org/schema/dic/services/services-1.0.xsd
                         http://www.symfony-project.org/schema/dic/symfony http://www.symfony-project.org/schema/dic/symfony/symfony-1.0.xsd
