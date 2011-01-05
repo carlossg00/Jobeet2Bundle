@@ -30,6 +30,7 @@ $container->loadFromExtension('doctrine', 'dbal', array(
     'password' => '',
 ));
 $container->loadFromExtension('doctrine', 'orm', array(
+    'auto_generate_proxy_classes' => '%kernel.debug%',
     'mappings' => array('HelloBundle' => array()),
 ));
 */
