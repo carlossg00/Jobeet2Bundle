@@ -62,7 +62,7 @@ $accelerator =
     ||
     function_exists('xcache_set')
 ;
-check($accelerator, 'Checking that that a PHP accelerator is installed', 'Install a PHP accelerator like APC (highly recommended)', false);
+check($accelerator, 'Checking that a PHP accelerator is installed', 'Install a PHP accelerator like APC (highly recommended)', false);
 
 check(!ini_get('short_open_tag'), 'Checking that php.ini has short_open_tag set to off', 'Set short_open_tag to off in php.ini', false);
 check(!ini_get('magic_quotes_gpc'), 'Checking that php.ini has magic_quotes_gpc set to off', 'Set magic_quotes_gpc to off in php.ini', false);
