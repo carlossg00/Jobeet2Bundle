@@ -213,7 +213,7 @@ class Twig_ExpressionParser
                 } elseif ('|' == $token->getValue()) {
                     $node = $this->parseFilterExpression($node);
                 } elseif ($firstPass && $node instanceof Twig_Node_Expression_Name && '(' == $token->getValue()) {
-                    $node = new Twig_Node_Expression_Function($node, $this->parseArguments(), $node->getLine());
+                    $node = $this->getFunctionNode($node);
                 } else {
                     break;
                 }
@@ -225,6 +225,33 @@ class Twig_ExpressionParser
         }
 
         return $node;
+    }
+
+    public function getFunctionNode($node)
+    {
+        $args = $this->parseArguments();
+
+        if ('parent' === $node->getAttribute('name')) {
+            if (!count($this->parser->getBlockStack())) {
+                throw new Twig_Error_Syntax('Calling "parent" outside a block is forbidden', $token->getLine());
+            }
+
+            if (!$this->parser->getParent()) {
+                throw new Twig_Error_Syntax('Calling "parent" on a template that does not extend another one is forbidden', $token->getLine());
+            }
+
+            return new Twig_Node_Expression_Parent($this->parser->peekBlockStack(), $node->getLine());
+        }
+
+        if ('block' === $node->getAttribute('name')) {
+            return new Twig_Node_Expression_BlockReference($args->getNode(0), $node->getLine());
+        }
+
+        if (null !== $alias = $this->parser->getImportedFunction($node->getAttribute('name'))) {
+            return new Twig_Node_Expression_GetAttr($alias['node'], new Twig_Node_Expression_Constant($alias['name'], $node->getLine()), $args, $node->getLine(), Twig_Node_Expression_GetAttr::TYPE_METHOD);
+        }
+
+        return new Twig_Node_Expression_Function($node, $args, $node->getLine());
     }
 
     public function parseSubscriptExpression($node)
@@ -296,17 +323,17 @@ class Twig_ExpressionParser
 
     public function parseArguments()
     {
-        $parser = $this->parser->getStream();
-        $parser->expect(Twig_Token::PUNCTUATION_TYPE, '(');
-
         $args = array();
-        while (!$parser->test(Twig_Token::PUNCTUATION_TYPE, ')')) {
+        $stream = $this->parser->getStream();
+
+        $stream->expect(Twig_Token::PUNCTUATION_TYPE, '(', 'A list of arguments must be opened by a parenthesis');
+        while (!$stream->test(Twig_Token::PUNCTUATION_TYPE, ')')) {
             if (!empty($args)) {
-                $parser->expect(Twig_Token::PUNCTUATION_TYPE, ',', 'Arguments must be separated by a comma');
+                $stream->expect(Twig_Token::PUNCTUATION_TYPE, ',', 'Arguments must be separated by a comma');
             }
             $args[] = $this->parseExpression();
         }
-        $parser->expect(Twig_Token::PUNCTUATION_TYPE, ')', 'A list of arguments must be closed by a parenthesis');
+        $stream->expect(Twig_Token::PUNCTUATION_TYPE, ')', 'A list of arguments must be closed by a parenthesis');
 
         return new Twig_Node($args);
     }
@@ -315,16 +342,9 @@ class Twig_ExpressionParser
     {
         $targets = array();
         while (true) {
-            if ($this->parser->getStream()->test(Twig_Token::PUNCTUATION_TYPE, ')') ||
-                    $this->parser->getStream()->test(Twig_Token::VAR_END_TYPE) ||
-                    $this->parser->getStream()->test(Twig_Token::BLOCK_END_TYPE))
-            {
-                break;
-            }
-
             $token = $this->parser->getStream()->expect(Twig_Token::NAME_TYPE, null, 'Only variables can be assigned to');
             if (in_array($token->getValue(), array('true', 'false', 'none'))) {
-                throw new Twig_Error_Syntax($token->getValue() . ' cannot be assigned to');
+                throw new Twig_Error_Syntax(sprintf('You cannot assign a value to "%s"', $token->getValue()));
             }
             $targets[] = new Twig_Node_Expression_AssignName($token->getValue(), $token->getLine());
 
@@ -341,12 +361,6 @@ class Twig_ExpressionParser
     {
         $targets = array();
         while (true) {
-            if ($this->parser->getStream()->test(Twig_Token::PUNCTUATION_TYPE, ')') ||
-                    $this->parser->getStream()->test(Twig_Token::VAR_END_TYPE) ||
-                    $this->parser->getStream()->test(Twig_Token::BLOCK_END_TYPE))
-            {
-                break;
-            }
             $targets[] = $this->parseExpression();
             if (!$this->parser->getStream()->test(Twig_Token::PUNCTUATION_TYPE, ',')) {
                 break;

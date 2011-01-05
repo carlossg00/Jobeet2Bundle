@@ -23,8 +23,6 @@ class Twig_Extension_Core extends Twig_Extension
             new Twig_TokenParser_Extends(),
             new Twig_TokenParser_Include(),
             new Twig_TokenParser_Block(),
-            new Twig_TokenParser_Parent(),
-            new Twig_TokenParser_Display(),
             new Twig_TokenParser_Filter(),
             new Twig_TokenParser_Macro(),
             new Twig_TokenParser_Import(),
@@ -87,12 +85,12 @@ class Twig_Extension_Core extends Twig_Extension
      *
      * @return array An array of global functions
      */
-    public function getGlobals()
+    public function getFunctions()
     {
         return array(
-            'fn_range'    => new Twig_Function($this, 'getRange'),
-            'fn_constant' => new Twig_Function($this, 'getConstant'),
-            'fn_cycle'    => new Twig_Function($this, 'getCycle'),
+            'range'    => new Twig_Function_Method($this, 'getRange'),
+            'constant' => new Twig_Function_Method($this, 'getConstant'),
+            'cycle'    => new Twig_Function_Method($this, 'getCycle'),
         );
     }
 

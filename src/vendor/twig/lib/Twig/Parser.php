@@ -9,6 +9,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+/**
+ * Default parser implementation.
+ *
+ * @package twig
+ * @author  Fabien Potencier <fabien.potencier@symfony-project.com>
+ */
 class Twig_Parser implements Twig_ParserInterface
 {
     protected $stream;
@@ -21,7 +28,13 @@ class Twig_Parser implements Twig_ParserInterface
     protected $macros;
     protected $env;
     protected $reservedMacroNames;
+    protected $importedFunctions;
 
+    /**
+     * Constructor.
+     *
+     * @param Twig_Environment $env A Twig_Environment instance
+     */
     public function __construct(Twig_Environment $env)
     {
         $this->env = $env;
@@ -52,6 +65,7 @@ class Twig_Parser implements Twig_ParserInterface
         $this->blocks = array();
         $this->macros = array();
         $this->blockStack = array();
+        $this->importedFunctions = array(array());
 
         try {
             $body = $this->subparse(null);
@@ -105,6 +119,10 @@ class Twig_Parser implements Twig_ParserInterface
                             $this->stream->next();
                         }
 
+                        if (1 === count($rv)) {
+                            return $rv[0];
+                        }
+
                         return new Twig_Node($rv, array(), $lineno);
                     }
 
@@ -124,6 +142,10 @@ class Twig_Parser implements Twig_ParserInterface
                 default:
                     throw new Twig_Error_Syntax('Lexer or parser ended up in unsupported state.');
             }
+        }
+
+        if (1 === count($rv)) {
+            return $rv[0];
         }
 
         return new Twig_Node($rv, array(), $lineno);
@@ -191,6 +213,30 @@ class Twig_Parser implements Twig_ParserInterface
         $this->macros[$name] = $node;
     }
 
+    public function addImportedFunction($alias, $name, Twig_Node_Expression $node)
+    {
+        $this->importedFunctions[0][$alias] = array('name' => $name, 'node' => $node);
+    }
+
+    public function getImportedFunction($alias)
+    {
+        foreach ($this->importedFunctions as $functions) {
+            if (isset($functions[$alias])) {
+                return $functions[$alias];
+            }
+        }
+    }
+
+    public function pushLocalScope()
+    {
+        array_unshift($this->importedFunctions, array());
+    }
+
+    public function popLocalScope()
+    {
+        array_shift($this->importedFunctions);
+    }
+
     public function getExpressionParser()
     {
         return $this->expressionParser;
@@ -218,13 +264,13 @@ class Twig_Parser implements Twig_ParserInterface
 
     protected function checkBodyNodes($body)
     {
-        // check that the body only contains block references and empty text nodes
+        // check that the body does not contain non-empty output nodes
         foreach ($body as $node)
         {
             if (
                 ($node instanceof Twig_Node_Text && !ctype_space($node->getAttribute('data')))
                 ||
-                (!$node instanceof Twig_Node_Text && !$node instanceof Twig_Node_BlockReference && !$node instanceof Twig_Node_Import)
+                (!$node instanceof Twig_Node_Text && !$node instanceof Twig_Node_BlockReference && $node instanceof Twig_NodeOutputInterface)
             ) {
                 throw new Twig_Error_Syntax(sprintf('A template that extends another one cannot have a body (%s).', $node), $node->getLine());
             }

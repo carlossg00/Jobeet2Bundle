@@ -122,6 +122,12 @@ class ClassMetadataInfo
      */
     const FETCH_EAGER = 3;
     /**
+     * Specifies that an association is to be fetched lazy (on first access) and that
+     * commands such as Collection#count, Collection#slice are issued directly against
+     * the database if the collection is not yet initialized.
+     */
+    const FETCH_EXTRA_LAZY = 4;
+    /**
      * Identifies a one-to-one association.
      */
     const ONE_TO_ONE = 1;
@@ -255,7 +261,7 @@ class ClassMetadataInfo
      * - <b>scale</b> (integer, optional, schema-only)
      * The scale of a decimal column. Only valid if the column type is decimal.
      *
-     * - <b>unique (string, optional, schema-only)</b>
+     [* - <b>'unique'] (string, optional, schema-only)</b>
      * Whether a unique constraint should be generated for the column.
      *
      * @var array
@@ -391,6 +397,15 @@ class ClassMetadataInfo
      * @var boolean
      */
     public $isIdentifierComposite = false;
+
+    /**
+     * READ-ONLY: Flag indicating wheather the identifier/primary key contains at least one foreign key association.
+     *
+     * This flag is necessary because some code blocks require special treatment of this cases.
+     *
+     * @var boolean
+     */
+    public $containsForeignIdentifier = false;
 
     /**
      * READ-ONLY: The ID generator used for generating IDs for this class.
@@ -710,6 +725,29 @@ class ClassMetadataInfo
             $mapping['targetEntity'] = $this->namespace . '\\' . $mapping['targetEntity'];
         }
 
+        // Complete id mapping
+        if (isset($mapping['id']) && $mapping['id'] === true) {
+            if (isset($mapping['orphanRemoval']) && $mapping['orphanRemoval'] == true) {
+                throw MappingException::illegalOrphanRemovalOnIdentifierAssociation($this->name, $mapping['fieldName']);
+            }
+
+            if ( ! in_array($mapping['fieldName'], $this->identifier)) {
+                if (count($mapping['joinColumns']) >= 2) {
+                    throw MappingException::cannotMapCompositePrimaryKeyEntitiesAsForeignId(
+                        $mapping['targetEntity'], $this->name, $mapping['fieldName']
+                    );
+                }
+
+                $this->identifier[] = $mapping['fieldName'];
+                $this->containsForeignIdentifier = true;
+            }
+            // Check for composite key
+            if ( ! $this->isIdentifierComposite && count($this->identifier) > 1) {
+                $this->isIdentifierComposite = true;
+            }
+        }
+
+        // Mandatory attributes for both sides
         // Mandatory: fieldName, targetEntity
         if ( ! isset($mapping['fieldName'])) {
             throw MappingException::missingFieldName();
@@ -728,6 +766,10 @@ class ClassMetadataInfo
             }
         } else {
             $mapping['isOwningSide'] = false;
+        }
+
+        if (isset($mapping['id']) && $mapping['id'] === true && $mapping['type'] & ClassMetadata::TO_MANY) {
+            throw MappingException::illegalToManyIdentifierAssoaction($this->name, $mapping['fieldName']);
         }
         
         // Fetch mode. Default fetch mode to LAZY, if not set.
@@ -779,9 +821,15 @@ class ClassMetadataInfo
                     'referencedColumnName' => 'id'
                 ));
             }
+
+            $uniqueContraintColumns = array();
             foreach ($mapping['joinColumns'] as $key => &$joinColumn) {
                 if ($mapping['type'] === self::ONE_TO_ONE) {
-                    $joinColumn['unique'] = true;
+                    if (count($mapping['joinColumns']) == 1) {
+                        $joinColumn['unique'] = true;
+                    } else {
+                        $uniqueContraintColumns[] = $joinColumn['name'];
+                    }
                 }
                 if (empty($joinColumn['name'])) {
                     $joinColumn['name'] = $mapping['fieldName'] . '_id';
@@ -793,12 +841,26 @@ class ClassMetadataInfo
                 $mapping['joinColumnFieldNames'][$joinColumn['name']] = isset($joinColumn['fieldName'])
                         ? $joinColumn['fieldName'] : $joinColumn['name'];
             }
+
+            if ($uniqueContraintColumns) {
+                if (!$this->table) {
+                    throw new \RuntimeException("ClassMetadataInfo::setTable() has to be called before defining a one to one relationship.");
+                }
+                $this->table['uniqueConstraints'][$mapping['fieldName']."_uniq"] = array(
+                    'columns' => $uniqueContraintColumns
+                );
+            }
+
             $mapping['targetToSourceKeyColumns'] = array_flip($mapping['sourceToTargetKeyColumns']);
         }
 
         //TODO: if orphanRemoval, cascade=remove is implicit!
         $mapping['orphanRemoval'] = isset($mapping['orphanRemoval']) ?
                 (bool) $mapping['orphanRemoval'] : false;
+
+        if (isset($mapping['id']) && $mapping['id'] === true && !$mapping['isOwningSide']) {
+            throw MappingException::illegalInverseIdentifierAssocation($this->name, $mapping['fieldName']);
+        }
 
         return $mapping;
     }
@@ -836,8 +898,17 @@ class ClassMetadataInfo
     {
         $mapping = $this->_validateAndCompleteAssociationMapping($mapping);
         if ($mapping['isOwningSide']) {
-            $sourceShortName = strtolower(substr($mapping['sourceEntity'], strrpos($mapping['sourceEntity'], '\\') + 1));
-            $targetShortName = strtolower(substr($mapping['targetEntity'], strrpos($mapping['targetEntity'], '\\') + 1));
+            if (strpos($mapping['sourceEntity'], '\\') !== false) {
+                $sourceShortName = strtolower(substr($mapping['sourceEntity'], strrpos($mapping['sourceEntity'], '\\') + 1));
+            } else {
+                $sourceShortName = strtolower($mapping['sourceEntity']);
+            }
+            if (strpos($mapping['targetEntity'], '\\') !== false) {
+                $targetShortName = strtolower(substr($mapping['targetEntity'], strrpos($mapping['targetEntity'], '\\') + 1));
+            } else {
+                $targetShortName = strtolower($mapping['targetEntity']);
+            }
+            
             // owning side MUST have a join table
             if ( ! isset($mapping['joinTable']['name'])) {
                 $mapping['joinTable']['name'] = $sourceShortName .'_' . $targetShortName;
@@ -981,11 +1052,19 @@ class ClassMetadataInfo
         if ($this->isIdentifierComposite) {
             $columnNames = array();
             foreach ($this->identifier as $idField) {
-                $columnNames[] = $this->fieldMappings[$idField]['columnName'];
+                if (isset($this->associationMappings[$idField])) {
+                    // no composite pk as fk entity assumption:
+                    $columnNames[] = $this->associationMappings[$idField]['joinColumns'][0]['name'];
+                } else {
+                    $columnNames[] = $this->fieldMappings[$idField]['columnName'];
+                }
             }
             return $columnNames;
-        } else {
+        } else if(isset($this->fieldMappings[$this->identifier[0]])) {
             return array($this->fieldMappings[$this->identifier[0]]['columnName']);
+        } else {
+            // no composite pk as fk entity assumption:
+            return array($this->associationMappings[$this->identifier[0]]['joinColumns'][0]['name']);
         }
     }
 
@@ -1519,6 +1598,74 @@ class ClassMetadataInfo
     {
         return isset($this->associationMappings[$fieldName]) &&
                 ! ($this->associationMappings[$fieldName]['type'] & self::TO_ONE);
+    }
+
+    /**
+     * Is this an association that only has a single join column?
+     *
+     * @param  string $fieldName
+     * @return bool
+     */
+    public function isAssociationWithSingleJoinColumn($fieldName)
+    {
+        return (
+            isset($this->associationMappings[$fieldName]) &&
+            isset($this->associationMappings[$fieldName]['joinColumns'][0]) &&
+            !isset($this->associationMappings[$fieldName]['joinColumns'][1])
+        );
+    }
+
+    /**
+     * Return the single association join column (if any).
+     * 
+     * @param string $fieldName
+     * @return string
+     */
+    public function getSingleAssociationJoinColumnName($fieldName)
+    {
+        if (!$this->isAssociationWithSingleJoinColumn($fieldName)) {
+            throw MappingException::noSingleAssociationJoinColumnFound($this->name, $fieldName);
+        }
+        return $this->associationMappings[$fieldName]['joinColumns'][0]['name'];
+    }
+
+    /**
+     * Return the single association referenced join column name (if any).
+     *
+     * @param string $fieldName
+     * @return string
+     */
+    public function getSingleAssociationReferencedJoinColumnName($fieldName)
+    {
+        if (!$this->isAssociationWithSingleJoinColumn($fieldName)) {
+            throw MappingException::noSingleAssociationJoinColumnFound($this->name, $fieldName);
+        }
+        return $this->associationMappings[$fieldName]['joinColumns'][0]['referencedColumnName'];
+    }
+
+    /**
+     * Used to retrieve a fieldname for either field or association from a given column,
+     *
+     * This method is used in foreign-key as primary-key contexts.
+     *
+     * @param  string $columnName
+     * @return string
+     */
+    public function getFieldForColumn($columnName)
+    {
+        if (isset($this->fieldNames[$columnName])) {
+            return $this->fieldNames[$columnName];
+        } else {
+            foreach ($this->associationMappings AS $assocName => $mapping) {
+                if ($this->isAssociationWithSingleJoinColumn($assocName) &&
+                    $this->associationMappings[$assocName]['joinColumns'][0]['name'] == $columnName) {
+                    
+                    return $assocName;
+                }
+            }
+
+            throw MappingException::noFieldNameFoundForColumn($this->name, $columnName);
+        }
     }
 
     /**

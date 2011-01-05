@@ -504,7 +504,7 @@ class DocumentPersister
             $mongoCollection = $this->dm->getDocumentCollection($className);
             $data = $mongoCollection->find(array('_id' => array($cmd . 'in' => $ids)));
             foreach ($data as $documentData) {
-                $document = $this->uow->getById((string) $documentData['_id'], $className);
+                $document = $this->uow->getById((string) $documentData['_id'], $class->rootDocumentName);
                 $data = $this->hydratorFactory->hydrate($document, $documentData);
                 $this->uow->setOriginalDocumentData($document, $data);
             }
@@ -512,7 +512,7 @@ class DocumentPersister
     }
 
     /**
-     * Prepares a query and converts values to the types mongodb expects.
+     * Prepares a query array by converting the portable Doctrine types to the types mongodb expects.
      *
      * @param string|array $query
      * @return array $query
@@ -528,22 +528,42 @@ class DocumentPersister
         }
         $newQuery = array();
         foreach ($query as $key => $value) {
-            $value = $this->prepareWhereValue($key, $value);
+            $value = $this->prepareQueryValue($key, $value);
             $newQuery[$key] = $value;
         }
+        $newQuery = $this->convertTypes($newQuery);
         return $newQuery;
     }
 
     /**
-     * Prepare where values converting document object field names to the document collection
-     * field name.
+     * Converts any local PHP variable types to their related MongoDB type.
+     *
+     * @param array $query
+     * @return array $query
+     */
+    private function convertTypes(array $query)
+    {
+        foreach ($query as $key => $value) {
+            if (is_array($value)) {
+                $query[$key] = $this->convertTypes($value);
+            } else {
+                $query[$key] = Type::convertPHPToDatabaseValue($value);
+            }
+        }
+        return $query;
+    }
+
+    /**
+     * Prepares a query value and converts the php value to the database value if it is an identifier.
+     * It also handles converting $fieldName to the database name if they are different.
      *
      * @param string $fieldName
      * @param string $value
-     * @return string $value
+     * @return mixed $value
      */
-    private function prepareWhereValue(&$fieldName, $value)
+    private function prepareQueryValue(&$fieldName, $value)
     {
+        // Process "association.fieldName"
         if (strpos($fieldName, '.') !== false) {
             $e = explode('.', $fieldName);
 
@@ -558,35 +578,26 @@ class DocumentPersister
 
             if (isset($mapping['targetDocument'])) {
                 $targetClass = $this->dm->getClassMetadata($mapping['targetDocument']);
-                if ($targetClass->hasField($e[1]) && $targetClass->identifier === $e[1]) {
-                    $fieldName = $e[0] . '.$id';
-                    $value = $targetClass->getDatabaseIdentifierValue($value);
-                } elseif ($e[1] === '$id') {
-                    $value = $targetClass->getDatabaseIdentifierValue($value);
+                if ($targetClass->hasField($e[1])) {
+                    if ($targetClass->identifier === $e[1] || $e[1] === '$id') {
+                        $fieldName = $e[0] . '.$id';
+                        $value = $targetClass->getDatabaseIdentifierValue($value);
+                    }
                 }
             }
+
+        // Process all non identifier fields
         } elseif ($this->class->hasField($fieldName) && ! $this->class->isIdentifier($fieldName)) {
             $name = $this->class->fieldMappings[$fieldName]['name'];
+            $mapping = $this->class->fieldMappings[$fieldName];
             if ($name !== $fieldName) {
                 $fieldName = $name;
             }
-        } else {
-            if ($fieldName === $this->class->identifier || $fieldName === '_id') {
-                $fieldName = '_id';
-                if (is_array($value)) {
-                    if (isset($value[$this->cmd.'in'])) {
-                        foreach ($value[$this->cmd.'in'] as $k => $v) {
-                            $value[$this->cmd.'in'][$k] = $this->class->getDatabaseIdentifierValue($v);
-                        }
-                    } else {
-                        foreach ($value as $k => $v) {
-                            $value[$k] = $this->class->getDatabaseIdentifierValue($v);
-                        }
-                    }
-                } else {
-                    $value = $this->class->getDatabaseIdentifierValue($value);
-                }
-            }
+
+        // Process identifier
+        } elseif ($fieldName === $this->class->identifier || $fieldName === '_id') {
+            $fieldName = '_id';
+            $value = $this->class->getDatabaseIdentifierValue($value);
         }
         return $value;
     }

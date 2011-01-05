@@ -16,7 +16,7 @@ class Twig_Node_Expression_Filter extends Twig_Node_Expression
         parent::__construct(array('node' => $node, 'filter' => $filterName, 'arguments' => $arguments), array(), $lineno, $tag);
     }
 
-    public function compile($compiler)
+    public function compile(Twig_Compiler $compiler)
     {
         $filterMap = $compiler->getEnvironment()->getFilters();
         $name = $this->getNode('filter')->getAttribute('value');
@@ -29,6 +29,7 @@ class Twig_Node_Expression_Filter extends Twig_Node_Expression
         // is a name (like obj) or an attribute (like obj.attr)
         // In such a case, it's compiled to {{ obj is defined ? obj|default('bar') : 'bar' }}
         if ('default' === $name && ($this->getNode('node') instanceof Twig_Node_Expression_Name || $this->getNode('node') instanceof Twig_Node_Expression_GetAttr)) {
+            $compiler->raw('(');
             if ($this->getNode('node') instanceof Twig_Node_Expression_Name) {
                 $testMap = $compiler->getEnvironment()->getTests();
                 $compiler
@@ -45,12 +46,13 @@ class Twig_Node_Expression_Filter extends Twig_Node_Expression
             $this->compileFilter($compiler, $filter);
             $compiler->raw(' : ');
             $compiler->subcompile($this->getNode('arguments')->getNode(0));
+            $compiler->raw(')');
         } else {
             $this->compileFilter($compiler, $filter);
         }
     }
 
-    protected function compileFilter($compiler, $filter)
+    protected function compileFilter(Twig_Compiler $compiler, Twig_FilterInterface $filter)
     {
         $compiler->raw($filter->compile().($filter->needsEnvironment() ? '($this->env, ' : '('));
 
