@@ -103,9 +103,7 @@ class Twig_Environment
         );
         $this->strictVariables    = (bool) $options['strict_variables'];
         $this->runtimeInitialized = false;
-        if ($options['cache']) {
-            $this->setCache($options['cache']);
-        }
+        $this->setCache($options['cache']);
     }
 
     /**
@@ -224,11 +222,7 @@ class Twig_Environment
       */
     public function setCache($cache)
     {
-        $this->cache = $cache;
-
-        if ($this->cache && !is_dir($this->cache)) {
-            mkdir($this->cache, 0777, true);
-        }
+        $this->cache = $cache ? $cache : false;
     }
 
     /**
@@ -259,6 +253,16 @@ class Twig_Environment
     public function getTemplateClass($name)
     {
         return $this->templateClassPrefix.md5($this->loader->getCacheKey($name));
+    }
+
+    /**
+     * Gets the template class prefix.
+     *
+     * @return string The template class prefix
+     */
+    public function getTemplateClassPrefix()
+    {
+        return $this->templateClassPrefix;
     }
 
     /**
