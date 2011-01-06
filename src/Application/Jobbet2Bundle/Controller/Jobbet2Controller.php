@@ -18,7 +18,7 @@ class Jobbet2Controller extends Controller
         $job = new Job();
         //$user->setName('dsd');
 
-        $form = new Form('user',$user,$this->get('validator'));
+        $form = new Form('user',$job,$this->get('validator'));
         $form->add(new TextField('category'));
         $form->add(new TextField('type'));
         $form->add(new TextField('company'));
