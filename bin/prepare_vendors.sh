@@ -48,6 +48,10 @@ cd $TARGET
 cd twig && rm -rf AUTHORS CHANGELOG README.markdown bin doc package.xml.tpl phpunit.xml test
 cd $TARGET
 
+# Twig Extensions
+cd twig && rm -rf README doc phpunit.xml test
+cd $TARGET
+
 # Zend Framework
 cd zend && rm -rf INSTALL.txt README* bin demos documentation resources tests tools working; mkdir library/tmp; mv library/Zend/Exception.php library/tmp/; mv library/Zend/Log library/tmp/; rm -rf library/Zend; mv library/tmp library/Zend
 cd $TARGET

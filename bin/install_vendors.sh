@@ -53,6 +53,9 @@ cd $DIR/vendor
 # Twig
 git clone git://github.com/fabpot/Twig.git twig
 
+# Twig Extensions
+git clone git://github.com/fabpot/Twig-extensions.git twig-extensions
+
 # Zend Framework
 git clone git://github.com/zendframework/zf2.git zend
 cd zend
