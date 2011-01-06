@@ -47,6 +47,9 @@ git checkout -b 4.1 origin/4.1
 # Twig
 cd $VENDOR/twig && git pull
 
+# Twig Extensions
+cd $VENDOR/twig-extensions && git pull
+
 # Zend Framework
 cd $VENDOR/zend && git pull
 git submodule update --recursive --init
