@@ -20,7 +20,8 @@
 namespace Doctrine\ORM\Persisters;
 
 use Doctrine\ORM\ORMException,
-    Doctrine\ORM\Mapping\ClassMetadata;
+    Doctrine\ORM\Mapping\ClassMetadata,
+    Doctrine\DBAL\LockMode;
 
 /**
  * The joined subclass persister maps a single entity instance to several tables in the
@@ -239,7 +240,7 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
     /**
      * {@inheritdoc}
      */
-    protected function _getSelectEntitiesSQL(array $criteria, $assoc = null, $lockMode = 0)
+    protected function _getSelectEntitiesSQL(array $criteria, $assoc = null, $lockMode = 0, $limit = null, $offset = null)
     {
         $idColumns = $this->_class->getIdentifierColumnNames();
         $baseTableAlias = $this->_getSQLTableAlias($this->_class->name);
@@ -263,12 +264,10 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
                             $this->_getSQLTableAlias($assoc2['inherited'])
                             : $baseTableAlias;
                     foreach ($assoc2['targetToSourceKeyColumns'] as $srcColumn) {
-                        $columnAlias = $srcColumn . $this->_sqlAliasCounter++;
-                        $columnList .= ", $tableAlias.$srcColumn AS $columnAlias";
-                        $resultColumnName = $this->_platform->getSQLResultCasing($columnAlias);
-                        if ( ! isset($this->_resultColumnNames[$resultColumnName])) {
-                            $this->_resultColumnNames[$resultColumnName] = $srcColumn;
-                        }
+                        if ($columnList != '') $columnList .= ', ';
+                        $columnList .= $this->getSelectJoinColumnSQL($tableAlias, $srcColumn,
+                            isset($assoc2['inherited']) ? $assoc2['inherited'] : $this->_class->name
+                        );
                     }
                 }
             }
@@ -318,12 +317,10 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
                     if ($assoc2['isOwningSide'] && $assoc2['type'] & ClassMetadata::TO_ONE
                             && ! isset($assoc2['inherited'])) {
                         foreach ($assoc2['targetToSourceKeyColumns'] as $srcColumn) {
-                            $columnAlias = $srcColumn . $this->_sqlAliasCounter++;
-                            $columnList .= ', ' . $tableAlias . ".$srcColumn AS $columnAlias";
-                            $resultColumnName = $this->_platform->getSQLResultCasing($columnAlias);
-                            if ( ! isset($this->_resultColumnNames[$resultColumnName])) {
-                                $this->_resultColumnNames[$resultColumnName] = $srcColumn;
-                            }
+                            if ($columnList != '') $columnList .= ', ';
+                            $columnList .= $this->getSelectJoinColumnSQL($tableAlias, $srcColumn,
+                                isset($assoc2['inherited']) ? $assoc2['inherited'] : $subClass->name
+                            );
                         }
                     }
                 }
@@ -352,10 +349,18 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
             $this->_selectColumnListSql = $columnList;
         }
 
-        return 'SELECT ' . $this->_selectColumnListSql
+        $lockSql = '';
+        if ($lockMode == LockMode::PESSIMISTIC_READ) {
+            $lockSql = ' ' . $this->_platform->getReadLockSql();
+        } else if ($lockMode == LockMode::PESSIMISTIC_WRITE) {
+            $lockSql = ' ' . $this->_platform->getWriteLockSql();
+        }
+
+        return $this->_platform->modifyLimitQuery('SELECT ' . $this->_selectColumnListSql
                 . ' FROM ' . $this->_class->getQuotedTableName($this->_platform) . ' ' . $baseTableAlias
                 . $joinSql
-                . ($conditionSql != '' ? ' WHERE ' . $conditionSql : '') . $orderBySql;
+                . ($conditionSql != '' ? ' WHERE ' . $conditionSql : '') . $orderBySql, $limit, $offset)
+                . $lockSql;
     }
 
     /**

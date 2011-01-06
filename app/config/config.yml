@@ -16,12 +16,16 @@ twig.config:
     strict_variables: %kernel.debug%
 
 ## Doctrine Configuration
+
 doctrine.dbal:
     driver:   PDOMySql
     dbname:   Symfony2Jobbet
     user:     root
     password: carlos
-doctrine.orm: ~
+doctrine.orm:
+    auto_generate_proxy_classes: %kernel.debug%
+    mappings:
+        HelloBundle: ~
 
 
 ## Swiftmailer Configuration

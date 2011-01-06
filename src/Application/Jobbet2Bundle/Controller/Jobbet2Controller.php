@@ -8,18 +8,19 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\TextField;
 use Symfony\Component\Form\IntegerField;
+use Symfony\Component\Form\CheckboxField;
 
 class Jobbet2Controller extends Controller
 {
     public function indexAction()
     {
 
-        $user = new User();
-        $user->setName('dsd');
+        $job = new Job();
+        //$user->setName('dsd');
 
-       //$form = new Form('user',$user,$this->get('validator'));
-      //  $form->add(new TextField('category'));
-       /* $form->add(new TextField('type'));
+        $form = new Form('user',$user,$this->get('validator'));
+        $form->add(new TextField('category'));
+        $form->add(new TextField('type'));
         $form->add(new TextField('company'));
         $form->add(new TextField('logo'));
         $form->add(new TextField('url'));
@@ -28,14 +29,17 @@ class Jobbet2Controller extends Controller
         $form->add(new TextField('description'));
         $form->add(new TextField('how_to_apply'));
         $form->add(new TextField('token'));
-        $form->add(new TextField('is_Public'));
-        $form->add(new TextField('is_activated'));
+        $form->add(new CheckboxField('is_Public'));
+        $form->add(new CheckboxField('is_activated'));
         $form->add(new TextField('email'));
-        $form->add(new TextField('Expires at'));
-        $form->add(new TextField('Created at'));
+        $form->add(new TextField('expires_at'));
+        /*$form->add(new TextField('Created at'));
         $form->add(new TextField('Updated at'));
-*/
-        return $this->render('Jobbet2Bundle:Jobbet2:index.twig');
+         */
+
+
+        return $this->render('Jobbet2Bundle:Jobbet2:index.twig',
+                array('form'=>$form));
 
     }
 }
