@@ -23,6 +23,7 @@ doctrine.dbal:
     password: carlos
 doctrine.orm: ~
 
+
 ## Swiftmailer Configuration
 #swiftmailer.config:
 #    transport:  smtp

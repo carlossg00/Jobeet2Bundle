@@ -17,7 +17,7 @@ class Jobbet2Controller extends Controller
         $user = new User();
         $user->setName('dsd');
 
-       $form = new Form('user',$user,$this->get('validator'));
+       //$form = new Form('user',$user,$this->get('validator'));
       //  $form->add(new TextField('category'));
        /* $form->add(new TextField('type'));
         $form->add(new TextField('company'));
@@ -34,8 +34,8 @@ class Jobbet2Controller extends Controller
         $form->add(new TextField('Expires at'));
         $form->add(new TextField('Created at'));
         $form->add(new TextField('Updated at'));
-
-        return $this->render('Jobbet2Bundle:Jobbet2:index.twig');
 */
+        return $this->render('Jobbet2Bundle:Jobbet2:index.twig');
+
     }
 }
