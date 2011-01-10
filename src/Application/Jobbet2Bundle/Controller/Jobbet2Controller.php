@@ -14,6 +14,28 @@ class Jobbet2Controller extends Controller
 {
     public function indexAction()
     {
+        //$conn = $this->get('database_connection');
+        //$jobs = $conn->fetchAll('SELECt * FROM job');
+
+        //$job = new Job();
+        //$job->setCompany("companyName");
+        $em = $this->get('doctrine.orm.entity_manager');
+        $query = $em->createQuery('SELECT j FROM Jobbet2Bundle:Job j');
+        $jobs = $query->getResult();
+        
+
+        //$jobs = $em->find('Jobbet2Bundle:Job');
+        //$em->persist($job);
+        //$em->flush();
+        
+
+        return $this->render('Jobbet2Bundle:Jobbet2:index.twig',
+                array('jobs'=>$jobs));
+
+    }
+
+    public function showAction()
+    {
 
         $job = new Job();
         //$user->setName('dsd');
@@ -37,9 +59,43 @@ class Jobbet2Controller extends Controller
         $form->add(new TextField('Updated at'));
          */
 
+        // submmited data
+
+        if ('POST' == $this->get('request')->getMethod()) {
+            $form->bind($this->get('request')->request->get('job'));
+
+            if ($form->isValid()) {
+                // save $job object and redirect
+                $em = $this->get('doctrine.orm.entity_manager');
+                $em->persist($job);
+                $em->flush();
+            }
+        }
+
+
 
         return $this->render('Jobbet2Bundle:Jobbet2:index.twig',
                 array('form'=>$form));
 
     }
+
+
+    public function editAction($id)
+    {
+        $em = $this->get('doctrine.orm.entity_manager');
+        $job = $em->createQuery('SELECT j FROM Jobbet2Bundle:Job WHERE id = ?', $id);
+        $em->flush();
+
+    }
+
+    public function deleteAction($id)
+    {
+        $em = $this->get('doctrine.orm.entity_manager');
+        $job = $em->createQuery('SELECT j FROM Jobbet2Bundle:Job WHERE id = ?', $id);
+        $em->remove($job);
+        $em->flush();
+
+    }
+
+
 }

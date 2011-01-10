@@ -25,7 +25,10 @@ doctrine.dbal:
 doctrine.orm:
     auto_generate_proxy_classes: %kernel.debug%
     mappings:
-        HelloBundle: ~
+        Jobbet2Bundle: ~
+          #type: annotation
+          #dir: "%kernel.root_dir%/../src/Application/Jobbet2Bundle/Entity"
+          #prefix: Jobbet2Bundle\Entity
 
 
 ## Swiftmailer Configuration

@@ -1,8 +1,12 @@
 {% extends "Jobbet2Bundle::layout.twig" %}
 
 {% block content %}
-    <form action="#" {{ form_enctype(form) }} method="post">
-        {{ form_field(form) }}
-        <input type="submit" />
-    </form>
+    <table>
+        {% for job in jobs %}
+        <tr>
+            <td>{{ job.id }}</td><td>{{ job.type }}</td>
+            <td>{{ job.company }}</td><td>{{ job.description }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
