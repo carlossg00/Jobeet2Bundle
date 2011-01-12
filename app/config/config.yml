@@ -20,10 +20,11 @@ twig.config:
 #    dbname:   xxxxxxxx
 #    user:     xxxxxxxx
 #    password: ~
-doctrine.orm:
-    auto_generate_proxy_classes: %kernel.debug%
-    mappings:
-        HelloBundle: ~
+
+#doctrine.orm:
+#    auto_generate_proxy_classes: %kernel.debug%
+#    mappings:
+#        HelloBundle: ~
 
 ## Swiftmailer Configuration
 #swiftmailer.config:
