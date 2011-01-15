@@ -7,7 +7,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
-use Symfony\Bundle\FrameworkBundle\Util\Filesystem;
 
 /*
  * This file is part of the Symfony framework.
@@ -50,14 +49,14 @@ class AssetsInstallCommand extends Command
             throw new \InvalidArgumentException(sprintf('The target directory "%s" does not exist.', $input->getArgument('target')));
         }
 
-        $filesystem = new Filesystem();
+        $filesystem = $this->container->get('filesystem');
 
         // Create the bundles directory otherwise symlink will fail.
         $filesystem->mkdirs($input->getArgument('target').'/bundles/', 0777);
 
         foreach ($this->container->get('kernel')->getBundles() as $bundle) {
             if (is_dir($originDir = $bundle->getPath().'/Resources/public')) {
-                $output->writeln(sprintf('Installing assets for <comment>%s\\%s</comment>', $bundle->getNamespacePrefix(), $bundle->getName()));
+                $output->writeln(sprintf('Installing assets for <comment>%s\\%s</comment>', $bundle->getNamespace()));
 
                 $targetDir = $input->getArgument('target').'/bundles/'.preg_replace('/bundle$/', '', strtolower($bundle->getName()));
 
