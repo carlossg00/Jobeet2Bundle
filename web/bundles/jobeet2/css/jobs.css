@@ -1,0 +1,143 @@
+.category .feed
+{
+  margin: 4px 15px;
+  float: right;
+  line-height: 25px;
+  background-position: left center;
+}
+
+.category .feed a
+{
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.jobs
+{
+ width: 760px;
+ margin: 0 auto;
+}
+
+.jobs tr.even
+{
+  background-color: #f3fafc;
+}
+
+.jobs tr.odd
+{
+}
+
+.jobs tr:hover
+{
+  background-color: #fff;
+}
+
+.jobs td
+{
+  padding: 12px 15px;
+  border-bottom: 1px dotted #999;
+}
+
+.jobs td.position,
+.jobs td.location
+{
+  border-right: 1px dotted #999;
+}
+
+.jobs .location
+{
+  color: #524F46;
+  font-weight: bold;
+  width: 30%;
+}
+
+.jobs .company
+{
+  color: #d2813f;
+  width: 30%;
+}
+
+.jobs .position
+{
+  padding: 0;
+  color: #524F46;
+  width: 40%;
+}
+
+.jobs .position a
+{
+  padding: 12px 15px;
+  display: block;
+  text-decoration: none;
+}
+
+.jobs .position a:hover
+{
+  text-decoration: underline;
+}
+
+.more_jobs
+{
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 85%;
+  margin: 5px 15px 15px;
+  clear: both;
+}
+
+.more_jobs a
+{
+  color: #176f94;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 130%;
+}
+
+.more_jobs a:hover
+{
+  color: #176f94;
+  text-decoration: underline;
+}
+
+.pagination_desc
+{
+  margin-left: 15px;
+  margin-top: 10px;
+  font-style: italic;
+  color: #828f95;
+}
+
+.pagination_desc strong
+{
+  color: #176f94;
+}
+
+.pagination
+{
+  margin-top: 10px;
+  float: right;
+  margin-right: 10px;
+  color: #176f94;
+  font-size: 110%;
+  font-weight: bold;
+}
+
+.pagination a
+{
+  margin: 0 1px;
+  text-decoration: none;
+  color: #828f95;
+  font-size: 75%;
+  vertical-align: 1px;
+  font-weight: normal;
+}
+
+.pagination a:hover
+{
+  text-decoration: underline;
+}
+
+.pagination img
+{
+  vertical-align: -2px;
+}

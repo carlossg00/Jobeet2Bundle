@@ -1,0 +1,376 @@
+/*
+Reset CSS
+Copyright (c) 2008, Yahoo! Inc. All rights reserved.
+Code licensed under the BSD License:
+http://developer.yahoo.net/yui/license.txt
+version: 2.6.0
+*/
+html{color:#000;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:text-top;}sub{vertical-align:text-bottom;}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;}input,textarea,select{*font-size:100%;}legend{color:#000;}del,ins{text-decoration:none;}
+
+/*
+Fonts CSS
+Copyright (c) 2008, Yahoo! Inc. All rights reserved.
+Code licensed under the BSD License:
+http://developer.yahoo.net/yui/license.txt
+version: 2.6.0
+*/
+body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}select,input,button,textarea{font:99% arial,helvetica,clean,sans-serif;outline: none;}table{font-size:inherit;font:100%;}pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+
+a
+{
+  color: #524F46;
+  outline: none;
+}
+
+body
+{
+  font: 14px "Lucida Grande", Lucida, Verdana, sans-serif;
+  background-color: #828f95;
+}
+
+#container
+{
+  margin-left: auto;
+  margin-right: auto;
+  background: #fff url(../images/bg-page.png) bottom repeat-x;
+}
+
+#header
+{
+  background: url(../images/bg-header.jpg) repeat-x top;
+}
+
+#header h1
+{
+  height: 110px;
+  width: 783px;
+  margin: 0 auto;
+}
+
+#header h1 a {
+  display: block;
+  width: 150px;
+  height: 110px;
+  background: url(../images/logo.jpg) no-repeat;
+}
+
+
+#header h1 img
+{
+  display: none;
+}
+
+#header .post
+{
+  float: right;
+  margin-top: -66px;
+  margin-right: 40px;
+}
+
+#sub_header .search input
+{
+  background: url(../images/button-search.jpg) no-repeat;
+  text-indent: -9999px;
+  border: 0;
+  width: 95px;
+  height: 40px;
+  margin-left: 10px;
+}
+
+#sub_header .search input:hover
+{
+  background-position: left -40px;
+}
+
+#sub_header .search input:active
+{
+  background-position: left -80px;
+}
+
+#sub_header .search input#search_keywords
+{
+  font-size: 160%;
+  padding: 8px 10px;
+  line-height: 1.5em;
+  margin-bottom: 3px;
+  margin-left: 0px;
+  width: 579px;
+  height: 27px;
+  border: 0;
+  background: url(../images/search-box.jpg);
+  text-indent: 0;
+  color: #666;
+}
+
+#sub_header .post h2
+{
+  display: none;
+}
+
+#sub_header .post div a
+{
+  display: block;
+  background: url(../images/button-post.jpg);
+  text-indent: -9999px;
+  width: 150px;
+  height: 48px;
+}
+
+#sub_header .post div a:hover
+{
+  background-position: left -50px;
+}
+
+#sub_header .post div a:active
+{
+  background-position: left -100px;
+}
+
+
+#sub_header
+{
+  background: url(../images/bg-subheader.gif) bottom;
+  width: 783px;
+  height: 128px;
+  margin: 0 auto;
+}
+
+#sub_header .search
+{
+  padding: 15px 35px;
+}
+
+#sub_header h2
+{
+  text-indent: -9999px;
+}
+
+#sub_header .search h2
+{
+  background: url(../images/header-job.jpg) no-repeat;
+  height: 23px;
+  width: 250px;
+  margin-bottom: 7px;
+  margin-top: 5px;
+}
+
+#content .content {
+  width: 783px;
+  margin: 0 auto;
+}
+
+#content h1
+{
+  margin-top: 10px;
+  margin-bottom: 1px;
+  padding: 0px 15px;
+  font-size: 124%;
+  text-transform: uppercase;
+  background: url(../images/bg-listheader.gif) no-repeat;
+  line-height: 32px;
+  color: #fff;
+}
+
+#content h1 a
+{
+  color: #fff;
+  text-decoration: none;
+  font-style: normal;
+  text-transform: uppercase;
+  line-height: 32px;
+}
+
+#footer
+{
+  margin-top: 60px;
+  font-size: 90%;
+  margin-bottom: 0px;
+  height: 153px;
+  background: url(../images/bg-footer.jpg) repeat-x bottom;
+  padding-top: 10px;
+  position: relative;
+}
+
+#footer .content {
+  width: 783px;
+  margin: 0 auto;
+}
+
+#footer a
+{
+  color: #77766F;
+}
+
+#footer ul
+{
+  display: inline;
+}
+
+#footer li
+{
+  list-style: none;
+  margin-right: 15px;
+  display: inline;
+}
+
+#footer li a
+{
+  text-decoration: none;
+}
+
+#footer li a:hover
+{
+  color: #000;
+  text-decoration: underline;
+}
+
+#footer .symfony,
+#footer .centresource
+{
+  font-family: arial,sans-serif;
+  font-size: 80%;
+  float: right;
+  color: #666;
+}
+
+#footer .centresource
+{
+  clear: both;
+  margin-top: 5px;
+  padding-bottom: 10px;
+  position: absolute;
+  bottom: -30px;
+  right: 5%;
+  color: #adbcc3;
+  font-size: 90%;
+}
+
+#footer .centresource a
+{
+  color: #b2c0c6;
+  text-decoration: none;
+}
+
+#footer .centresource a:hover
+{
+  color: #fff;
+}
+
+#footer .symfony img
+{
+  vertical-align: middle;
+}
+
+#footer form {
+  margin: 10px 0;
+  color: #5f6364;
+}
+
+.feed
+{
+  padding-left: 20px;
+  background: transparent url(../images/feed.png) no-repeat 0 0;
+}
+
+.help
+{
+  color: #B5B5B5;
+  font-size: 80%;
+  font-style: italic;
+}
+
+.search .help {
+  color: #fff;
+}
+
+.error_list
+{
+  color: red;
+}
+
+strong
+{
+  font-weight: bold;
+}
+
+em
+{
+  font-style: italic;
+}
+
+.flash_notice
+{
+  margin: 3px 0;
+  padding: 7px;
+  background-color: #cfc;
+}
+
+.flash_error
+{
+  margin: 3px 0;
+  padding: 7px;
+  background-color: #f33;
+  color: #fff;
+}
+
+
+#job_history
+{
+  width: 740px;
+  margin: 0 auto;
+  padding: 7px;
+  font-size: 80%;
+  color: #5d6162;
+}
+
+#job_history a
+{
+  color: #5d6162;
+}
+
+#job_history ul
+{
+  display: inline;
+}
+
+#job_history li
+{
+  margin-right: 10px;
+  display: inline;
+}
+
+#job_form {
+  width: 760px;
+  margin: 0 auto;
+}
+
+#job_form .radio_list label {
+  margin-right: 15px;
+}
+
+
+#job_form th
+{
+  white-space: nowrap;
+  font-style: italic;
+}
+
+#job_form td, #job_form th
+{
+  border-bottom: 1px solid #eee;
+  border-top: 1px solid #eee;
+  text-align: left;
+  vertical-align: top;
+  padding: 7px;
+}
+
+#job_form tfoot td, #job_form tfoot th
+{
+  border: 0;
+  text-align: right;
+}
+
+#job_form .radio_list li
+{
+  display: inline;
+}

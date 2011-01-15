@@ -1,0 +1,98 @@
+#job h1
+{
+}
+
+#job h2
+{
+  margin-top: -30px;
+  font-size: 110%;
+  font-style: italic;
+  padding: 5px 20px;
+  float: right;
+  color: #fff;
+}
+
+#job h3
+{
+  font-size: 150%;
+  margin: 15px 10px;
+  padding: 10px 0;
+  font-weight: bold;
+}
+
+#job h3 small
+{
+  font-size: 70%;
+  color: #5d6162;
+}
+
+#job h4
+{
+  font-size: 110%;
+  margin: 20px 10px 7px;
+  font-weight: bold;
+  color: #176f94;
+}
+
+#job .description,
+#job p.how_to_apply
+{
+  font-size: 105%;
+  line-height: 1.4em;
+  margin: 0 10px;
+  color: #333;
+}
+
+#job .logo
+{
+  float: right;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 10px;
+  padding: 5px;
+  background: #fff;
+}
+
+#job_actions
+{
+  margin: 3px 0;
+  padding: 7px;
+  padding-left: 0;
+  background-color: #ffc;
+  list-style: none;
+}
+
+#job_actions ul
+{
+  display: inline;
+}
+
+#job_actions h3
+{
+  display: inline;
+  font-weight: bold;
+  margin-right: 15px;
+  padding: 7px;
+  background-color: #eee;
+}
+
+#job_actions li
+{
+  display: inline;
+  margin-right: 7px;
+}
+
+.expires_soon
+{
+  color: red;
+}
+
+
+
+.meta
+{
+  float: right;
+  color: #77766F;
+  margin-right: 10px;
+  font-size: 85%;
+}
