@@ -31,6 +31,7 @@ doctrine.orm:
           #prefix: Jobbet2Bundle\Entity
 
 
+
 ## Swiftmailer Configuration
 #swiftmailer.config:
 #    transport:  smtp

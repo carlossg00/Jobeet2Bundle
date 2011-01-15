@@ -1,0 +1,11 @@
+{% extends "Jobbet2Bundle::layout.twig" %}
+
+{% block content %}
+    <form action="#" {{ form_enctype(form) }} method="post">
+        <div><label for="job_type">Type</label>
+            <input id="job_type" name="job[type]" value="{{ form.type.data }}" type="text">
+        </div>
+        <div>{{ form_row(form)}}
+        </div>       
+    </form>
+{% endblock %}
