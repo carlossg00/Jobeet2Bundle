@@ -1,0 +1,13 @@
+{% extends "Jobbet2Bundle::layout.twig.html" %}
+
+
+{% block content %}
+    <table>
+        {% for job in jobs %}
+        <tr>
+            <td><a href="./show/{{ job.id }}.html">{{ job.id }}</a></td><td>{{ job.type }}</td>
+            <td>{{ job.company }}</td><td>{{ job.description }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

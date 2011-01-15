@@ -18,7 +18,7 @@ twig.config:
 ## Doctrine Configuration
 
 doctrine.dbal:
-    driver:   PDOMySql
+    driver:   pdo_mysql
     dbname:   Symfony2Jobbet
     user:     root
     password: carlos

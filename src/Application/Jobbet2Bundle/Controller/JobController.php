@@ -36,7 +36,7 @@ class JobController extends Controller
 
         $categoryTransformer = new EntityToIDTransformer(array(
             'em' => $em,
-            'className' => 'Category',
+            'className' => 'Jobbet2Bundle:Category',
         ));
 
         $form = new Form('job',$this->job,$this->get('validator'));
@@ -71,7 +71,7 @@ class JobController extends Controller
         $query = $em->createQuery('SELECT j FROM Jobbet2Bundle:Job j');
         $jobs = $query->getResult();
         
-        return $this->render('Jobbet2Bundle:Jobbet2:index.twig',
+        return $this->render('Jobbet2Bundle:Jobbet2:index.twig.html',
                 array('jobs'=>$jobs));
 
     }

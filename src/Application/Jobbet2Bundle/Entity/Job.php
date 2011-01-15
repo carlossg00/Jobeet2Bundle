@@ -2,6 +2,8 @@
 
 namespace Application\Jobbet2Bundle\Entity;
 
+use Application\Jobbet2Bundle\Entity\Category;
+
 /**
  * Application\Jobbet2Bundle\Entity\Job
  */

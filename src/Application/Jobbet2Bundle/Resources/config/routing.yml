@@ -19,7 +19,7 @@ new:
     defaults: { _controller: Jobbet2Bundle:Job:new, _format: html }
 
 delete:
-    pattern: /job/delete{id}.{_format}
+    pattern: /job/delete/{id}.{_format}
     defaults: { _controller: Jobbet2Bundle:Job:delete, _format: html }
 
 edit:

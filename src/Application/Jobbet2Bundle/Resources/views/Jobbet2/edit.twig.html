@@ -1,0 +1,11 @@
+{% extends "Jobbet2Bundle::layout.twig.html" %}
+
+{% block content %}
+    <form action="#" {{ form_enctype(form) }} method="post">
+        {{ form_field(form) }}
+        <a href="../index.html">Cancel</a>
+        <a href="../remove/{{ id }}.html">Delete</a>
+        <input type="submit" />
+
+    </form>
+{% endblock %}
