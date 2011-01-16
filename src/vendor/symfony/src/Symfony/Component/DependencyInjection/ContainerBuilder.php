@@ -4,6 +4,7 @@ namespace Symfony\Component\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Compiler\Compiler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\InterfaceInjector;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -45,6 +46,9 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
         parent::__construct($parameterBag);
 
         $this->compiler = new Compiler();
+        foreach ($this->compiler->getPassConfig()->getPasses() as $pass) {
+            $this->addObjectResource($pass);
+        }
     }
 
     /**
@@ -145,11 +149,13 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      * Adds a compiler pass at the end of the current passes
      *
      * @param CompilerPassInterface $pass
-     * @return void
+     * @param string                $type
      */
-    public function addCompilerPass(CompilerPassInterface $pass)
+    public function addCompilerPass(CompilerPassInterface $pass, $type = PassConfig::TYPE_BEFORE_OPTIMIZATION)
     {
-        $this->compiler->addPass($pass);
+        $this->compiler->addPass($pass, $type);
+
+        $this->addObjectResource($pass);
     }
 
     /**
@@ -329,20 +335,26 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
     }
 
     /**
-     * Freezes the container.
+     * Compiles the container.
      *
-     * This method does four things:
+     * This method passes the container to compiler
+     * passes whose job is to manipulate and optimize
+     * the container.
+     *
+     * The main compiler passes roughly do four things:
      *
      *  * The extension configurations are merged;
      *  * Parameter values are resolved;
-     *  * The parameter bag is freezed;
+     *  * The parameter bag is frozen;
      *  * Extension loading is disabled.
      */
-    public function freeze()
+    public function compile()
     {
         $this->compiler->compile($this);
 
-        parent::freeze();
+        $this->setExtensionConfigs(array());
+
+        parent::compile();
     }
 
     /**
