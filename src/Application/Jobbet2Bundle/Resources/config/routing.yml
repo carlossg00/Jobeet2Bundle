@@ -23,7 +23,7 @@ delete:
     defaults: { _controller: Jobbet2Bundle:Job:delete, _format: html }
 
 edit:
-    pattern: /job/edit.{_format}
+    pattern: /job/edit/{id}.{_format}
     defaults: { _controller: Jobbet2Bundle:Job:edit, _format: html }
 
 create:

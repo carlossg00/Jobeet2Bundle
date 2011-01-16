@@ -84,7 +84,7 @@ class JobController extends Controller
 
         $form = $this->getForm();
 
-        return $this->render('Jobbet2Bundle:Jobbet2:show.twig',
+        return $this->render('Jobbet2Bundle:Jobbet2:show.twig.html',
                 array('form'=>$form));
     }
 
@@ -109,7 +109,7 @@ class JobController extends Controller
             }
         }
 
-        return $this->render('Jobbet2Bundle:Jobbet2:update.twig',
+        return $this->render('Jobbet2Bundle:Jobbet2:update.twig.html',
                 array('form'=>$form));
 
         
@@ -136,7 +136,7 @@ class JobController extends Controller
 
         }
 
-        return $this->render('Jobbet2Bundle:Jobbet2:new.twig',
+        return $this->render('Jobbet2Bundle:Jobbet2:new.twig.html',
                 array('form'=>$form));
         
     }
@@ -151,5 +151,29 @@ class JobController extends Controller
 
         return $this->redirect($this->generateUrl('index'));
 
+    }
+
+    public function editAction($id)
+    {
+        $em = $this->getEm();
+        $this->job = $em->find("Jobbet2Bundle:Job",$id);
+
+        $form = $this->getForm();
+
+        if ('POST' == $this->get('request')->getMethod()) {
+            $form->bind($this->get('request')->request->get('job'));
+
+            if ($form->isValid()) {
+                // save $job object and redirect
+                $em->flush();
+                return $this->redirect($this->generateUrl('index'));
+
+            }
+        }
+
+        return $this->render('Jobbet2Bundle:Jobbet2:edit.twig.html',
+                array('form'=>$form,'id'=>$id));
+
+        
     }
 }
