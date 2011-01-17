@@ -3,8 +3,8 @@
 {% block content %}
     <form action="#" {{ form_enctype(form) }} method="post">
         {{ form_field(form) }}
-        <a href="../index.html">Cancel</a>
-        <a href="../remove/{{ id }}.html">Delete</a>
+        <a href="{{ path('index') }}">Cancel</a>
+        <a href="{{ path('delete',{'id' : id}) }}">Delete</a>
         <input type="submit" />
 
     </form>

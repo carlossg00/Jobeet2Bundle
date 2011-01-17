@@ -82,10 +82,8 @@ class JobController extends Controller
         $em = $this->getEm();
         $this->job = $em->find("Jobbet2Bundle:Job",$id);
 
-        $form = $this->getForm();
-
         return $this->render('Jobbet2Bundle:Jobbet2:show.twig.html',
-                array('form'=>$form));
+                array('job'=>$this->job));
     }
 
     public function updateAction($id)

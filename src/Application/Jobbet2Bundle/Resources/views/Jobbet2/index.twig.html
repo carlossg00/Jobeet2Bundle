@@ -1,13 +1,28 @@
 {% extends "Jobbet2Bundle::layout.twig.html" %}
 
+{% block title %}Job list{% endblock %}
+
+{% block head %}
+    {{ parent () }}
+    <link href="{{ asset('./bundles/jobeet2/css/jobs.css') }}" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
 
 {% block content %}
-    <table>
-        {% for job in jobs %}
-        <tr>
-            <td><a href="./show/{{ job.id }}.html">{{ job.id }}</a></td><td>{{ job.type }}</td>
-            <td>{{ job.company }}</td><td>{{ job.description }}</td>
+<div id="jobs">
+    <table class="jobs">
+        {% for job in jobs %}        
+        <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
+            <td class="location"> {{ job.location }}</td>
+            <td class="position">
+                <a href="{{ path('show',{'id':job.id}) }}">
+                    {{ job.position }}
+                </a>
+            </td>
+            <td class="company"> {{ job.company }}></td>
         </tr>
         {% endfor %}
     </table>
+</div>
 {% endblock %}
