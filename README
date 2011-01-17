@@ -1,10 +1,10 @@
 README
 ======
 
-What is Joobet2Symfony?
+What is Jobeet2Symfony?
 -----------------------
 
-Jobbet2Symfony is the well known day by day tutorial for symfony 1.4 implemented on Symfony2.
+Jobeet2Symfony is the well known day by day tutorial for symfony 1.4 implemented on Symfony2.
 
 to try it out, build your database (MySql) (update config.yml)
 
@@ -12,15 +12,22 @@ php app/console doctrine:database:create
 php app/console doctrine:generate:entities
 php app/console doctrine:generate:schema
 
+Load data fixtures
+
+php app/console doctrine:data:load
+
 Make sure the web folder is document root and visit the site:
 
-http://jobbet2/app_dev.php
+http://jobeet2/app_dev.php
 	or
-http://localhost/web/app_dev.php
+http://localhost/web/app_dev.php/
 
 The home page doesn't exist yet so to try application:
 
-http://jobbet2/app_dev.php/jobbet2.html
+http://jobeet2/app_dev.php/job/index.html
+        or
+http://localhost/symfony2-jobbet/web/app_dev.php/job/index.html
+
 
 MAKE SURE YOUR PHP HAS THE intl EXTENSION if you get errors
 about a missing Locale class. For instance, for MacPorts:
@@ -30,5 +37,3 @@ port install php5-intl
 
 I'm working on it a bit day by day, any contribution will be very welcome.
 Hope it will be helpfull!
-
-
