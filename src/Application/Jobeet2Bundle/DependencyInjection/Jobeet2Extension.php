@@ -10,12 +10,12 @@ class Jobeet2Extension extends Extension
 {
     public function configLoad($config, ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('jobeet2')) {
+        if (!$container->hasDefinition('jobeet2.config')) {
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load('jobeet2.xml');
         }
 
-        if (isset($config['active_days']))
+        if (isset($config['active_days']) && $config['active_days'])
         {
             $container->setParameter('jobeet2.active_days',$config['active_days']);
         }

@@ -78,12 +78,28 @@ class JobController extends Controller
         return $jobs = $query->getResult();
     }
 
+    /**
+     * @description : jobs by category
+     * @return <type>
+     */
+    protected function getCategoryJobs()
+    {
+       $em = $this->getEm();
+
+        $date = new \DateTime('now');
+        $query = $em->createQuery('SELECT c,j FROM Jobeet2Bundle:Category c
+            LEFT JOIN c.job j WHERE j.expires_at > ?1 ');
+
+        $query->setParameter(1, $date->format('Y-m-d'));
+        return $categories = $query->getResult();
+    }
+
     public function indexAction()
     {
 
-        $jobs = $this->getActiveJobs();
+        $categories = $this->getCategoryJobs();
         return $this->render('Jobeet2Bundle:Jobeet2:index.twig.html',
-                array('jobs'=>$jobs));
+                array('categories'=>$categories));
 
     }
 

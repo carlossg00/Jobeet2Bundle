@@ -10,20 +10,33 @@
 
 
 {% block content %}
+
 <div id="jobs">
-    <table class="jobs">
-        {% for job in jobs %}        
-        <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
-            <td class="location"> {{ job.location }}</td>
-            <td class="position">
-                <a href="{{ path('show',{'company':job.company,
-                   'location':job.location,'id':job.id,'position':job.position}) }}">
-                    {{ job.position }}
-                </a>
-            </td>
-            <td class="company"> {{ job.company }}></td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% for category in categories %}
+       <div class="category_{{ category.name }}">
+           <div class="category">
+               <div class="feed">
+                   <a href=""> Feed</a>
+               </div>
+               <h1> {{ category.name }} </h1>
+           </div>
+
+           <table class="jobs">
+           {% for job in category.job %}
+                <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
+                    <td class="location"> {{ job.location }}</td>
+                    <td class="position">
+                        <a href="{{ path('show',{'company':job.company,
+                        'location':job.location,'id':job.id,'position':job.position}) }}">
+                            {{ job.position }}
+                        </a>
+                    </td>
+                    <td class="company"> {{ job.company }}></td>
+                </tr>
+            {% endfor %}
+            </table>
+        </div>
+    {% endfor %}
 </div>
+
 {% endblock %}
