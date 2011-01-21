@@ -1,0 +1,29 @@
+{% extends "Jobeet2Bundle::layout.twig.html" %}
+
+{% block title %}Jobeet - Your best job board{% endblock %}
+
+{% block head %}
+    {{ parent () }}
+    <link href="{{ asset('./bundles/jobeet2/css/jobs.css') }}" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+
+{% block content %}
+<div id="jobs">
+    <table class="jobs">
+        {% for job in jobs %}        
+        <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
+            <td class="location"> {{ job.location }}</td>
+            <td class="position">
+                <a href="{{ path('show',{'company':job.company,
+                   'location':job.location,'id':job.id,'position':job.position}) }}">
+                    {{ job.position }}
+                </a>
+            </td>
+            <td class="company"> {{ job.company }}></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "Jobeet2Bundle::layout.twig.html" %}
+
+{% block title %}{{ job.company }} is looking for a {{ job.position }}{% endblock %}
+
+{% block head %}
+    {{ parent () }}
+    <link href="{{ asset('./bundles/jobeet2/css/job.css') }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div id="job">
+    <h1>{{ job.company }}</h1>
+    <h2>{{ job.location }}</h2>
+    <h3>
+        {{ job.position }}
+        <small> - {{ job.type }}</small>
+    </h3>
+    {% if job.logo %}
+        <div class="logo">
+            <a href="{{ job.url }}">
+               <img src="{{ asset('./bundles/jobeet2/images/{{ job.logo }}')}}"
+               alt="{{ job.company }} logo"/>
+            </a>
+        </div>
+    {% endif %}
+    <div class="description">
+        {{ job.description }}
+    </div>
+
+    <h4>How to apply?</h4>
+
+    <p class="how_to_apply">  {{ job.howToApply }} </p>
+
+    <div class="meta">
+        <small>posted on {{ job.createdAt|date('d/m/Y') }} </small>
+    </div>
+
+    <div style="padding:20px 0">
+        <a href="{{ path('edit',{'id':job.id})}}">
+            Edit
+        </a>
+    </div>
+
+</div>
+{% endblock %}

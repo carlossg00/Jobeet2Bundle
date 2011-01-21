@@ -1,0 +1,31 @@
+homepage:
+    pattern:  /
+    defaults: { _controller: Jobeet2Bundle:Job:index, _format: html }
+
+index:
+    pattern: /job/index.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:index, _format: html }
+
+show:
+    pattern: /job/{company}/{location}/{id}/{position}.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:show, _format: html }
+    requirements: { id: \d+ }
+update:
+    pattern: /job/update/{id}.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:update, _format: html }
+
+new:
+    pattern: /job/new.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:new, _format: html }
+
+delete:
+    pattern: /job/delete/{id}.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:delete, _format: html }
+
+edit:
+    pattern: /job/edit/{id}.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:edit, _format: html }
+
+create:
+    pattern: /job/create.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:create, _format: html }

@@ -26,7 +26,7 @@ class AppKernel extends Kernel
             //new Symfony\Bundle\DoctrineMongoDBBundle\DoctrineMongoDBBundle(),
 
             // register your bundles
-            new Application\Jobbet2Bundle\Jobbet2Bundle(),
+            new Application\Jobeet2Bundle\Jobeet2Bundle(),
         );
 
         if ($this->isDebug()) {

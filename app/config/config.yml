@@ -25,10 +25,7 @@ doctrine.dbal:
 doctrine.orm:
     auto_generate_proxy_classes: %kernel.debug%
     mappings:
-        Jobbet2Bundle: ~
-          #type: annotation
-          #dir: "%kernel.root_dir%/../src/Application/Jobbet2Bundle/Entity"
-          #prefix: Jobbet2Bundle\Entity
+        Jobeet2Bundle: ~
 
 
 
@@ -40,3 +37,7 @@ doctrine.orm:
 #    host:       smtp.gmail.com
 #    username:   xxxxxxxx
 #    password:   xxxxxxxx
+
+##Jobeet Configuration
+jobeet2.config: 
+    active_days: 56
