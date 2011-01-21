@@ -1,7 +1,7 @@
 #!/bin/sh
 
 DIR=`php -r "echo realpath(dirname(\\$_SERVER['argv'][0]));"`
-VERSION=2_0_PR5
+VERSION=2_0_PR6
 rm -rf /tmp/sandbox
 mkdir /tmp/sandbox
 cp -r app /tmp/sandbox/

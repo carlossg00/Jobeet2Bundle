@@ -6,5 +6,5 @@
 
     <import resource="routing.xml" />
 
-    <import resource="WebProfilerBundle/Resources/config/routing/profiler.xml" prefix="/_profiler" />
+    <import resource="@WebProfilerBundle/Resources/config/routing/profiler.xml" prefix="/_profiler" />
 </routes>

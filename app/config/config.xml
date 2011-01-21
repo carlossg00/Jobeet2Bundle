@@ -17,8 +17,8 @@
     <app:config csrf-secret="xxxxxxxxxx" charset="UTF-8" error-handler="null">
         <app:router resource="%kernel.root_dir%/config/routing.xml" />
         <app:validation enabled="true" annotations="true" />
-        <app:templating assets-version="SomeVersionScheme" />
         <app:session default-locale="en" lifetime="3600" auto-start="true" />
+        <app:templating assets-version="SomeVersionScheme" />
     </app:config>
 
     <!-- Twig Configuration -->
