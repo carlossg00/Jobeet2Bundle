@@ -205,9 +205,10 @@ class FrameworkExtension extends Extension
     {
         $config = isset($config['templating']) ? $config['templating'] : array();
 
-        if (!$container->hasDefinition('templating')) {
+        if (!$container->hasDefinition('templating.locator')) {
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load('templating.xml');
+            $loader->load('templating_php.xml');
 
             if ($container->getParameter('kernel.debug')) {
                 $loader->load('templating_debug.xml');
@@ -228,11 +229,6 @@ class FrameworkExtension extends Extension
 
         if (array_key_exists('assets_base_urls', $config)) {
             $container->setParameter('templating.assets.base_urls', $config['assets_base_urls']);
-        }
-
-        // path for the filesystem loader
-        if (isset($config['path'])) {
-            $container->setParameter('templating.loader.filesystem.path', $config['path']);
         }
 
         // loaders
@@ -258,6 +254,24 @@ class FrameworkExtension extends Extension
             $container->setDefinition('templating.loader.wrapped', $container->findDefinition('templating.loader'));
             $container->setDefinition('templating.loader', $container->getDefinition('templating.loader.cache'));
             $container->setParameter('templating.loader.cache.path', $config['cache']);
+        }
+
+        // engines
+        if (!$engines = $this->normalizeConfig($config, 'engine')) {
+            throw new \LogicException('You must register at least one templating engine.');
+        }
+
+        foreach ($engines as $i => $engine) {
+            $engines[$i] = new Reference('templating.engine.'.(is_array($engine) ? $engine['id'] : $engine));
+        }
+
+        if (1 === count($engines)) {
+            $container->setAlias('templating', (string) $engines[0]);
+        } else {
+            $def = $container->getDefinition('templating.engine.delegating');
+            $def->setArgument(1, $engines);
+
+            $container->setAlias('templating', 'templating.engine.delegating');
         }
 
         // compilation
@@ -290,9 +304,11 @@ class FrameworkExtension extends Extension
      */
     protected function registerEsiConfiguration(array $config, ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('esi')) {
-            $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
-            $loader->load('esi.xml');
+        if (isset($config['esi']['enabled']) && $config['esi']['enabled']) {
+            if (!$container->hasDefinition('esi')) {
+                $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+                $loader->load('esi.xml');
+            }
         }
     }
 
@@ -375,7 +391,11 @@ class FrameworkExtension extends Extension
             }
         }
 
-        if (isset($config['auto_start']) || isset($config['auto-start'])) {
+        if (isset($config['auto-start'])) {
+            $config['auto_start'] = $config['auto-start'];
+        }
+
+        if (isset($config['auto_start']) && $config['auto_start']) {
             $container->getDefinition('session')->addMethodCall('start');
         }
 

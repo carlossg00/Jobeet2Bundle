@@ -18,7 +18,9 @@
         <app:router resource="%kernel.root_dir%/config/routing.xml" />
         <app:validation enabled="true" annotations="true" />
         <app:session default-locale="en" lifetime="3600" auto-start="true" />
-        <app:templating assets-version="SomeVersionScheme" />
+        <app:templating assets-version="SomeVersionScheme">
+            <app:engine id="twig" />
+        </app:templating>
         <app:csrf-protection enabled="true" secret="xxxxxxxxxx" />
     </app:config>
 
