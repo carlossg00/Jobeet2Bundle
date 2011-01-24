@@ -70,7 +70,8 @@ Application\Jobeet2Bundle\Entity\Job:
           JoinColumn:
             name: category_id
             referencedColumnName: id
-          
+    lifecycleCallbacks:
+        prePersist: [doStuffOnPrePersist]
      
             
           

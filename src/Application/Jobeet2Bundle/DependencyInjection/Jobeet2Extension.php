@@ -13,7 +13,12 @@ class Jobeet2Extension extends Extension
         if (!$container->hasDefinition('jobeet2.config')) {
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load('jobeet2.xml');
+                
+            $loader->load('dbal_events.xml');
         }
+
+
+
 
         if (isset($config['active_days']) && $config['active_days'])
         {

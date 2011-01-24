@@ -15,6 +15,9 @@ use Symfony\Component\Form\DateTimeField;
 use Symfony\Component\Form\ChoiceField;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use Doctrine\ORM\Events;
+use Application\Jobeet2Bundle\Listener\JobEventListener;
+
 
 
 class JobController extends Controller
@@ -97,7 +100,7 @@ class JobController extends Controller
     public function indexAction()
     {
 
-        $categories = $this->getCategoryJobs();
+        $categories = $this->getCategoryJobs();        
         return $this->render('Jobeet2Bundle:Jobeet2:index.twig.html',
                 array('categories'=>$categories));
 
@@ -163,8 +166,8 @@ class JobController extends Controller
                 // save $job object and redirect   
                 
                 $date = new \DateTime('2011-12-15');
-                $str = 'P'.$this->get('jobeet2.active_days').'D';
-                $this->job->setExpiresAt($date->add(new \DateInterval($str)));
+                //$str = 'P'.$this->get('jobeet2.active_days').'D';
+                //$this->job->setExpiresAt($date->add(new \DateInterval($str)));
                 
                 $em->persist($this->job);
                 $em->flush();

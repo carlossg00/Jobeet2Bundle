@@ -421,4 +421,9 @@ class Job
     {
         return $this->category;
     }
+
+    public function doStuffOnPrePersist()
+    {
+        echo "doStuffOnPrePersist";
+    }
 }
