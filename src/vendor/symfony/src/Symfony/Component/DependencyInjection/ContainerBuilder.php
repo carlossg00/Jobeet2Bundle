@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Compiler\Compiler;
@@ -10,15 +19,6 @@ use Symfony\Component\DependencyInjection\InterfaceInjector;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\DependencyInjection\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Resource\ResourceInterface;
-
-/*
- * This file is part of the Symfony framework.
- *
- * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
- */
 
 /**
  * ContainerBuilder is a DI container that provides an API to easily describe services.
@@ -178,6 +178,16 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
         return $this->compiler;
     }
 
+    public function getScopes()
+    {
+        return $this->scopes;
+    }
+
+    public function getScopeChildren()
+    {
+        return $this->scopeChildren;
+    }
+
     /**
      * Sets a service.
      *
@@ -186,7 +196,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *
      * @throws BadMethodCallException
      */
-    public function set($id, $service)
+    public function set($id, $service, $scope = self::SCOPE_CONTAINER)
     {
         if ($this->isFrozen()) {
             throw new \BadMethodCallException('Setting service on a frozen container is not allowed');
@@ -196,7 +206,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
 
         unset($this->definitions[$id], $this->aliases[$id]);
 
-        parent::set($id, $service);
+        parent::set($id, $service, $scope);
     }
 
     /**
@@ -514,7 +524,7 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
      *
      * @param string $class The class
      *
-     * @return boolean true if at least one InterfaceInjector is defined, false otherwise
+     * @return Boolean true if at least one InterfaceInjector is defined, false otherwise
      */
     public function hasInterfaceInjectorForClass($class)
     {
@@ -691,8 +701,16 @@ class ContainerBuilder extends Container implements TaggedContainerInterface
             $injector->processDefinition($definition, $service);
         }
 
-        if ($definition->isShared()) {
-            $this->services[strtolower($id)] = $service;
+        if (self::SCOPE_PROTOTYPE !== $scope = $definition->getScope()) {
+            if (self::SCOPE_CONTAINER !== $scope && !isset($this->scopedServices[$scope])) {
+                throw new \RuntimeException('You tried to create a service of an inactive scope.');
+            }
+
+            $this->services[$lowerId = strtolower($id)] = $service;
+
+            if (self::SCOPE_CONTAINER !== $scope) {
+                $this->scopedServices[$scope][$lowerId] = $service;
+            }
         }
 
         foreach ($definition->getMethodCalls() as $call) {

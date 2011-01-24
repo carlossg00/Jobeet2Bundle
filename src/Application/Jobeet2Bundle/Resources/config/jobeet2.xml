@@ -6,5 +6,6 @@
 
     <parameters>
         <parameter key="jobeet2.active_days">30</parameter>
+        <parameter key="jobeet2.max_jobs_on_homepage">10</parameter>
     </parameters>
 </container>

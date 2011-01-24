@@ -1,7 +1,5 @@
 <?php
 
-namespace Symfony\Component\HttpFoundation;
-
 /*
  * This file is part of the Symfony package.
  *
@@ -10,6 +8,8 @@ namespace Symfony\Component\HttpFoundation;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Symfony\Component\HttpFoundation;
 
 /**
  * HeaderBag is a container for HTTP headers.
@@ -62,6 +62,16 @@ class HeaderBag
     public function replace(array $headers = array())
     {
         $this->headers = array();
+        $this->add($headers);
+    }
+
+    /**
+     * Adds new headers the current HTTP headers set.
+     *
+     * @param array  $headers An array of HTTP headers
+     */
+    public function add(array $headers)
+    {
         foreach ($headers as $key => $values) {
             $this->set($key, $values);
         }

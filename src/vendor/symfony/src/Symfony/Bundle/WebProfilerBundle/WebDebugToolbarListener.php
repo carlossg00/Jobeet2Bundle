@@ -1,22 +1,22 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Bundle\WebProfilerBundle;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Bundle\FrameworkBundle\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\ControllerResolver;
-
-/*
- * This file is part of the Symfony framework.
- *
- * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
- */
 
 /**
  * WebDebugToolbarListener injects the Web Debug Toolbar.
@@ -25,12 +25,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\ControllerResolver;
  */
 class WebDebugToolbarListener
 {
-    protected $resolver;
+    protected $kernel;
     protected $interceptRedirects;
 
-    public function __construct(ControllerResolver $resolver, $interceptRedirects = false)
+    public function __construct(HttpKernel $kernel, $interceptRedirects = false)
     {
-        $this->resolver = $resolver;
+        $this->kernel = $kernel;
         $this->interceptRedirects = $interceptRedirects;
     }
 
@@ -92,7 +92,7 @@ class WebDebugToolbarListener
             $substrFunction = 'substr';
         }
 
-        $toolbar = "\n".str_replace("\n", '', $this->resolver->render('WebProfilerBundle:Profiler:toolbar'))."\n";
+        $toolbar = "\n".str_replace("\n", '', $this->kernel->render('WebProfilerBundle:Profiler:toolbar'))."\n";
         $content = $response->getContent();
 
         if (false === $pos = $posrFunction($content, '</body>')) {

@@ -69,6 +69,11 @@ class JobController extends Controller
         return $form;
     }
 
+    /**
+     * @TODO : this shouldn't be here, in Job class or as a service?
+     * @return <type>
+     */
+
     protected function getActiveJobs()
     {
        $em = $this->getEm();
@@ -81,26 +86,29 @@ class JobController extends Controller
         return $jobs = $query->getResult();
     }
 
-    /**
-     * @description : jobs by category
+   /**
+     * @TODO : this shouldn't be here, in Category class or as a service?
      * @return <type>
      */
+
     protected function getCategoryJobs()
     {
        $em = $this->getEm();
 
         $date = new \DateTime('now');
+        $limit = $this->container->getParameter('jobeet2.max_jobs_on_homepage');
         $query = $em->createQuery('SELECT c,j FROM Jobeet2Bundle:Category c
-            LEFT JOIN c.job j WHERE j.expires_at > ?1 ');
+            LEFT JOIN c.job j WHERE j.expires_at > ?1');
 
         $query->setParameter(1, $date->format('Y-m-d'));
+        $query->setMaxResults($limit);
         return $categories = $query->getResult();
     }
 
     public function indexAction()
     {
 
-        $categories = $this->getCategoryJobs();        
+        $categories = $this->getCategoryJobs();
         return $this->render('Jobeet2Bundle:Jobeet2:index.twig.html',
                 array('categories'=>$categories));
 
@@ -156,6 +164,9 @@ class JobController extends Controller
     {
         $em = $this->getEm();
         $this->job = new Job();
+        //retrieve parameter from container
+        $active_days = $this->container->getParameter('jobeet2.active_days');
+        $this->job->setActiveDays($active_days);
 
         $form = $this->getForm();
 
@@ -164,11 +175,6 @@ class JobController extends Controller
 
             if ($form->isValid()) {
                 // save $job object and redirect   
-                
-                $date = new \DateTime('2011-12-15');
-                //$str = 'P'.$this->get('jobeet2.active_days').'D';
-                //$this->job->setExpiresAt($date->add(new \DateInterval($str)));
-                
                 $em->persist($this->job);
                 $em->flush();
 

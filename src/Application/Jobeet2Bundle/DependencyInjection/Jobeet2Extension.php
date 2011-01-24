@@ -14,18 +14,12 @@ class Jobeet2Extension extends Extension
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load('jobeet2.xml');
                 
-            $loader->load('dbal_events.xml');
+            //$loader->load('dbal_events.xml');
         }
 
-
-
-
-        if (isset($config['active_days']) && $config['active_days'])
-        {
-            $container->setParameter('jobeet2.active_days',$config['active_days']);
+        foreach($config as $key => $value) {        
+            $container->setParameter('jobeet2.'.$key, $value);
         }
-
-        
     }
 
     public function getXsdValidationBasePath()

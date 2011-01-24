@@ -8,7 +8,7 @@
     <xsd:element name="config" type="config" />
 
     <xsd:complexType name="config">
-        <xsd:sequence>
+        <xsd:all>
             <xsd:element name="router" type="router" minOccurs="0" maxOccurs="1" />
             <xsd:element name="validation" type="validation" minOccurs="0" maxOccurs="1" />
             <xsd:element name="profiler" type="profiler" minOccurs="0" maxOccurs="1" />
@@ -16,18 +16,19 @@
             <xsd:element name="templating" type="templating" minOccurs="0" maxOccurs="1" />
             <xsd:element name="translator" type="translator" minOccurs="0" maxOccurs="1" />
             <xsd:element name="param-converter" type="param-converter" minOccurs="0" maxOccurs="1" />
-        </xsd:sequence>
+            <xsd:element name="csrf-protection" type="csrf_protection" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="esi" type="esi" minOccurs="0" maxOccurs="1" />
+        </xsd:all>
 
         <xsd:attribute name="ide" type="xsd:string" />
-        <xsd:attribute name="csrf-secret" type="xsd:string" />
         <xsd:attribute name="charset" type="xsd:string" />
         <xsd:attribute name="error-handler" type="xsd:string" />
     </xsd:complexType>
 
     <xsd:complexType name="profiler">
-        <xsd:sequence>
+        <xsd:all>
             <xsd:element name="matcher" type="profiler_matcher" minOccurs="0" maxOccurs="1" />
-        </xsd:sequence>
+        </xsd:all>
     </xsd:complexType>
 
     <xsd:complexType name="profiler_matcher">
@@ -64,11 +65,11 @@
     <xsd:complexType name="templating">
         <xsd:sequence>
             <xsd:element name="loader" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="engine" type="templating_engine" minOccurs="1" maxOccurs="unbounded" />
         </xsd:sequence>
 
         <xsd:attribute name="assets-version" type="xsd:string" />
         <xsd:attribute name="assets-base-urls" type="xsd:string" />
-        <xsd:attribute name="path" type="xsd:string" />
         <xsd:attribute name="cache" type="xsd:string" />
     </xsd:complexType>
 
@@ -77,5 +78,19 @@
     </xsd:complexType>
 
     <xsd:complexType name="param-converter">
+    </xsd:complexType>
+
+    <xsd:complexType name="csrf_protection">
+        <xsd:attribute name="enabled" type="xsd:boolean" />
+        <xsd:attribute name="field-name" type="xsd:string" />
+        <xsd:attribute name="secret" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="esi">
+        <xsd:attribute name="enabled" type="xsd:boolean" />
+    </xsd:complexType>
+
+    <xsd:complexType name="templating_engine">
+        <xsd:attribute name="id" type="xsd:string" />
     </xsd:complexType>
 </xsd:schema>

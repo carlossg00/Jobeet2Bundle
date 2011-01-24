@@ -1,8 +1,17 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Bundle\DoctrineMongoDBBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Alias;
@@ -20,6 +29,13 @@ use Symfony\Bundle\DoctrineAbstractBundle\DependencyInjection\AbstractDoctrineEx
  */
 class DoctrineMongoDBExtension extends AbstractDoctrineExtension
 {
+    public function mongodbLoad(array $configs, ContainerBuilder $container)
+    {
+        foreach ($configs as $config) {
+            $this->doMongodbLoad($config, $container);
+        }
+    }
+
     /**
      * Loads the MongoDB ODM configuration.
      *
@@ -30,11 +46,12 @@ class DoctrineMongoDBExtension extends AbstractDoctrineExtension
      * @param array $config An array of configuration settings
      * @param ContainerBuilder $container A ContainerBuilder instance
      */
-    public function mongodbLoad($config, ContainerBuilder $container)
+    protected function doMongodbLoad($config, ContainerBuilder $container)
     {
         $this->loadDefaults($config, $container);
         $this->loadConnections($config, $container);
         $this->loadDocumentManagers($config, $container);
+        $this->loadConstraints($config, $container);
     }
 
     /**
@@ -328,6 +345,16 @@ class DoctrineMongoDBExtension extends AbstractDoctrineExtension
             $method = $odmConfigDef->removeMethodCall('setDocumentNamespaces');
         }
         $odmConfigDef->addMethodCall('setDocumentNamespaces', array($this->aliasMap));
+    }
+
+    protected function loadConstraints($config, ContainerBuilder $container)
+    {
+        if ($container->hasParameter('validator.annotations.namespaces')) {
+            $container->setParameter('validator.annotations.namespaces', array_merge(
+                $container->getParameter('validator.annotations.namespaces'),
+                array('Symfony\Bundle\DoctrineMongoDBBundle\Validator\Constraints\\')
+            ));
+        }
     }
 
     protected function getObjectManagerElementName($name)

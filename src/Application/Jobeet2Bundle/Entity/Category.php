@@ -95,5 +95,5 @@ class Category
     public function getAffiliates()
     {
         return $this->affiliates;
-    }
+    }  
 }

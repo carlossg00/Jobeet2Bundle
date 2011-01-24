@@ -5,8 +5,7 @@
     xsi:schemaLocation="http://www.symfony-project.org/schema/dic/services http://www.symfony-project.org/schema/dic/services/services-1.0.xsd">
 
     <services>
-
-        <service id="mybundle.doctrine.joblistener" class="Application\Jobeet2Bundle\Listener\JobEventListener">
+        <service id="Jobeet2Bundle.doctrine.joblistener" class="Application\Jobeet2Bundle\Listener\JobEventListener">
             <tag name="doctrine.dbal.default_event_listener" event="prePersist" />
         </service>
 

@@ -1,12 +1,13 @@
 <?php
 
 $container->loadFromExtension('app', 'config', array(
-    'charset'       => 'UTF-8',
-    'error_handler' => null,
-    'csrf-secret'   => 'xxxxxxxxxx',
-    'router'        => array('resource' => '%kernel.root_dir%/config/routing.php'),
-    'validation'    => array('enabled' => true, 'annotations' => true),
-    'templating'    => array(
+    'charset'         => 'UTF-8',
+    'error_handler'   => null,
+    'csrf-protection' => array('enabled' => true, 'secret' => 'xxxxxxxxxx'),
+    'router'          => array('resource' => '%kernel.root_dir%/config/routing.php'),
+    'validation'      => array('enabled' => true, 'annotations' => true),
+    'templating'      => array(
+        'engines' => array('twig'),
         #'assets_version' => "SomeVersionScheme",
     ),
     'session' => array(

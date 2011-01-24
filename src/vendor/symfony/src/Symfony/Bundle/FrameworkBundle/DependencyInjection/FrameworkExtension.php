@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Bundle\FrameworkBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
@@ -11,15 +20,7 @@ use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-
-/*
- * This file is part of the Symfony framework.
- *
- * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
- */
+use Symfony\Component\Form\FormContext;
 
 /**
  * FrameworkExtension.
@@ -28,18 +29,46 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  */
 class FrameworkExtension extends Extension
 {
+    public function configLoad(array $configs, ContainerBuilder $container)
+    {
+        foreach ($configs as $config) {
+            $this->doConfigLoad($config, $container);
+        }
+    }
+
     /**
      * Loads the web configuration.
      *
      * @param array            $config    An array of configuration settings
      * @param ContainerBuilder $container A ContainerBuilder instance
      */
-    public function configLoad(array $config, ContainerBuilder $container)
+    protected function doConfigLoad(array $config, ContainerBuilder $container)
     {
         $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
 
         if (!$container->hasDefinition('controller_resolver')) {
             $loader->load('web.xml');
+        }
+
+        if (!$container->hasDefinition('form.factory')) {
+            $loader->load('form.xml');
+        }
+
+        if (isset($config['csrf-protection'])) {
+            $config['csrf_protection'] = $config['csrf-protection'];
+        }
+
+        if (isset($config['csrf_protection'])) {
+            foreach (array('enabled', 'field_name', 'field-name', 'secret') as $key) {
+                if (isset($config['csrf_protection'][$key])) {
+                    $container->setParameter('form.csrf_protection.'.strtr($key, '-', '_'),
+                            $config['csrf_protection'][$key]);
+                }
+            }
+        }
+
+        if (isset($config['i18n']) && $config['i18n']) {
+            FormContext::setLocale(\Locale::get());
         }
 
         if (isset($config['ide'])) {
@@ -60,9 +89,9 @@ class FrameworkExtension extends Extension
             $container->setParameter('debug.file_link_format', $pattern);
         }
 
-        foreach (array('csrf_secret', 'csrf-secret') as $key) {
+        foreach (array('document_root', 'document-root') as $key) {
             if (isset($config[$key])) {
-                $container->setParameter('csrf_secret', $config[$key]);
+                $container->setParameter('document_root', $config[$key]);
             }
         }
 
@@ -116,9 +145,17 @@ class FrameworkExtension extends Extension
             $this->registerParamConverterConfiguration($config, $container);
         }
 
-        $this->registerSessionConfiguration($config, $container);
+        if (array_key_exists('session', $config)) {
+            $this->registerSessionConfiguration($config, $container);
+        }
 
+        // translator must always be registered (as support is included by default for forms for instance)
+        // if you disable it, an identity translator will be used and everything will still work as expected
         $this->registerTranslatorConfiguration($config, $container);
+
+        if (array_key_exists('esi', $config)) {
+            $this->registerEsiConfiguration($config, $container);
+        }
 
         $this->addClassesToCompile(array(
             'Symfony\\Component\\HttpFoundation\\ParameterBag',
@@ -133,7 +170,7 @@ class FrameworkExtension extends Extension
             'Symfony\\Component\\HttpKernel\\Controller\\ControllerResolverInterface',
 
             'Symfony\\Bundle\\FrameworkBundle\\RequestListener',
-            'Symfony\\Bundle\\FrameworkBundle\\Controller\\ControllerNameConverter',
+            'Symfony\\Bundle\\FrameworkBundle\\Controller\\ControllerNameParser',
             'Symfony\\Bundle\\FrameworkBundle\\Controller\\ControllerResolver',
             'Symfony\\Bundle\\FrameworkBundle\\Controller\\Controller',
 
@@ -141,7 +178,8 @@ class FrameworkExtension extends Extension
             'Symfony\\Component\\EventDispatcher\\EventDispatcher',
             'Symfony\\Bundle\\FrameworkBundle\\EventDispatcher',
 
-            'Symfony\\Component\\Form\\FormConfiguration',
+            'Symfony\\Component\\Form\\FormContext',
+            'Symfony\\Component\\Form\\FormContextInterface',
         ));
     }
 
@@ -167,9 +205,10 @@ class FrameworkExtension extends Extension
     {
         $config = isset($config['templating']) ? $config['templating'] : array();
 
-        if (!$container->hasDefinition('templating')) {
+        if (!$container->hasDefinition('templating.locator')) {
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load('templating.xml');
+            $loader->load('templating_php.xml');
 
             if ($container->getParameter('kernel.debug')) {
                 $loader->load('templating_debug.xml');
@@ -190,18 +229,6 @@ class FrameworkExtension extends Extension
 
         if (array_key_exists('assets_base_urls', $config)) {
             $container->setParameter('templating.assets.base_urls', $config['assets_base_urls']);
-        }
-
-        // template paths
-        $dirs = array('%kernel.root_dir%/views/%%bundle%%/%%controller%%/%%name%%.%%renderer%%.%%format%%');
-        foreach ($container->getParameter('kernel.bundle_dirs') as $dir) {
-            $dirs[] = $dir.'/%%bundle%%/Resources/views/%%controller%%/%%name%%.%%renderer%%.%%format%%';
-        }
-        $container->setParameter('templating.loader.filesystem.path', $dirs);
-
-        // path for the filesystem loader
-        if (isset($config['path'])) {
-            $container->setParameter('templating.loader.filesystem.path', $config['path']);
         }
 
         // loaders
@@ -229,10 +256,29 @@ class FrameworkExtension extends Extension
             $container->setParameter('templating.loader.cache.path', $config['cache']);
         }
 
+        // engines
+        if (!$engines = $this->normalizeConfig($config, 'engine')) {
+            throw new \LogicException('You must register at least one templating engine.');
+        }
+
+        foreach ($engines as $i => $engine) {
+            $engines[$i] = new Reference('templating.engine.'.(is_array($engine) ? $engine['id'] : $engine));
+        }
+
+        if (1 === count($engines)) {
+            $container->setAlias('templating', (string) $engines[0]);
+        } else {
+            $def = $container->getDefinition('templating.engine.delegating');
+            $def->setArgument(1, $engines);
+
+            $container->setAlias('templating', 'templating.engine.delegating');
+        }
+
         // compilation
         $this->addClassesToCompile(array(
             'Symfony\\Component\\Templating\\DelegatingEngine',
             'Symfony\\Bundle\\FrameworkBundle\\Templating\\EngineInterface',
+            'Symfony\\Component\\Templating\\EngineInterface',
         ));
     }
 
@@ -248,6 +294,22 @@ class FrameworkExtension extends Extension
         $loader->load('test.xml');
 
         $container->setAlias('session.storage', 'session.storage.array');
+    }
+
+    /**
+     * Loads the ESI configuration.
+     *
+     * @param array            $config    A configuration array
+     * @param ContainerBuilder $container A ContainerBuilder instance
+     */
+    protected function registerEsiConfiguration(array $config, ContainerBuilder $container)
+    {
+        if (isset($config['esi']['enabled']) && $config['esi']['enabled']) {
+            if (!$container->hasDefinition('esi')) {
+                $loader = new XmlFileLoader($container, array(__DIR__.'/../Resources/config', __DIR__.'/Resources/config'));
+                $loader->load('esi.xml');
+            }
+        }
     }
 
     /**
@@ -277,7 +339,7 @@ class FrameworkExtension extends Extension
             if ($first) {
                 // translation directories
                 $dirs = array();
-                foreach (array_reverse($container->getParameter('kernel.bundles')) as $bundle) {
+                foreach ($container->getParameter('kernel.bundles') as $bundle) {
                     $reflection = new \ReflectionClass($bundle);
                     if (is_dir($dir = dirname($reflection->getFilename()).'/Resources/translations')) {
                         $dirs[] = $dir;
@@ -329,7 +391,11 @@ class FrameworkExtension extends Extension
             }
         }
 
-        if (isset($config['auto_start']) || isset($config['auto-start'])) {
+        if (isset($config['auto-start'])) {
+            $config['auto_start'] = $config['auto-start'];
+        }
+
+        if (isset($config['auto_start']) && $config['auto_start']) {
             $container->getDefinition('session')->addMethodCall('start');
         }
 
@@ -364,6 +430,7 @@ class FrameworkExtension extends Extension
         $this->addClassesToCompile(array(
             'Symfony\\Component\\HttpFoundation\\Session',
             'Symfony\\Component\\HttpFoundation\\SessionStorage\\SessionStorageInterface',
+            $container->getParameter('session.class'),
         ));
     }
 

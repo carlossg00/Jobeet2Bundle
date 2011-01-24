@@ -8,6 +8,11 @@ namespace Application\Jobeet2Bundle\Entity;
 class Job
 {
     /**
+     *
+     */
+    private $active_days;
+
+    /**
      * @var integer $id
      */
     private $id;
@@ -422,8 +427,24 @@ class Job
         return $this->category;
     }
 
+
+    public function setActiveDays($activeDays)
+    {
+        $this->active_days = $activeDays;
+    }
+    public function getActiveDays()
+    {
+        return $this->active_days;
+    }
+
     public function doStuffOnPrePersist()
     {
-        echo "doStuffOnPrePersist";
+
+        $str = 'P'.$this->active_days.'D';
+        $date = new \DateTime('now');
+        $this->setCreatedAt(new \DateTime('now'));
+        //@TODO Bug : DateInterval not accepted ?¿?¿?
+        //$this->setExpiresAt($date->add(new \DateInterval($str)));
+        $this->setExpiresAt($date);
     }
 }

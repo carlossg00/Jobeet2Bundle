@@ -1,11 +1,11 @@
 <?php
 
-namespace Application\Jobbet2Bundle\DataFixtures\ORM;
+namespace Application\Jobeet2Bundle\DataFixtures\ORM;
 
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\ORM\EntityManager,
     Doctrine\Common\DataFixtures\FixtureInterface;
-use Application\Jobbet2bundle\Entity;
+use Application\Jobeet2Bundle\Entity;
 
 
 class LoadJobbetData implements FixtureInterface
@@ -47,10 +47,7 @@ class LoadJobbetData implements FixtureInterface
         $job1->setIsPublic(true);
         $job1->setToken("job_sensio_labs");
         $job1->setEmail("job@example.com");
-        $date = new \DateTime('2010-12-15');
-        $job1->setExpiresAt($date->add(new \DateInterval('P30D')));
-        $job1->setCreatedAt($date);
-        $job1->setUpdatedAt($date);
+
 
         $job2 = new Entity\Job();
         $job2->setCategory($cat1);
@@ -74,18 +71,46 @@ class LoadJobbetData implements FixtureInterface
         $job2->setToken("job_extreme_sensi");
         $job2->setEmail("job@example.com");
         
-        $date = new \DateTime('now');
-        $job2->setExpiresAt($date->add(new \DateInterval('P30D')));
-        $job2->setCreatedAt($date);
-        $job2->setUpdatedAt($date);
-
-        
+               
         $manager->persist($job1);
         $manager->persist($job2);
         
         $manager->flush();
 
 
+
+        /**
+         * Dynamic Fixtures
+         */
+        $jobs = Array();
+        for ($i = 100 ; $i <= 130 ; $i++)
+        {
+            $jobs[$i] = new Entity\Job();
+            $jobs[$i]->setCategory($cat2);
+            $jobs[$i]->setType("part-time");
+            $jobs[$i]->setCompany("Company" . $i);
+            $jobs[$i]->setLogo("extreme-sensio.gif");
+            $jobs[$i]->setUrl("http://www.extreme-sensio.com");
+            $jobs[$i]->setPosition("Web Developer");
+            $jobs[$i]->setLocation("Paris, France");
+            $jobs[$i]->setDescription("Lorem ipsum dolor sit amet, consectetur adipisicing
+                    elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    Utenim ad minim veniam, quis nostrud exercitation ullamco laborisnisi
+                    ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit
+                    in. Voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                    Excepteur sint occaecat cupidatat non proident, sunt in culpa
+                    qui officia deserunt mollit anim id est laborum.
+                    ");
+            $jobs[$i]->setHowToApply("Send your resume to lorem.ipsum [at] Company".$i);
+            $jobs[$i]->setIsActivated(true);
+            $jobs[$i]->setIsPublic(true);
+            $jobs[$i]->setToken("job_".$i);
+            $jobs[$i]->setEmail("job@example.com");
+
+            $manager->persist($jobs[$i]);
+
+        }
+        $manager->flush();
     }
 }
 

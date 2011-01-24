@@ -1,14 +1,5 @@
 <?php
 
-namespace Symfony\Component\HttpKernel;
-
-use Symfony\Component\EventDispatcher\Event;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-
 /*
  * This file is part of the Symfony package.
  *
@@ -17,6 +8,15 @@ use Symfony\Component\HttpFoundation\Response;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Symfony\Component\HttpKernel;
+
+use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * HttpKernel notifies events to convert a Request object to a Response one.
@@ -27,7 +27,6 @@ class HttpKernel implements HttpKernelInterface
 {
     protected $dispatcher;
     protected $resolver;
-    protected $request;
 
     /**
      * Constructor
@@ -46,16 +45,10 @@ class HttpKernel implements HttpKernelInterface
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
-        // set the current request, stash the previous one
-        $previousRequest = $this->request;
-        $this->request = $request;
-
         try {
             $response = $this->handleRaw($request, $type);
         } catch (\Exception $e) {
             if (false === $catch) {
-                $this->request = $previousRequest;
-
                 throw $e;
             }
 
@@ -63,26 +56,13 @@ class HttpKernel implements HttpKernelInterface
             $event = new Event($this, 'core.exception', array('request_type' => $type, 'request' => $request, 'exception' => $e));
             $this->dispatcher->notifyUntil($event);
             if (!$event->isProcessed()) {
-                $this->request = $previousRequest;
-
                 throw $e;
             }
 
             $response = $this->filterResponse($event->getReturnValue(), $request, 'A "core.exception" listener returned a non response object.', $type);
         }
 
-        // restore the previous request
-        $this->request = $previousRequest;
-
         return $response;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getRequest()
-    {
-        return $this->request;
     }
 
     /**
@@ -109,7 +89,7 @@ class HttpKernel implements HttpKernelInterface
 
         // load controller
         if (false === $controller = $this->resolver->getController($request)) {
-            throw new NotFoundHttpException('Unable to find the controller.');
+            throw new NotFoundHttpException(sprintf('Unable to find the controller for "%s", check your route configuration.', $request->getPathInfo()));
         }
 
         $event = new Event($this, 'core.controller', array('request_type' => $type, 'request' => $request));

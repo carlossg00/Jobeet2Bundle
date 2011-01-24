@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Symfony\Component\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Definition;
@@ -16,37 +25,38 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
-class AnalyzeServiceReferencesPass implements RepeatablePassInterface, CompilerAwareInterface
+class AnalyzeServiceReferencesPass implements RepeatablePassInterface
 {
     protected $graph;
     protected $container;
     protected $currentId;
     protected $currentDefinition;
     protected $repeatedPass;
+    protected $ignoreMethodCalls;
+
+    public function __construct($ignoreMethodCalls = false)
+    {
+        $this->ignoreMethodCalls = (Boolean) $ignoreMethodCalls;
+    }
 
     public function setRepeatedPass(RepeatedPass $repeatedPass) {
         $this->repeatedPass = $repeatedPass;
     }
 
-    public function setCompiler(Compiler $compiler)
-    {
-        $this->graph = $compiler->getServiceReferenceGraph();
-    }
-
     public function process(ContainerBuilder $container)
     {
         $this->container = $container;
-
-        if (null === $this->graph) {
-            $this->graph = $this->repeatedPass->getCompiler()->getServiceReferenceGraph();
-        }
+        $this->graph     = $container->getCompiler()->getServiceReferenceGraph();
         $this->graph->clear();
 
         foreach ($container->getDefinitions() as $id => $definition) {
             $this->currentId = $id;
             $this->currentDefinition = $definition;
             $this->processArguments($definition->getArguments());
-            $this->processArguments($definition->getMethodCalls());
+
+            if (!$this->ignoreMethodCalls) {
+                $this->processArguments($definition->getMethodCalls());
+            }
         }
 
         foreach ($container->getAliases() as $id => $alias) {

@@ -26,10 +26,16 @@ class FilesystemLoader implements LoaderInterface
     /**
      * Constructor.
      *
+<<<<<<< HEAD
      * @param TemplateNameParserInterface $nameParser A TemplateNameParserInterface instance
      * @param string                      $path       An overload path
      */
     public function __construct(TemplateLocator $locator)
+=======
+     * @param TemplateLocatorInterface $locator A TemplateLocatorInterface instance
+     */
+    public function __construct(TemplateLocatorInterface $locator)
+>>>>>>> 3d350503d4da1df09d1ac60f8aeb1c73879fceb3
     {
         $this->locator = $locator;
     }

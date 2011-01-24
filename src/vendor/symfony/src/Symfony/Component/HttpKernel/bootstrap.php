@@ -3,48 +3,28 @@ namespace Symfony\Component\HttpKernel\Bundle
 {
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 abstract class Bundle extends ContainerAware implements BundleInterface
 {
     protected $name;
-    protected $namespace;
-    protected $path;
-    protected $reflection;
     public function boot()
     {
     }
     public function shutdown()
     {
     }
-    public function getName()
+    public function getParent()
     {
-        if (null === $this->name) {
-            $this->initReflection();
-        }
-        return $this->name;
+        return null;
     }
-    public function getNamespace()
+    final public function getName()
     {
-        if (null === $this->name) {
-            $this->initReflection();
+        if (null !== $this->name) {
+            return $this->name;
         }
-        return $this->namespace;
-    }
-    public function getPath()
-    {
-        if (null === $this->name) {
-            $this->initReflection();
-        }
-        return $this->path;
-    }
-    public function getReflection()
-    {
-        if (null === $this->name) {
-            $this->initReflection();
-        }
-        return $this->reflection;
+        $pos = strrpos(get_class($this), '\\');
+        return $this->name = substr(get_class($this), $pos ? $pos + 1 : 0);
     }
     public function registerExtensions(ContainerBuilder $container)
     {
@@ -53,7 +33,7 @@ abstract class Bundle extends ContainerAware implements BundleInterface
         }
         $finder = new Finder();
         $finder->files()->name('*Extension.php')->in($dir);
-        $prefix = $this->namespace.'\\DependencyInjection';
+        $prefix = $this->getNamespace().'\\DependencyInjection';
         foreach ($finder as $file) {
             $class = $prefix.strtr($file->getPath(), array($dir => '', '/' => '\\')).'\\'.$file->getBasename('.php');
             $container->registerExtension(new $class());
@@ -66,20 +46,13 @@ abstract class Bundle extends ContainerAware implements BundleInterface
         }
         $finder = new Finder();
         $finder->files()->name('*Command.php')->in($dir);
-        $prefix = $this->namespace.'\\Command';
+        $prefix = $this->getNamespace().'\\Command';
         foreach ($finder as $file) {
             $r = new \ReflectionClass($prefix.strtr($file->getPath(), array($dir => '', '/' => '\\')).'\\'.$file->getBasename('.php'));
             if ($r->isSubclassOf('Symfony\\Component\\Console\\Command\\Command') && !$r->isAbstract()) {
                 $application->add($r->newInstance());
             }
         }
-    }
-    protected function initReflection()
-    {
-        $this->reflection = new \ReflectionObject($this);
-        $this->namespace = $this->reflection->getNamespaceName();
-        $this->name = $this->reflection->getShortName();
-        $this->path = str_replace('\\', '/', dirname($this->reflection->getFilename()));
     }
 }
 }
@@ -89,6 +62,10 @@ interface BundleInterface
 {
     function boot();
     function shutdown();
+    function getParent();
+    function getName();
+    function getNamespace();
+    function getPath();
 }
 }
 namespace Symfony\Component\HttpKernel\Debug
@@ -237,6 +214,67 @@ class ClassCollectionLoader
     }
 }
 }
+namespace Symfony\Component\HttpKernel\Debug
+{
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\HttpKernel\Log\LoggerInterface;
+use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\Exception\FlattenException;
+use Symfony\Component\HttpFoundation\Request;
+class ExceptionListener
+{
+    protected $controller;
+    protected $logger;
+    public function __construct($controller, LoggerInterface $logger = null)
+    {
+        $this->controller = $controller;
+        $this->logger = $logger;
+    }
+    public function register(EventDispatcher $dispatcher, $priority = 0)
+    {
+        $dispatcher->connect('core.exception', array($this, 'handle'), $priority);
+    }
+    public function handle(Event $event)
+    {
+        static $handling;
+        if (true === $handling) {
+            return false;
+        }
+        $handling = true;
+        $exception = $event->get('exception');
+        $request = $event->get('request');
+        if (null !== $this->logger) {
+            $this->logger->err(sprintf('%s: %s (uncaught exception)', get_class($exception), $exception->getMessage()));
+        } else {
+            error_log(sprintf('Uncaught PHP Exception %s: "%s" at %s line %s', get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine()));
+        }
+        $logger = null !== $this->logger ? $this->logger->getDebugLogger() : null;
+        $attributes = array(
+            '_controller' => $this->controller,
+            'exception'   => FlattenException::create($exception),
+            'logger'      => $logger,
+                        'format'      => 0 === strncasecmp(PHP_SAPI, 'cli', 3) ? 'txt' : $request->getRequestFormat(),
+        );
+        $request = $request->duplicate(null, null, $attributes);
+        try {
+            $response = $event->getSubject()->handle($request, HttpKernelInterface::SUB_REQUEST, true);
+        } catch (\Exception $e) {
+            $message = sprintf('Exception thrown when handling an exception (%s: %s)', get_class($e), $e->getMessage());
+            if (null !== $this->logger) {
+                $this->logger->err($message);
+            } else {
+                error_log($message);
+            }
+                        throw $exception;
+        }
+        $event->setReturnValue($response);
+        $handling = false;
+        return true;
+    }
+}
+}
 namespace Symfony\Component\DependencyInjection
 {
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -246,10 +284,15 @@ class Container implements ContainerInterface
 {
     protected $parameterBag;
     protected $services;
+    protected $loading = array();
     public function __construct(ParameterBagInterface $parameterBag = null)
     {
         $this->parameterBag = null === $parameterBag ? new ParameterBag() : $parameterBag;
-        $this->services = array();
+        $this->services =
+        $this->scopes =
+        $this->scopeChildren =
+        $this->scopedServices =
+        $this->scopeStacks = array();
         $this->set('service_container', $this);
     }
     public function compile()
@@ -277,9 +320,19 @@ class Container implements ContainerInterface
     {
         $this->parameterBag->set($name, $value);
     }
-    public function set($id, $service)
+    public function set($id, $service, $scope = self::SCOPE_CONTAINER)
     {
-        $this->services[strtolower($id)] = $service;
+        if (self::SCOPE_PROTOTYPE === $scope) {
+            throw new \InvalidArgumentException('You cannot set services of scope "prototype".');
+        }
+        $id = strtolower($id);
+        if (self::SCOPE_CONTAINER !== $scope) {
+            if (!isset($this->scopedServices[$scope])) {
+                throw new \RuntimeException('You cannot set services of inactive scopes.');
+            }
+            $this->scopedServices[$scope][$id] = $service;
+        }
+        $this->services[$id] = $service;
     }
     public function has($id)
     {
@@ -288,18 +341,17 @@ class Container implements ContainerInterface
     }
     public function get($id, $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE)
     {
-        static $loading = array();
         $id = strtolower($id);
         if (isset($this->services[$id])) {
             return $this->services[$id];
         }
-        if (isset($loading[$id])) {
-            throw new \LogicException(sprintf('Circular reference detected for service "%s" (services currently loading: %s).', $id, implode(', ', array_keys($loading))));
+        if (isset($this->loading[$id])) {
+            throw new \LogicException(sprintf('Circular reference detected for service "%s" (services currently loading: %s).', $id, implode(', ', array_keys($this->loading))));
         }
         if (method_exists($this, $method = 'get'.strtr($id, array('_' => '', '.' => '_')).'Service')) {
-            $loading[$id] = true;
+            $this->loading[$id] = true;
             $service = $this->$method();
-            unset($loading[$id]);
+            unset($this->loading[$id]);
             return $service;
         }
         if (self::EXCEPTION_ON_INVALID_REFERENCE === $invalidBehavior) {
@@ -316,6 +368,82 @@ class Container implements ContainerInterface
             }
         }
         return array_merge($ids, array_keys($this->services));
+    }
+    public function enterScope($name)
+    {
+        if (!isset($this->scopes[$name])) {
+            throw new \InvalidArgumentException(sprintf('The scope "%s" does not exist.', $name));
+        }
+        if (self::SCOPE_CONTAINER !== $this->scopes[$name] && !isset($this->scopedServices[$this->scopes[$name]])) {
+            throw new \RuntimeException(sprintf('The parent scope "%s" must be active when entering this scope.', $this->scopes[$name]));
+        }
+                                if (isset($this->scopedServices[$name])) {
+            $services = array($this->services, $name => $this->scopedServices[$name]);
+            unset($this->scopedServices[$name]);
+            foreach ($this->scopeChildren[$name] as $child) {
+                $services[$child] = $this->scopedServices[$child];
+                unset($this->scopedServices[$child]);
+            }
+                        $this->services = call_user_func_array('array_diff_key', $services);
+            array_shift($services);
+                        if (!isset($this->scopeStacks[$name])) {
+                $this->scopeStacks[$name] = new \SplStack();
+            }
+            $this->scopeStacks[$name]->push($services);
+        }
+        $this->scopedServices[$name] = array();
+    }
+    public function leaveScope($name)
+    {
+        if (!isset($this->scopedServices[$name])) {
+            throw new \InvalidArgumentException(sprintf('The scope "%s" is not active.', $name));
+        }
+                        $services = array($this->services, $this->scopedServices[$name]);
+        unset($this->scopedServices[$name]);
+        foreach ($this->scopeChildren[$name] as $child) {
+            if (!isset($this->scopedServices[$child])) {
+                continue;
+            }
+            $services[] = $this->scopedServices[$child];
+            unset($this->scopedServices[$child]);
+        }
+        $this->services = call_user_func_array('array_diff_key', $services);
+                if (isset($this->scopeStacks[$name]) && count($this->scopeStacks[$name]) > 0) {
+            $services = $this->scopeStacks[$name]->pop();
+            $this->scopedServices += $services;
+            array_unshift($services, $this->services);
+            $this->services = call_user_func_array('array_merge', $services);
+        }
+    }
+    public function addScope($name, $parentScope = self::SCOPE_CONTAINER)
+    {
+        if (self::SCOPE_CONTAINER === $name || self::SCOPE_PROTOTYPE === $name) {
+            throw new \InvalidArgumentException(sprintf('The scope "%s" is reserved.', $name));
+        }
+        if (isset($this->scopes[$name])) {
+            throw new \InvalidArgumentException(sprintf('A scope with name "%s" already exists.', $name));
+        }
+        if (self::SCOPE_CONTAINER !== $parentScope && !isset($this->scopes[$parentScope])) {
+            throw new \InvalidArgumentException(sprintf('The parent scope "%s" does not exist, or is invalid.', $parentScope));
+        }
+        $this->scopes[$name] = $parentScope;
+        $this->scopeChildren[$name] = array();
+                if ($parentScope !== self::SCOPE_CONTAINER) {
+            $this->scopeChildren[$parentScope][] = $name;
+            foreach ($this->scopeChildren as $pName => $childScopes) {
+                if (in_array($parentScope, $childScopes, true)) {
+                    $this->scopeChildren[$pName][] = $name;
+                }
+            }
+        }
+    }
+    public function hasScope($name)
+    {
+        return isset($this->scopes[$name]);
+    }
+    public function isScopeActive($name)
+    {
+        return isset($this->scopedServices[$name]);
     }
     static public function camelize($id)
     {
@@ -341,9 +469,16 @@ interface ContainerInterface
     const EXCEPTION_ON_INVALID_REFERENCE = 1;
     const NULL_ON_INVALID_REFERENCE      = 2;
     const IGNORE_ON_INVALID_REFERENCE    = 3;
-    function set($id, $service);
+    const SCOPE_CONTAINER                = 'container';
+    const SCOPE_PROTOTYPE                = 'prototype';
+    function set($id, $service, $scope = self::SCOPE_CONTAINER);
     function get($id, $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE);
     function has($id);
+    function enterScope($name);
+    function leaveScope($name);
+    function addScope($name, $parentScope = self::SCOPE_CONTAINER);
+    function hasScope($name);
+    function isScopeActive($name);
 }
 }
 namespace Symfony\Component\DependencyInjection\ParameterBag
@@ -380,12 +515,5 @@ interface ParameterBagInterface
     function get($name);
     function set($name, $value);
     function has($name);
-}
-}
-namespace Symfony\Component\DependencyInjection
-{
-interface TaggedContainerInterface extends ContainerInterface
-{
-    function findTaggedServiceIds($name);
 }
 }
