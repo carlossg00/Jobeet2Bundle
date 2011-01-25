@@ -29,6 +29,7 @@ $container->loadFromExtension('doctrine', 'dbal', array(
     'dbname'   => 'xxxxxxxx',
     'user'     => 'xxxxxxxx',
     'password' => '',
+    'logging'  => '%kernel.debug%',
 ));
 $container->loadFromExtension('doctrine', 'orm', array(
     'auto_generate_proxy_classes' => '%kernel.debug%',
