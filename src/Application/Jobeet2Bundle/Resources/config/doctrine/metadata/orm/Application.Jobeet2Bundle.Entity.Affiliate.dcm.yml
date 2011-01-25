@@ -30,5 +30,8 @@ Application\Jobeet2Bundle\Entity\Affiliate:
                       referencedColumnName: id
                   inverseJoinColumns:
                     category_id:
-                      referencedColumnName: id                      
+                      referencedColumnName: id
+    lifecycleCallbacks:
+        prePersist: [doStuffOnPrePersist]
+        preUpdate:  [doStuffOnPreUpdate]
               

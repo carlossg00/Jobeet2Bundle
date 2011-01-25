@@ -440,11 +440,18 @@ class Job
     public function doStuffOnPrePersist()
     {
 
+        $this->createdAt = $this->updatedAt = new \DateTime();
         $str = 'P'.$this->active_days.'D';
         $date = new \DateTime('now');
-        $this->setCreatedAt(new \DateTime('now'));
         //@TODO Bug : DateInterval not accepted ?¿?¿?
         //$this->setExpiresAt($date->add(new \DateInterval($str)));
         $this->setExpiresAt($date);
     }
+
+
+    public function doStuffOnPreUpdate()
+    {
+        $this->updatedAt = new \DateTime();
+    }
+
 }

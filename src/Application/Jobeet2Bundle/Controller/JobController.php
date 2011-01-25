@@ -5,14 +5,10 @@ namespace Application\Jobeet2Bundle\Controller;
 use Application\Jobeet2Bundle\Entity\Job;
 use Application\Jobeet2Bundle\Entity\User;
 use Application\Jobeet2Bundle\Entity\Category;
+use Application\Jobeet2Bundle\Form\JobForm;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Bundle\DoctrineBundle\Form\ValueTransformer\EntityToIDTransformer;
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\TextField;
-use Symfony\Component\Form\IntegerField;
-use Symfony\Component\Form\CheckboxField;
-use Symfony\Component\Form\DateTimeField;
-use Symfony\Component\Form\ChoiceField;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use Doctrine\ORM\Events;
@@ -26,89 +22,15 @@ class JobController extends Controller
 
     protected function getEm()
     {
-      return $this->get('doctrine.orm.entity_manager');
-    }
-
-
-    protected function getForm() {
-
-        $em = $this->getEm();
-        $categoryChoices = array();
-        $categories = $em->getRepository('Jobeet2Bundle:Category')->findAll();
-        foreach ($categories as $category) {
-            $categoryChoices[$category->getId()] = $category->getName();
-        }
-
-        $categoryTransformer = new EntityToIDTransformer(array(
-            'em' => $em,
-            'className' => 'Jobeet2Bundle:Category',
-        ));
-
-        $form = new Form('job',$this->job,$this->get('validator'));
-        $form->add(new ChoiceField('category',array(
-            'choices'=>$categoryChoices,
-            'value_transformer' => $categoryTransformer,
-            )));
-        
-        $form->add(new TextField('type'));
-        $form->add(new TextField('company'));
-        $form->add(new TextField('logo'));
-        $form->add(new TextField('url'));
-        $form->add(new TextField('position'));
-        $form->add(new TextField('location'));
-        $form->add(new TextField('description'));
-        $form->add(new TextField('how_to_apply'));
-        $form->add(new TextField('token'));
-        $form->add(new CheckboxField('is_Public'));
-        $form->add(new CheckboxField('is_activated'));
-        $form->add(new TextField('email'));
-        //$form->add(new DateTimeField('expires_at'));
-        //$form->add(new DateTimeField('created_at'));
-        //$form->add(new DateTimeField('updated_at'));
-
-        return $form;
-    }
-
-    /**
-     * @TODO : this shouldn't be here, in Job class or as a service?
-     * @return <type>
-     */
-
-    protected function getActiveJobs()
-    {
-       $em = $this->getEm();
-
-        $date = new \DateTime('now');
-        $query = $em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
-            WHERE j.expires_at > ?1 ORDER BY j.expires_at DESC');
-
-        $query->setParameter(1, $date->format('Y-m-d'));
-        return $jobs = $query->getResult();
-    }
-
-   /**
-     * @TODO : this shouldn't be here, in Category class or as a service?
-     * @return <type>
-     */
-
-    protected function getCategoryJobs()
-    {
-       $em = $this->getEm();
-
-        $date = new \DateTime('now');
-        $limit = $this->container->getParameter('jobeet2.max_jobs_on_homepage');
-        $query = $em->createQuery('SELECT c,j FROM Jobeet2Bundle:Category c
-            LEFT JOIN c.job j WHERE j.expires_at > ?1');
-
-        $query->setParameter(1, $date->format('Y-m-d'));
-        $query->setMaxResults($limit);
-        return $categories = $query->getResult();
-    }
+        return $this->get('doctrine.orm.entity_manager');
+    }    
+ 
 
     public function indexAction()
     {
 
-        $categories = $this->getCategoryJobs();
+        $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllJobsByCategory();
+       
         return $this->render('Jobeet2Bundle:Jobeet2:index.twig.html',
                 array('categories'=>$categories));
 
@@ -133,8 +55,11 @@ class JobController extends Controller
 
         $em = $this->getEm();
         $this->job = $em->find("Jobeet2Bundle:Job",$id);
+        
+        if (!$this->job) {
+            throw new NotFoundHttpException('The Job does not exist.');
+        }
 
-        $form = $this->getForm();
 
         // submmited data
 
@@ -150,32 +75,39 @@ class JobController extends Controller
         }
 
         return $this->render('Jobeet2Bundle:Jobeet2:update.twig.html',
-                array('form'=>$form));
-
-        
+                array('form'=>$form));       
 
     }
 
-    /**
-     *
-     * @TODO: override some save method to update expire_at date
-     */
+  
     public function newAction()
     {
+
         $em = $this->getEm();
-        $this->job = new Job();
-        //retrieve parameter from container
+
+        $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllIndexedById();
+        $job = new Job();
+
+        $categoryTransformer = new EntityToIDTransformer(array(
+            'em' => $em,
+            'className' => 'Jobeet2Bundle:Category',
+        ));
+
+        $form = new JobForm('job', $job, $this->get('validator'),
+                array('categories' => $categories,'categoryTransformer' => $categoryTransformer));
+
+
+        /*retrieve parameter from container
         $active_days = $this->container->getParameter('jobeet2.active_days');
-        $this->job->setActiveDays($active_days);
+        $job->setActiveDays($active_days);*/
 
-        $form = $this->getForm();
-
+        
         if ('POST' == $this->get('request')->getMethod()) {
             $form->bind($this->get('request')->request->get('job'));
 
             if ($form->isValid()) {
                 // save $job object and redirect   
-                $em->persist($this->job);
+                $em->persist($job);
                 $em->flush();
 
                 return $this->redirect($this->generateUrl('index'));
@@ -193,6 +125,11 @@ class JobController extends Controller
     {
         $em = $this->getEm();
         $job = $em->find("Jobeet2Bundle:Job",$id);
+
+         if (!$this->job) {
+            throw new NotFoundHttpException('The Job does not exist.');
+        }
+
         $em->remove($job);
         $em->flush();
 
@@ -205,7 +142,20 @@ class JobController extends Controller
         $em = $this->getEm();
         $this->job = $em->find("Jobeet2Bundle:Job",$id);
 
-        $form = $this->getForm();
+         if (!$this->job) {
+            throw new NotFoundHttpException('The Job does not exist.');
+        }
+
+
+        $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllIndexedById();
+
+        $categoryTransformer = new EntityToIDTransformer(array(
+            'em' => $this->getEm(),
+            'className' => 'Jobeet2Bundle:Category',
+        ));
+
+        $form = new JobForm('job', $this->job, $this->get('validator'),
+                array('categories' => $categories,'categoryTransformer' => $categoryTransformer));
 
         if ('POST' == $this->get('request')->getMethod()) {
             $form->bind($this->get('request')->request->get('job'));
@@ -219,8 +169,6 @@ class JobController extends Controller
         }
 
         return $this->render('Jobeet2Bundle:Jobeet2:edit.twig.html',
-                array('form'=>$form,'id'=>$id));
-
-        
+                array('form'=>$form,'id'=>$id));        
     }
 }

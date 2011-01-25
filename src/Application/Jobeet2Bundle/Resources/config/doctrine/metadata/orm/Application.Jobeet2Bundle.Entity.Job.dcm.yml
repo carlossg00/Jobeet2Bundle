@@ -2,6 +2,7 @@
 Application\Jobeet2Bundle\Entity\Job:
     type: entity
     table: job
+    repositoryClass: Application\Jobeet2Bundle\Entity\JobRepository
     id:
         id:
             type: integer
@@ -72,6 +73,7 @@ Application\Jobeet2Bundle\Entity\Job:
             referencedColumnName: id
     lifecycleCallbacks:
         prePersist: [doStuffOnPrePersist]
+        preUpdate:  [doStuffOnPreUpdate] 
      
             
           

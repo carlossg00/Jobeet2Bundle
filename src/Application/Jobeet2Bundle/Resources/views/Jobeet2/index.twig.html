@@ -18,7 +18,8 @@
                <div class="feed">
                    <a href=""> Feed</a>
                </div>
-               <h1> {{ category.name }} </h1>
+               <h1><a href="{{ path('category', { 'slug': category.name }) }}">
+                {{ category.name }}</a> </h1>
            </div>
 
            <table class="jobs">

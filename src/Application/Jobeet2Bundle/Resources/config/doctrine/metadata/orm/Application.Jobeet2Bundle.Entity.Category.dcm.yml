@@ -2,6 +2,7 @@
 Application\Jobeet2Bundle\Entity\Category:
     type: entity
     table: category
+    repositoryClass: Application\Jobeet2Bundle\Entity\CategoryRepository
     id:
         id:
             type: integer
@@ -19,6 +20,9 @@ Application\Jobeet2Bundle\Entity\Category:
       affiliates:
         targetEntity: Category
         mappedBy: categories
+    lifecycleCallbacks:
+        prePersist: [doStuffOnPrePersist]
+        preUpdate:  [doStuffOnPreUpdate]
         
 
     

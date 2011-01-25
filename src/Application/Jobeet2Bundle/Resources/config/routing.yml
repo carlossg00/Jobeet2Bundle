@@ -10,6 +10,7 @@ show:
     pattern: /job/{company}/{location}/{id}/{position}.{_format}
     defaults: { _controller: Jobeet2Bundle:Job:show, _format: html }
     requirements: { id: \d+ }
+
 update:
     pattern: /job/update/{id}.{_format}
     defaults: { _controller: Jobeet2Bundle:Job:update, _format: html }
@@ -29,3 +30,7 @@ edit:
 create:
     pattern: /job/create.{_format}
     defaults: { _controller: Jobeet2Bundle:Job:create, _format: html }
+
+category:
+    pattern: /category/{slug}.{_format}
+    defaults: {_controller: Jobeet2Bundle:Category:show, _format: html }

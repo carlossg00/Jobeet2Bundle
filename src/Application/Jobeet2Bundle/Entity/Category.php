@@ -96,4 +96,18 @@ class Category
     {
         return $this->affiliates;
     }  
+    /**
+     * @prePersist
+     */
+    public function doStuffOnPrePersist()
+    {
+        // Add your code here
+    }
+    /**
+     * @preUpdate
+     */
+    public function doStuffOnPreUpdate()
+    {
+        // Add your code here
+    }
 }

@@ -146,4 +146,20 @@ class Affiliate
     {
         return $this->categories;
     }
+
+    /**
+     * @prePersist
+     */
+    public function doStuffOnPrePersist()
+    {
+        // Add your code here
+    }
+
+    /**
+     * @preUpdate
+     */
+    public function doStuffOnPreUpdate()
+    {
+        // Add your code here
+    }
 }
