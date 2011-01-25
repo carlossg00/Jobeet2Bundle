@@ -30,8 +30,7 @@
     <!-- Doctrine Configuration -->
     <!--
     <doctrine:dbal dbname="xxxxxxxx" user="xxxxxxxx" password="" />
-    <doctrine:orm>
-        <doctrine:auto-generate-proxy-classes>%kernel.debug%</doctrine:auto-generate-proxy-classes>
+    <doctrine:orm auto-generate-proxy-classes="%kernel.debug%">
         <doctrine:mappings>
             <doctrine:mapping name="HelloBundle" />
         </doctrine:mappings>
