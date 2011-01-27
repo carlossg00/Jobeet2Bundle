@@ -15,7 +15,6 @@ use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddConstraintVal
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddFieldFactoryGuessersPass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\TemplatingPass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\RegisterKernelListenersPass;
-use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddSecurityVotersPass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\ConverterManagerPass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\RoutingResolverPass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\ProfilerPass;
@@ -56,7 +55,6 @@ class FrameworkBundle extends Bundle
 
         $container->addScope('request');
 
-        $container->addCompilerPass(new AddSecurityVotersPass());
         $container->addCompilerPass(new ConverterManagerPass());
         $container->addCompilerPass(new RoutingResolverPass());
         $container->addCompilerPass(new ProfilerPass());

@@ -11,6 +11,9 @@ interface ContainerInterface
     function set($id, $service, $scope = self::SCOPE_CONTAINER);
     function get($id, $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE);
     function has($id);
+    function getParameter($name);
+    function hasParameter($name);
+    function setParameter($name, $value);
     function enterScope($name);
     function leaveScope($name);
     function addScope($name, $parentScope = self::SCOPE_CONTAINER);
@@ -572,43 +575,41 @@ class HttpKernel implements HttpKernelInterface
                 throw $e;
             }
                         $event = new Event($this, 'core.exception', array('request_type' => $type, 'request' => $request, 'exception' => $e));
-            $this->dispatcher->notifyUntil($event);
+            $response = $this->dispatcher->notifyUntil($event);
             if (!$event->isProcessed()) {
                 throw $e;
             }
-            $response = $this->filterResponse($event->getReturnValue(), $request, 'A "core.exception" listener returned a non response object.', $type);
+            $response = $this->filterResponse($response, $request, 'A "core.exception" listener returned a non response object.', $type);
         }
         return $response;
     }
     protected function handleRaw(Request $request, $type = self::MASTER_REQUEST)
     {
                 $event = new Event($this, 'core.request', array('request_type' => $type, 'request' => $request));
-        $this->dispatcher->notifyUntil($event);
+        $response = $this->dispatcher->notifyUntil($event);
         if ($event->isProcessed()) {
-            return $this->filterResponse($event->getReturnValue(), $request, 'A "core.request" listener returned a non response object.', $type);
+            return $this->filterResponse($response, $request, 'A "core.request" listener returned a non response object.', $type);
         }
                 if (false === $controller = $this->resolver->getController($request)) {
             throw new NotFoundHttpException(sprintf('Unable to find the controller for "%s", check your route configuration.', $request->getPathInfo()));
         }
         $event = new Event($this, 'core.controller', array('request_type' => $type, 'request' => $request));
-        $this->dispatcher->filter($event, $controller);
-        $controller = $event->getReturnValue();
+        $controller = $this->dispatcher->filter($event, $controller);
                 if (!is_callable($controller)) {
             throw new \LogicException(sprintf('The controller must be a callable (%s).', var_export($controller, true)));
         }
                 $arguments = $this->resolver->getArguments($request, $controller);
                 $retval = call_user_func_array($controller, $arguments);
                 $event = new Event($this, 'core.view', array('request_type' => $type, 'request' => $request));
-        $this->dispatcher->filter($event, $retval);
-        return $this->filterResponse($event->getReturnValue(), $request, sprintf('The controller must return a response (instead of %s).', is_object($event->getReturnValue()) ? 'an object of class '.get_class($event->getReturnValue()) : is_array($event->getReturnValue()) ? 'an array' : str_replace("\n", '', var_export($event->getReturnValue(), true))), $type);
+        $response = $this->dispatcher->filter($event, $retval);
+        return $this->filterResponse($response, $request, sprintf('The controller must return a response (instead of %s).', is_object($response) ? 'an object of class '.get_class($response) : is_array($response) ? 'an array' : str_replace("\n", '', var_export($response, true))), $type);
     }
     protected function filterResponse($response, $request, $message, $type)
     {
         if (!$response instanceof Response) {
             throw new \RuntimeException($message);
         }
-        $event = $this->dispatcher->filter(new Event($this, 'core.response', array('request_type' => $type, 'request' => $request)), $response);
-        $response = $event->getReturnValue();
+        $response = $this->dispatcher->filter(new Event($this, 'core.response', array('request_type' => $type, 'request' => $request)), $response);
         if (!$response instanceof Response) {
             throw new \RuntimeException('A "core.response" listener returned a non response object.');
         }
@@ -629,7 +630,6 @@ interface KernelInterface extends HttpKernelInterface, \Serializable
     function registerContainerConfiguration(LoaderInterface $loader);
     function boot();
     function shutdown();
-    function reboot();
     function getBundles();
     function isClassInActiveBundle($class);
     function getBundle($name, $first = true);
@@ -725,11 +725,6 @@ abstract class Kernel implements KernelInterface
             $bundle->setContainer(null);
         }
         $this->container = null;
-    }
-    public function reboot()
-    {
-        $this->shutdown();
-        $this->boot();
     }
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
@@ -1850,7 +1845,7 @@ class Request
     }
 }
 }
-namespace Symfony\Component\HttpFoundation
+namespace Symfony\Component\ClassLoader
 {
 class UniversalClassLoader
 {
@@ -1898,9 +1893,9 @@ class UniversalClassLoader
     {
         $this->prefixes[$prefix] = $path;
     }
-    public function register()
+    public function register($prepend = false)
     {
-        spl_autoload_register(array($this, 'loadClass'));
+        spl_autoload_register(array($this, 'loadClass'), true, $prepend);
     }
     public function loadClass($class)
     {
