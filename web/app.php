@@ -7,4 +7,4 @@ use Symfony\Component\HttpFoundation\Request;
 
 $kernel = new AppKernel('prod', false);
 //$kernel = new AppCache(new AppKernel('prod', false));
-$kernel->handle(new Request())->send();
+$kernel->handle(Request::createFromGlobals())->send();
