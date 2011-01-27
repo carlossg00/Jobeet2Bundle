@@ -18,7 +18,7 @@
         intercept-redirects="false"
     />
 
-    <app:config error_handler="false">
+    <app:config error-handler="false">
         <app:test />
     </app:config>
 
