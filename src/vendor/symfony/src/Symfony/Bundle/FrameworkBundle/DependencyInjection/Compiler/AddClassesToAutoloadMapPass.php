@@ -16,11 +16,11 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  */
 
 /**
- * Sets the classes to compile in the cache for the container.
+ * Sets the class map for the autoloader.
  *
  * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  */
-class AddClassesToCachePass implements CompilerPassInterface
+class AddClassesToAutoloadMapPass implements CompilerPassInterface
 {
     /**
      * {@inheritDoc}
@@ -33,10 +33,10 @@ class AddClassesToCachePass implements CompilerPassInterface
 
             $extension = $container->getExtension($namespace);
             if ($extension instanceof Extension) {
-                $classes = array_merge($classes, $extension->getClassesToCompile());
+                $classes = array_merge($classes, $extension->getAutoloadClassMap());
             }
         }
 
-        $container->setParameter('kernel.compiled_classes', array_unique($classes));
+        $container->setParameter('kernel.autoload_classes', array_unique($classes));
     }
 }

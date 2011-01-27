@@ -80,7 +80,7 @@ class Request
      * @param array $files      The FILES parameters
      * @param array $server     The SERVER parameters
      */
-    public function __construct(array $query = null, array $request = null, array $attributes = null, array $cookies = null, array $files = null, array $server = null)
+    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array())
     {
         $this->initialize($query, $request, $attributes, $cookies, $files, $server);
     }
@@ -97,14 +97,14 @@ class Request
      * @param array $files      The FILES parameters
      * @param array $server     The SERVER parameters
      */
-    public function initialize(array $query = null, array $request = null, array $attributes = null, array $cookies = null, array $files = null, array $server = null)
+    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array())
     {
-        $this->request = new ParameterBag(null !== $request ? $request : $_POST);
-        $this->query = new ParameterBag(null !== $query ? $query : $_GET);
-        $this->attributes = new ParameterBag(null !== $attributes ? $attributes : array());
-        $this->cookies = new ParameterBag(null !== $cookies ? $cookies : $_COOKIE);
-        $this->files = new FileBag(null !== $files ? $files : $_FILES);
-        $this->server = new ServerBag(null !== $server ? $server : $_SERVER);
+        $this->request = new ParameterBag($request);
+        $this->query = new ParameterBag($query);
+        $this->attributes = new ParameterBag($attributes);
+        $this->cookies = new ParameterBag($cookies);
+        $this->files = new FileBag($files);
+        $this->server = new ServerBag($server);
         $this->headers = new HeaderBag($this->server->getHeaders());
 
         $this->content = null;
@@ -117,6 +117,16 @@ class Request
         $this->basePath = null;
         $this->method = null;
         $this->format = null;
+    }
+
+    /**
+     * Creates a new request with values from PHP's super globals.
+     *
+     * @return Request A new request
+     */
+    static public function createfromGlobals()
+    {
+        return new static($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
     }
 
     /**
