@@ -482,13 +482,13 @@ class HttpKernel implements HttpKernelInterface
         $event = new Event($this, 'core.controller', array('request_type' => $type, 'request' => $request));
         $controller = $this->dispatcher->filter($event, $controller);
                 if (!is_callable($controller)) {
-            throw new \LogicException(sprintf('The controller must be a callable (%s).', var_export($controller, true)));
+            throw new \LogicException(sprintf('The controller must be a callable (%s given).', $this->varToString($controller)));
         }
                 $arguments = $this->resolver->getArguments($request, $controller);
                 $retval = call_user_func_array($controller, $arguments);
                 $event = new Event($this, 'core.view', array('request_type' => $type, 'request' => $request));
         $response = $this->dispatcher->filter($event, $retval);
-        return $this->filterResponse($response, $request, sprintf('The controller must return a response (instead of %s).', is_object($response) ? 'an object of class '.get_class($response) : is_array($response) ? 'an array' : str_replace("\n", '', var_export($response, true))), $type);
+        return $this->filterResponse($response, $request, sprintf('The controller must return a response (%s given).', $this->varToString($response)), $type);
     }
     protected function filterResponse($response, $request, $message, $type)
     {
@@ -500,6 +500,23 @@ class HttpKernel implements HttpKernelInterface
             throw new \RuntimeException('A "core.response" listener returned a non response object.');
         }
         return $response;
+    }
+    protected function varToString($var)
+    {
+        if (is_object($var)) {
+            return sprintf('[object](%s)', get_class($var));
+        }
+        if (is_array($var)) {
+            $a = array();
+            foreach ($var as $k => $v) {
+                $a[] = sprintf('%s => %s', $k, $this->varToString($v));
+            }
+            return sprintf("[array](%s)", implode(', ', $a));
+        }
+        if (is_resource($var)) {
+            return '[resource]';
+        }
+        return str_replace("\n", '', var_export((string) $var, true));
     }
 }
 }
@@ -702,30 +719,38 @@ abstract class Kernel implements KernelInterface
     protected function initializeBundles()
     {
                 $this->bundles = array();
-        $this->bundleMap = array();
+        $topMostBundles = array();
+        $directChildren = array();
         foreach ($this->registerBundles() as $bundle) {
             $name = $bundle->getName();
-            $this->bundles[$name] = $bundle;
-            if (!isset($this->bundleMap[$name])) {
-                $this->bundleMap[$name] = array();
+            if (isset($this->bundles[$name])) {
+                throw new \LogicException(sprintf('Trying to register two bundles with the same name "%s"', $name));
             }
-            $this->bundleMap[$name][] = $bundle;
+            $this->bundles[$name] = $bundle;
+            if ($parentName = $bundle->getParent()) {
+                if (isset($directChildren[$parentName])) {
+                    throw new \LogicException(sprintf('Bundle "%s" is directly extended by two bundles "%s" and "%s".', $parentName, $name, $directChildren[$parentName]));
+                }
+                $directChildren[$parentName] = $name;
+            } else {
+                $topMostBundles[$name] = $bundle;
+            }
         }
-                $extended = array();
-        foreach ($this->bundles as $name => $bundle) {
-            $parent = $bundle;
-            $first = true;
-            while ($parentName = $parent->getParent()) {
-                if (!isset($this->bundles[$parentName])) {
-                    throw new \LogicException(sprintf('Bundle "%s" extends bundle "%s", which is not registered.', $name, $parentName));
-                }
-                if ($first && isset($extended[$parentName])) {
-                    throw new \LogicException(sprintf('Bundle "%s" is directly extended by two bundles "%s" and "%s".', $parentName, $name, $extended[$parentName]));
-                }
-                $first = false;
-                $parent = $this->bundles[$parentName];
-                $extended[$parentName] = $name;
-                array_unshift($this->bundleMap[$parentName], $bundle);
+                if (count($diff = array_diff(array_keys($directChildren), array_keys($this->bundles)))) {
+            throw new \LogicException(sprintf('Bundle "%s" extends bundle "%s", which is not registered.', $directChildren[$diff[0]], $diff[0]));
+        }
+                $this->bundleMap = array();
+        foreach ($topMostBundles as $name => $bundle) {
+            $bundleMap = array($bundle);
+            $hierarchy = array($name);
+            while (isset($directChildren[$name])) {
+                $name = $directChildren[$name];
+                array_unshift($bundleMap, $this->bundles[$name]);
+                $hierarchy[] = $name;
+            }
+            foreach ($hierarchy as $bundle) {
+                $this->bundleMap[$bundle] = $bundleMap;
+                array_pop($bundleMap);
             }
         }
     }
@@ -1208,18 +1233,18 @@ class Request
     protected $format;
     protected $session;
     static protected $formats;
-    public function __construct(array $query = null, array $request = null, array $attributes = null, array $cookies = null, array $files = null, array $server = null)
+    public function __construct(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array())
     {
         $this->initialize($query, $request, $attributes, $cookies, $files, $server);
     }
-    public function initialize(array $query = null, array $request = null, array $attributes = null, array $cookies = null, array $files = null, array $server = null)
+    public function initialize(array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array())
     {
-        $this->request = new ParameterBag(null !== $request ? $request : $_POST);
-        $this->query = new ParameterBag(null !== $query ? $query : $_GET);
-        $this->attributes = new ParameterBag(null !== $attributes ? $attributes : array());
-        $this->cookies = new ParameterBag(null !== $cookies ? $cookies : $_COOKIE);
-        $this->files = new FileBag(null !== $files ? $files : $_FILES);
-        $this->server = new ServerBag(null !== $server ? $server : $_SERVER);
+        $this->request = new ParameterBag($request);
+        $this->query = new ParameterBag($query);
+        $this->attributes = new ParameterBag($attributes);
+        $this->cookies = new ParameterBag($cookies);
+        $this->files = new FileBag($files);
+        $this->server = new ServerBag($server);
         $this->headers = new HeaderBag($this->server->getHeaders());
         $this->content = null;
         $this->languages = null;
@@ -1231,6 +1256,10 @@ class Request
         $this->basePath = null;
         $this->method = null;
         $this->format = null;
+    }
+    static public function createfromGlobals()
+    {
+        return new static($_GET, $_POST, array(), $_COOKIE, $_FILES, $_SERVER);
     }
     static public function create($uri, $method = 'GET', $parameters = array(), $cookies = array(), $files = array(), $server = array())
     {
@@ -1735,12 +1764,13 @@ class ClassCollectionLoader
         }
         self::$loaded[$name] = true;
         $classes = array_unique($classes);
+        if ($adaptive) {
+                        $classes = array_diff($classes, get_declared_classes(), get_declared_interfaces());
+                        $name = $name.'-'.substr(md5(implode('|', $classes)), 0, 5);
+        }
         $cache = $cacheDir.'/'.$name.'.php';
                 $reload = false;
         if ($autoReload) {
-            if ($adaptive) {
-                                $classes = array_diff($classes, get_declared_classes(), get_declared_interfaces());
-            }
             $metadata = $cacheDir.'/'.$name.'.meta';
             if (!file_exists($metadata) || !file_exists($cache)) {
                 $reload = true;
@@ -1762,9 +1792,6 @@ class ClassCollectionLoader
         if (!$reload && file_exists($cache)) {
             require_once $cache;
             return;
-        }
-        if ($adaptive) {
-                        $classes = array_diff($classes, get_declared_classes(), get_declared_interfaces());
         }
         $files = array();
         $content = '';

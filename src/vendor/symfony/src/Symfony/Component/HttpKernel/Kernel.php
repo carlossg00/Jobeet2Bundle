@@ -164,12 +164,12 @@ abstract class Kernel implements KernelInterface
     }
 
     /**
-     * Returns a bundle by its name.
+     * Returns a bundle and optionally its descendants by its name.
      *
      * @param string  $name  Bundle name
-     * @param Boolean $first Whether to return the first bundle or all bundles matching this name
+     * @param Boolean $first Whether to return the first bundle only or together with its descendants
      *
-     * @return BundleInterface A BundleInterface instance
+     * @return BundleInterface|Array A BundleInterface instance or an array of BundleInterface instances if $first is false
      *
      * @throws \InvalidArgumentException when the bundle is not enabled
      */
@@ -327,40 +327,63 @@ abstract class Kernel implements KernelInterface
         return $this->rootDir.'/logs';
     }
 
+    /**
+     * Initialize the data structures related to the bundle management:
+     *  - the bundle property maps a bundle name to the bundle instance,
+     *  - the bundleMap property maps a bundle name to the bundle inheritance hierarchy (most derived bundle first).
+     *
+     * @throws \LogicException if two bundles share a common name
+     * @throws \LogicException if a bundle tries to extend a non-registered bundle
+     * @throws \LogicException if two bundles extend the same ancestor
+     *
+     */
     protected function initializeBundles()
     {
         // init bundles
         $this->bundles = array();
-        $this->bundleMap = array();
+        $topMostBundles = array();
+        $directChildren = array();
+        
         foreach ($this->registerBundles() as $bundle) {
             $name = $bundle->getName();
-            $this->bundles[$name] = $bundle;
-            if (!isset($this->bundleMap[$name])) {
-                $this->bundleMap[$name] = array();
+            if (isset($this->bundles[$name])) {
+                throw new \LogicException(sprintf('Trying to register two bundles with the same name "%s"', $name));
             }
-            $this->bundleMap[$name][] = $bundle;
+            $this->bundles[$name] = $bundle;
+
+            if ($parentName = $bundle->getParent()) {
+                if (isset($directChildren[$parentName])) {
+                    throw new \LogicException(sprintf('Bundle "%s" is directly extended by two bundles "%s" and "%s".', $parentName, $name, $directChildren[$parentName]));
+                }
+                $directChildren[$parentName] = $name;
+            } else {
+                $topMostBundles[$name] = $bundle;
+            }            
+        }
+
+        // look for orphans
+        if (count($diff = array_diff(array_keys($directChildren), array_keys($this->bundles)))) {
+            throw new \LogicException(sprintf('Bundle "%s" extends bundle "%s", which is not registered.', $directChildren[$diff[0]], $diff[0]));
         }
 
         // inheritance
-        $extended = array();
-        foreach ($this->bundles as $name => $bundle) {
-            $parent = $bundle;
-            $first = true;
-            while ($parentName = $parent->getParent()) {
-                if (!isset($this->bundles[$parentName])) {
-                    throw new \LogicException(sprintf('Bundle "%s" extends bundle "%s", which is not registered.', $name, $parentName));
-                }
+        $this->bundleMap = array();
+        foreach ($topMostBundles as $name => $bundle) {
+            $bundleMap = array($bundle);
+            $hierarchy = array($name);
 
-                if ($first && isset($extended[$parentName])) {
-                    throw new \LogicException(sprintf('Bundle "%s" is directly extended by two bundles "%s" and "%s".', $parentName, $name, $extended[$parentName]));
-                }
-
-                $first = false;
-                $parent = $this->bundles[$parentName];
-                $extended[$parentName] = $name;
-                array_unshift($this->bundleMap[$parentName], $bundle);
+            while (isset($directChildren[$name])) {
+                $name = $directChildren[$name];
+                array_unshift($bundleMap, $this->bundles[$name]);
+                $hierarchy[] = $name;
+            }
+            
+            foreach ($hierarchy as $bundle) {
+                $this->bundleMap[$bundle] = $bundleMap;
+                array_pop($bundleMap);
             }
         }
+
     }
 
     protected function initializeContainer()
