@@ -9,7 +9,7 @@
          processIsolation="true"
          stopOnFailure="false"
          syntaxCheck="false"
-         bootstrap="../src/autoload.php"
+         bootstrap="bootstrap.php"
 >
   <testsuites>
       <testsuite name="Project Test Suite">
