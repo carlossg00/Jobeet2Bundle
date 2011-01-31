@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\HelloBundle;
+namespace Sensio\HelloBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

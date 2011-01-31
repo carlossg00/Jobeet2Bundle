@@ -1,6 +1,6 @@
 <?php
 
-namespace Application\HelloBundle\Controller;
+namespace Sensio\HelloBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 

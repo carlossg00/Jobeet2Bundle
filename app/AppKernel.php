@@ -19,7 +19,7 @@ class AppKernel extends Kernel
             //new Symfony\Bundle\DoctrineMongoDBBundle\DoctrineMongoDBBundle(),
 
             // register your bundles
-            new Application\HelloBundle\HelloBundle(),
+            new Sensio\HelloBundle\HelloBundle(),
         );
 
         if ($this->isDebug()) {
