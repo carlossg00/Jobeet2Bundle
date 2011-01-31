@@ -6,6 +6,7 @@
     xmlns:app="http://www.symfony-project.org/schema/dic/symfony"
     xmlns:webprofiler="http://www.symfony-project.org/schema/dic/webprofiler"
     xsi:schemaLocation="http://www.symfony-project.org/schema/dic/services http://www.symfony-project.org/schema/dic/services/services-1.0.xsd
+                        http://www.symfony-project.org/schema/dic/webprofiler http://www.symfony-project.org/schema/dic/webprofiler/webprofiler-1.0.xsd
                         http://www.symfony-project.org/schema/dic/zend http://www.symfony-project.org/schema/dic/zend/zend-1.0.xsd">
 
     <imports>
@@ -17,7 +18,7 @@
         intercept-redirects="false"
     />
 
-    <app:config error_handler="false">
+    <app:config error-handler="false">
         <app:test />
     </app:config>
 

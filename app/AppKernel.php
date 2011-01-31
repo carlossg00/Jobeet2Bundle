@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__.'/../src/autoload.php';
-
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\DependencyInjection\Loader\LoaderInterface;
 
@@ -21,7 +19,9 @@ class AppKernel extends Kernel
             //new Symfony\Bundle\DoctrineMongoDBBundle\DoctrineMongoDBBundle(),
 
             // register your bundles
+
             new Application\Jobeet2Bundle\Jobeet2Bundle(),
+
         );
 
         if ($this->isDebug()) {

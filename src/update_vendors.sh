@@ -1,7 +1,7 @@
 #!/bin/sh
 
 DIR=`php -r "echo realpath(dirname(\\$_SERVER['argv'][0]));"`
-VENDOR=$DIR/vendor
+VENDOR=$DIR/vendor_full
 
 # Symfony
 cd $VENDOR/symfony && git pull
@@ -10,19 +10,19 @@ cd $VENDOR/symfony && git pull
 cd $VENDOR/doctrine
 git checkout master
 git pull
-git checkout -b v2.0.0 2.0.0
+git checkout -b v2.0.1 2.0.1
 
 # Doctrine DBAL
 cd $VENDOR/doctrine-dbal
 git checkout master
 git pull
-git checkout -b v2.0.0 2.0.0
+git checkout -b v2.0.1 2.0.1
 
 # Doctrine common
 cd $VENDOR/doctrine-common
 git checkout master
 git pull
-git checkout -b v2.0.0 2.0.0
+git checkout -b v2.0.1 2.0.1
 
 # Doctrine migrations
 cd $VENDOR/doctrine-migrations && git pull

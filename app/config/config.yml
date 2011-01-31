@@ -24,11 +24,11 @@ doctrine.dbal:
     dbname:   Symfony2Jobbet
     user:     root
     password: carlos
+    logging:  %kernel.debug%
 doctrine.orm:
     auto_generate_proxy_classes: %kernel.debug%
     mappings:
         Jobeet2Bundle: ~
-
 
 ## Swiftmailer Configuration
 #swiftmailer.config:
