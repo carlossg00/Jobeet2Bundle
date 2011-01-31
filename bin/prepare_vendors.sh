@@ -2,10 +2,10 @@
 
 # init
 DIR=`php -r "echo realpath(dirname(\\$_SERVER['argv'][0]));"`
-cd $DIR/src/
+cd $DIR/
 rm -rf vendor
 mkdir vendor
-TARGET=$DIR/src/vendor
+TARGET=$DIR/vendor
 cd $TARGET
 
 if [ ! -d "$DIR/vendor" ]; then
@@ -13,7 +13,7 @@ if [ ! -d "$DIR/vendor" ]; then
     exit
 fi
 
-cp -r $DIR/vendor/* .
+cp -r $DIR/vendor_full/* .
 
 # Default configuration
 cp $DIR/../symfony-bootstrapper/src/skeleton/application/php/config/config* $DIR/app/config/
