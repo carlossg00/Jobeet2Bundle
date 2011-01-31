@@ -1,0 +1,16 @@
+{# src/Application/Jobeet2Bundle/Resources/view/Job/list.twig.html #}
+
+<table class="jobs">
+    {% for job in jobs %}
+         <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
+             <td class="location"> {{ job.location }}</td>
+             <td class="position">
+                 <a href="{{ path('show',{'company':job.company,
+                 'location':job.location,'id':job.id,'position':job.position}) }}">
+                     {{ job.position }}
+                 </a>
+             </td>
+             <td class="company"> {{ job.company }}></td>
+         </tr>
+     {% endfor %}
+</table>

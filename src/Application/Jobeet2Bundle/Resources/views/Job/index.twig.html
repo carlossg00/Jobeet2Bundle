@@ -1,3 +1,4 @@
+{# src/Application/Jobeet2Bundle/Resources/view/Job/index.twig.html #}
 {% extends "Jobeet2Bundle::layout.twig.html" %}
 
 {% block title %}Jobeet - Your best job board{% endblock %}
@@ -22,20 +23,16 @@
                 {{ category.name }}</a> </h1>
            </div>
 
-           <table class="jobs">
-           {% for job in category.job %}
-                <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
-                    <td class="location"> {{ job.location }}</td>
-                    <td class="position">
-                        <a href="{{ path('show',{'company':job.company,
-                        'location':job.location,'id':job.id,'position':job.position}) }}">
-                            {{ job.position }}
-                        </a>
-                    </td>
-                    <td class="company"> {{ job.company }}></td>
-                </tr>
-            {% endfor %}
-            </table>
+           {% render 'Jobeet2Bundle:Job:list' with {'category': category} %}
+           
+           {% set count = category.getNJobs() - 10 %}           
+           {% if count > 0 %}
+           <div class="more_jobs"> and
+                <a href="{{ path('category', { 'slug': category.name }) }}">
+                    {{ count }}
+               </a> more...
+           {% endif %}
+
         </div>
     {% endfor %}
 </div>

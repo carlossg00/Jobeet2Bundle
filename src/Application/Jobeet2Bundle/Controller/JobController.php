@@ -31,9 +31,28 @@ class JobController extends Controller
 
         $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllJobsByCategory();
        
-        return $this->render('Jobeet2Bundle:Jobeet2:index.twig.html',
+        return $this->render('Jobeet2Bundle:Job:index.twig.html',
                 array('categories'=>$categories));
 
+    }
+    
+    public function listAction(Category $category = null)
+    {
+        if (null !== $category) {            
+            $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAllByCategory($category);
+        } else {
+            $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAll(true);
+        }
+
+        //$jobs->setCurrentPageNumber($page);
+        //$jobs->setItemCountPerPage(10);
+        
+
+        return $this->render('Jobeet2Bundle:Job:list.twig.html', array(
+            'jobs'    => $jobs,
+            'category'  => $category
+        ));
+        
     }
 
     public function showAction($id)
@@ -45,7 +64,7 @@ class JobController extends Controller
         if (!$this->job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
-        return $this->render('Jobeet2Bundle:Jobeet2:show.twig.html',
+        return $this->render('Jobeet2Bundle:Job:show.twig.html',
             array('job'=>$this->job));
         
     }
@@ -74,7 +93,7 @@ class JobController extends Controller
             }
         }
 
-        return $this->render('Jobeet2Bundle:Jobeet2:update.twig.html',
+        return $this->render('Jobeet2Bundle:Job:update.twig.html',
                 array('form'=>$form));       
 
     }
@@ -115,7 +134,7 @@ class JobController extends Controller
 
         }
 
-        return $this->render('Jobeet2Bundle:Jobeet2:new.twig.html',
+        return $this->render('Jobeet2Bundle:Job:new.twig.html',
                 array('form'=>$form));
         
     }
@@ -168,7 +187,7 @@ class JobController extends Controller
             }
         }
 
-        return $this->render('Jobeet2Bundle:Jobeet2:edit.twig.html',
+        return $this->render('Jobeet2Bundle:Job:edit.twig.html',
                 array('form'=>$form,'id'=>$id));        
     }
 }

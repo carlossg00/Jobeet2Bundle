@@ -1,0 +1,24 @@
+{# src/Application/Jobeet2Bundle/Resources/view/Category/index.twig.html #}
+
+{% extends "Jobeet2Bundle::layout.twig.html" %}
+
+{% block title %}Jobs in the {{ category.name }} category {% endblock %}
+
+{% block head %}
+    {{ parent () }}
+    <link href="{{ asset('./bundles/jobeet2/css/jobs.css') }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div class="category">
+    <div class="feed">
+        <a href="">Feed</a>
+    </div>
+    <h1>{{ category.name }}</h1>
+    
+    {% render 'Jobeet2Bundle:Job:list' with {'category': category} %}  
+    
+</div>
+
+
+{% endblock %}

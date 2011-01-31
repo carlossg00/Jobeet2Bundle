@@ -12,6 +12,9 @@ Application\Jobeet2Bundle\Entity\Category:
         name:
             type: string
             length: 255
+        nJobs:
+            type: integer
+            nullable: true
     oneToMany:
       job:
         targetEntity: Job

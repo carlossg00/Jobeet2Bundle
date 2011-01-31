@@ -2,11 +2,15 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
+use Application\Jobeet2bundle\Entity\JobRepository;
+use Doctrine\Common\Collections\ArrayCollections;
+
 /**
  * Application\Jobeet2Bundle\Entity\Category
  */
 class Category
 {
+
     /**
      * @var integer $id
      */
@@ -26,6 +30,13 @@ class Category
      * @var Application\Jobeet2Bundle\Entity\Category
      */
     private $affiliates;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+        $this->job = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->nJobs = 0;  
+    }
 
     /**
      * Get id
@@ -65,6 +76,7 @@ class Category
     public function addJob(\Application\Jobeet2Bundle\Entity\Job $job)
     {
         $this->job[] = $job;
+        $this->nJobs++;
     }
 
     /**
@@ -109,5 +121,29 @@ class Category
     public function doStuffOnPreUpdate()
     {
         // Add your code here
+    }   
+    /**
+     * @var integer $nJobs
+     */
+    private $nJobs;
+
+    /**
+     * Set nJobs
+     *
+     * @param integer $nJobs
+     */
+    public function setNJobs($nJobs)
+    {
+        $this->numJobs = \intval($nJobs);
+    }
+
+    /**
+     * Get nJobs
+     *
+     * @return integer $nJobs
+     */
+    public function getNJobs()
+    {
+        return $this->nJobs;
     }
 }

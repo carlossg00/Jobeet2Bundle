@@ -415,6 +415,7 @@ class Job
     public function setCategory(\Application\Jobeet2Bundle\Entity\Category $category)
     {
         $this->category = $category;
+        $this->category->addJob($this);    
     }
 
     /**
