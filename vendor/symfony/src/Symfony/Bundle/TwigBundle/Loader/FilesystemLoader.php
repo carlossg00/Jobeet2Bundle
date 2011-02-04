@@ -84,8 +84,16 @@ class FilesystemLoader implements \Twig_LoaderInterface
             return $this->cache[$key];
         }
 
-        if (false === $file = $this->locator->locate($name)) {
-            throw new \Twig_Error_Loader(sprintf('Unable to find template "%s".', $name));
+        $file = null;
+        $previous = null;
+        try {
+            $file = $this->locator->locate($name);
+        } catch (\InvalidArgumentException $e) {
+            $previous = $e;
+        }
+
+        if (false === $file || null === $file) {
+            throw new \Twig_Error_Loader(sprintf('Unable to find template "%s".', $name), 0, null, $previous);
         }
 
         return $this->cache[$key] = $file;

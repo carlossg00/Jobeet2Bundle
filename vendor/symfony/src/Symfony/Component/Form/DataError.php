@@ -9,8 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Form\Exception;
+namespace Symfony\Component\Form;
 
-class AlreadyBoundException extends FormException
+/**
+ * Wraps errors in the form data
+ *
+ * @author Bernhard Schussek <bernhard.schussek@symfony-project.com>
+ */
+class DataError extends Error
 {
 }

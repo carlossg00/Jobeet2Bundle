@@ -61,9 +61,22 @@ abstract class Bundle extends ContainerAware implements BundleInterface
             return $this->name;
         }
 
-        $pos = strrpos(get_class($this), '\\');
+        $name = get_class($this);
+        $pos = strrpos($name, '\\');
 
-        return $this->name = substr(get_class($this), $pos ? $pos + 1 : 0);
+        return $this->name = false === $pos ? $name :  substr($name, $pos + 1);
+    }
+
+    /**
+     * Gets the Bundle directory path.
+     *
+     * The path should always be returned as a Unix path (with /).
+     *
+     * @return string The Bundle absolute path
+     */
+    final public function getNormalizedPath()
+    {
+        return strtr($this->getPath(), '\\', '/');
     }
 
     /**
@@ -78,7 +91,7 @@ abstract class Bundle extends ContainerAware implements BundleInterface
      */
     public function registerExtensions(ContainerBuilder $container)
     {
-        if (!$dir = realpath($this->getPath().'/DependencyInjection')) {
+        if (!$dir = realpath($this->getNormalizedPath().'/DependencyInjection')) {
             return;
         }
 
@@ -105,7 +118,7 @@ abstract class Bundle extends ContainerAware implements BundleInterface
      */
     public function registerCommands(Application $application)
     {
-        if (!$dir = realpath($this->getPath().'/Command')) {
+        if (!$dir = realpath($this->getNormalizedPath().'/Command')) {
             return;
         }
 
