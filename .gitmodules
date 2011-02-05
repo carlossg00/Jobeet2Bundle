@@ -1,0 +1,6 @@
+[submodule "vendor/doctrine-extensions/lib/DoctrineExtensions/Sluggable"]
+	path = vendor/doctrine-extensions/lib/DoctrineExtensions/Sluggable
+	url = git://github.com/knplabs/Doctrine2-Sluggable-Functional-Behavior.git
+[submodule "vendor/ZendPaginatorAdapter"]
+	path = vendor/ZendPaginatorAdapter
+	url = git://github.com/ornicar/ZendPaginatorAdapter.git
