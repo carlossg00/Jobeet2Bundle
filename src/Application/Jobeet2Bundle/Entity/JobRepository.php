@@ -2,22 +2,35 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
-//use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Zend\Paginator\Paginator;
+use ZendPaginatorAdapter\DoctrineORMAdapter;
 
 class JobRepository extends EntityRepository
 {
     
-    public function findAllByCategory(Category $category)
+    public function findOneBySlug($slug)
     {
-        return $this->_em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
-                                 WHERE j.category = ?1')
-                    ->setParameter(1, $category)
-                    ->setMaxResults(10)
-                    ->getResult();
-        
+        return $this->findOneBy(array('slug' => $slug));
     }
+    
+    public function findAllByCategory(Category $category, $asPaginator = true)
+    {
+        $query = $this->_em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
+                                 WHERE j.category = ?1')
+                    ->setParameter(1, $category);
+                    //->setMaxResults(10);
+                    //->getResult();
+                    
+        if ($asPaginator) {
+            return new Paginator(new DoctrineORMAdapter($query));
+        } else {
+            return $query->execute();
+        }       
+    }
+    
+    
     
     public function getActiveJobs($max = 10)
     {

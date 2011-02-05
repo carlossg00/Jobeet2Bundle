@@ -14,7 +14,10 @@ $loader->registerNamespaces(array(
     'Doctrine\\ODM\\MongoDB'         => __DIR__.'/../vendor/doctrine-mongodb-odm/lib',
     'Doctrine\\DBAL'                 => __DIR__.'/../vendor/doctrine-dbal/lib',
     'Doctrine'                       => __DIR__.'/../vendor/doctrine/lib',
-    'Zend'                           => __DIR__.'/../vendor/zend/library',
+    'DoctrineExtensions'             => __DIR__.'/../vendor/doctrine-extensions/lib',
+    'Zend'                           => __DIR__.'/../vendor/zend_full/library',
+    'ZendPaginatorAdapter'           => __DIR__.'/../vendor/ZendPaginatorAdapter/src'
+    
 ));
 $loader->registerPrefixes(array(
     'Twig_Extensions_' => __DIR__.'/../vendor/twig-extensions/lib',

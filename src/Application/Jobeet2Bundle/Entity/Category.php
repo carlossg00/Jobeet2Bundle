@@ -4,30 +4,51 @@ namespace Application\Jobeet2Bundle\Entity;
 
 use Application\Jobeet2bundle\Entity\JobRepository;
 use Doctrine\Common\Collections\ArrayCollections;
+use DoctrineExtensions\Sluggable\Sluggable;
 
 /**
  * Application\Jobeet2Bundle\Entity\Category
+ * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\CategoryRepository")
+ * @orm:Table(name="category",
+ *          indexes={@orm:Index(name="slug_idx", columns={"slug"})})
+ * @orm:HasLifecycleCallbacks
  */
-class Category
+class Category implements Sluggable
 {
 
     /**
      * @var integer $id
+     * @orm:Id
+     * @orm:Column(type="integer")
+     * @orm:GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
+     * @var string $slug
+     * @orm:Column(type="string", length=255)
+     */
+    private $slug;
+
+    /**
      * @var string $name
+     * @orm:Column(type="string", length=255)
      */
     private $name;
 
     /**
      * @var Application\Jobeet2Bundle\Entity\Job
+     * Inverse Side
+     * @orm:OneToMany(targetEntity="Job", mappedBy="category")
      */
+    
     private $job;
 
     /**
      * @var Application\Jobeet2Bundle\Entity\Category
+     *
+     * Inverse Side
+     * @orm:ManyToMany(targetEntity="Category", mappedBy="categories")
      */
     private $affiliates;
 
@@ -108,16 +129,20 @@ class Category
     {
         return $this->affiliates;
     }  
+    
     /**
-     * @prePersist
+     * @orm:prePersist
      */
+    
     public function doStuffOnPrePersist()
     {
         // Add your code here
     }
+    
     /**
-     * @preUpdate
+     * @orm:preUpdate
      */
+    
     public function doStuffOnPreUpdate()
     {
         // Add your code here
@@ -145,5 +170,35 @@ class Category
     public function getNJobs()
     {
         return $this->nJobs;
+    }
+    
+    /**
+     * Retrieves the slug field name
+     * 
+     * @return string
+    */
+    function getSlugFieldName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * Retrieves the slug
+     *
+     * @return string
+    */
+    function getSlug()
+    {
+        return $this->slug;
+    }
+
+   /**
+    * Retrieves the Entity fields used to generate the slug value
+    *
+    * @return array
+    */
+    function getSlugGeneratorFields()
+    {
+        return array('name');
     }
 }

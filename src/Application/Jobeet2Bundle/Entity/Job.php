@@ -2,99 +2,132 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
+use DoctrineExtensions\Sluggable\Sluggable;
+
+
 /**
  * Application\Jobeet2Bundle\Entity\Job
+ * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\JobRepository")
+ * @orm:HasLifecycleCallbacks
+ * @orm:Table(name="job",
+ *          indexes={@orm:Index(name="slug_idx", columns={"slug"})})
  */
-class Job
+class Job implements Sluggable
 {
     /**
-     *
-     */
-    private $active_days;
-
-    /**
      * @var integer $id
+     * @orm:Id
+     * @orm:Column(type="integer")
+     * @orm:GeneratedValue(strategy="IDENTITY")
      */
     private $id;
-
+   
+    /**
+     * @orm:Column(type="string", length=255)     
+     */
+    
+    private $slug;
+       
+    
     /**
      * @var string $type
+     * @orm:Column(type="string", length=255, nullable=true)
      */
     private $type;
 
     /**
      * @var string $company
+     * @orm:Column(type="string", length=255)
      */
     private $company;
 
     /**
      * @var string $logo
+     * @orm:Column(type="string", length=255, nullable=true)
      */
     private $logo;
 
     /**
      * @var string $url
+     * @orm:Column(type="string", length=255, nullable=true)
      */
     private $url;
 
     /**
      * @var string $position
+     * @orm:Column(type="string", length=255)
      */
     private $position;
 
     /**
      * @var string $location
+     * @orm:Column(type="string", length=255)
      */
     private $location;
 
     /**
      * @var string $description
+     * @orm:Column(type="string", length=255)
      */
     private $description;
 
     /**
      * @var string $how_to_apply
+     * @orm:Column(type="string", length=4000, nullable=true)
      */
     private $how_to_apply;
 
     /**
      * @var string $token
+     * @orm:Column(type="string", length=255, nullable=true)
      */
     private $token;
 
     /**
      * @var boolean $is_public
+     * @orm:Column(type="boolean", nullable=true)
      */
     private $is_public;
 
     /**
      * @var boolean $is_activated
+     * @orm:Column(type="boolean", nullable=true)
      */
     private $is_activated;
 
     /**
      * @var string $email
+     * @orm:Column(type="string", length=255, nullable=true)
      */
     private $email;
 
     /**
      * @var datetime $expires_at
+     * @orm:Column(type="datetime", nullable=true)
      */
     private $expires_at;
 
     /**
      * @var datetime $created_at
+     * @orm:Column(type="datetime", nullable=true)
      */
     private $created_at;
 
     /**
      * @var datetime $updated_at
+     * @orm:Column(type="datetime", nullable=true)
      */
     private $updated_at;
 
+
     /**
      * @var Application\Jobeet2Bundle\Entity\Category
+     *
+     * owning Side
+     * @orm:ManyToOne(targetEntity="Category", inversedBy="job")
+     * @orm:JoinColumn(name="category_id", referencedColumnName="id")
      */
+    
     private $category;
 
     /**
@@ -427,28 +460,59 @@ class Job
     {
         return $this->category;
     }
+    
+    /**
+     * Retrieves the slug field name
+     * 
+     * @return string
+    */
+    function getSlugFieldName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * Retrieves the slug
+     *
+     * @return string
+    */
+    function getSlug()
+    {
+        return $this->slug;
+    }
+
+   /**
+    * Retrieves the Entity fields used to generate the slug value
+    *
+    * @return array
+    */
+    function getSlugGeneratorFields()
+    {
+        return array('company' , 'location' , 'id' , 'position');
+    }
+
+    
 
 
-    public function setActiveDays($activeDays)
-    {
-        $this->active_days = $activeDays;
-    }
-    public function getActiveDays()
-    {
-        return $this->active_days;
-    }
+        
+    /**
+     * @orm:PrePersist
+     */
 
     public function doStuffOnPrePersist()
     {
 
         $this->createdAt = $this->updatedAt = new \DateTime();
-        $str = 'P'.$this->active_days.'D';
+        $str = 'P30D';
         $date = new \DateTime('now');
         //@TODO Bug : DateInterval not accepted ?¿?¿?
         //$this->setExpiresAt($date->add(new \DateInterval($str)));
         $this->setExpiresAt($date);
     }
 
+    /**
+     * @orm:PreUpdate
+     */
 
     public function doStuffOnPreUpdate()
     {

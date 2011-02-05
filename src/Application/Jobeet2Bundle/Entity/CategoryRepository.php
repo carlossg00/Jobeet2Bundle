@@ -13,6 +13,10 @@ class CategoryRepository extends EntityRepository
      * @return <type>
      */
 
+    public function findOneBySlug($slug)
+    {
+        return $this->findOneBy(array('slug' => $slug));
+    }
 
     public function getActiveJobs($max = 10)
     {

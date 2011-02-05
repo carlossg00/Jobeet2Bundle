@@ -18,8 +18,7 @@ use Application\Jobeet2Bundle\Listener\JobEventListener;
 
 class JobController extends Controller
 {
-    protected $job;
-
+    
     protected function getEm()
     {
         return $this->get('doctrine.orm.entity_manager');
@@ -36,6 +35,10 @@ class JobController extends Controller
 
     }
     
+    /**
+     * list jobs by category
+     */
+    
     public function listAction(Category $category = null)
     {
         if (null !== $category) {            
@@ -44,9 +47,13 @@ class JobController extends Controller
             $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAll(true);
         }
 
+
         //$jobs->setCurrentPageNumber($page);
-        //$jobs->setItemCountPerPage(10);
-        
+        $jobs->setCurrentPageNumber(1);
+        //$jobs->setItemCountPerPage($this->container->getParameter('forum.paginator.topics_per_page'));
+        $jobs->setItemCountPerPage(3);
+        $jobs->setPageRange(5);
+              
 
         return $this->render('Jobeet2Bundle:Job:list.twig.html', array(
             'jobs'    => $jobs,
@@ -54,18 +61,21 @@ class JobController extends Controller
         ));
         
     }
+    
+    /**
+     * Show deatiled job info
+     */
 
-    public function showAction($id)
+    public function showAction($slug)
     {
 
-        $em = $this->getEm();
-        $this->job = $em->find("Jobeet2Bundle:Job",$id);
-
-        if (!$this->job) {
+        $job = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findOneBySlug($slug);
+        
+        if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
         return $this->render('Jobeet2Bundle:Job:show.twig.html',
-            array('job'=>$this->job));
+            array('job'=>$job));
         
     }
 
@@ -73,9 +83,9 @@ class JobController extends Controller
     {
 
         $em = $this->getEm();
-        $this->job = $em->find("Jobeet2Bundle:Job",$id);
+        $job = $em->find("Jobeet2Bundle:Job",$id);
         
-        if (!$this->job) {
+        if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
 
@@ -158,36 +168,6 @@ class JobController extends Controller
 
     public function editAction($id)
     {
-        $em = $this->getEm();
-        $this->job = $em->find("Jobeet2Bundle:Job",$id);
-
-         if (!$this->job) {
-            throw new NotFoundHttpException('The Job does not exist.');
-        }
-
-
-        $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllIndexedById();
-
-        $categoryTransformer = new EntityToIDTransformer(array(
-            'em' => $this->getEm(),
-            'className' => 'Jobeet2Bundle:Category',
-        ));
-
-        $form = new JobForm('job', $this->job, $this->get('validator'),
-                array('categories' => $categories,'categoryTransformer' => $categoryTransformer));
-
-        if ('POST' == $this->get('request')->getMethod()) {
-            $form->bind($this->get('request')->request->get('job'));
-
-            if ($form->isValid()) {
-                // save $job object and redirect
-                $em->flush();
-                return $this->redirect($this->generateUrl('index'));
-
-            }
-        }
-
-        return $this->render('Jobeet2Bundle:Job:edit.twig.html',
-                array('form'=>$form,'id'=>$id));        
+               
     }
 }

@@ -19,7 +19,7 @@
                <div class="feed">
                    <a href=""> Feed</a>
                </div>
-               <h1><a href="{{ path('category', { 'slug': category.name }) }}">
+               <h1><a href="{{ path('category', { 'slug': category.slug }) }}">
                 {{ category.name }}</a> </h1>
            </div>
 
@@ -28,7 +28,7 @@
            {% set count = category.getNJobs() - 10 %}           
            {% if count > 0 %}
            <div class="more_jobs"> and
-                <a href="{{ path('category', { 'slug': category.name }) }}">
+                <a href="{{ path('category', { 'slug': category.slug }) }}">
                     {{ count }}
                </a> more...
            {% endif %}

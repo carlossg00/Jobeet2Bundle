@@ -21,7 +21,7 @@ twig.config:
 
 doctrine.dbal:
     driver:   pdo_mysql
-    dbname:   Symfony2Jobbet
+    dbname:   Symfony2Jobeet
     user:     root
     password: carlos
     logging:  %kernel.debug%

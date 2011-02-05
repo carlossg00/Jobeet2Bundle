@@ -7,9 +7,8 @@ index:
     defaults: { _controller: Jobeet2Bundle:Job:index, _format: html }
 
 show:
-    pattern: /job/{company}/{location}/{id}/{position}.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:show, _format: html }
-    requirements: { id: \d+ }
+    pattern: /job/{slug}.{_format}
+    defaults: { _controller: Jobeet2Bundle:Job:show, _format: html }    
 
 update:
     pattern: /job/update/{id}.{_format}

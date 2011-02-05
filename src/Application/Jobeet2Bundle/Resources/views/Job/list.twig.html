@@ -5,12 +5,14 @@
          <tr class= "{{ loop.index is even ? 'even' : 'odd' }}">
              <td class="location"> {{ job.location }}</td>
              <td class="position">
-                 <a href="{{ path('show',{'company':job.company,
-                 'location':job.location,'id':job.id,'position':job.position}) }}">
+                 <a href="{{ path('show',{'slug':job.slug}) }}">
                      {{ job.position }}
                  </a>
              </td>
-             <td class="company"> {{ job.company }}></td>
+             <td class="company"> {{ job.company }}</td>
          </tr>
      {% endfor %}
 </table>
+
+
+{% include 'Jobeet2Bundle::pagination.twig.html' with {'pager': jobs.pages, 'url': 'pepe'} %}

@@ -4,37 +4,55 @@ namespace Application\Jobeet2Bundle\Entity;
 
 /**
  * Application\Jobeet2Bundle\Entity\Affiliate
+ * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\AffiliateRepository")
+ * @orm:Table(name="affiliate")
+ * @orm:HasLifecycleCallbacks
+ *
  */
 class Affiliate
 {
     /**
      * @var integer $id
+     * @orm:Id
+     * @orm:Column(type="integer")
+     * @orm:GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
      * @var string $url
+     * @orm:Column(type="string", length=255)
      */
     private $url;
 
     /**
      * @var string $email
+     * @orm:Column(type="string", length=255)
      */
     private $email;
 
     /**
      * @var string $token
+     * @orm:Column(type="string", length=255)
      */
     private $token;
 
     /**
      * @var boolean $is_active
+     * @orm:Column(type="boolean")
      */
     private $is_active;
 
     /**
      * @var Application\Jobeet2Bundle\Entity\Category
-     */
+     * @orm:ManyToMany(targetEntity="Category", inversedBy="affiliates")
+     * @orm:JoinTable(name="category_affiliate",
+     *      joinColumns={@orm:JoinColumn(name="affiliate_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@orm:JoinColumn(name="category_id", referencedColumnName="id")}
+     *      )
+     */ 
+
+    
     private $categories;
 
     /**
@@ -148,7 +166,7 @@ class Affiliate
     }
 
     /**
-     * @prePersist
+     * @orm:prePersist
      */
     public function doStuffOnPrePersist()
     {
@@ -156,7 +174,7 @@ class Affiliate
     }
 
     /**
-     * @preUpdate
+     * @orm:preUpdate
      */
     public function doStuffOnPreUpdate()
     {

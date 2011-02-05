@@ -37,7 +37,7 @@ class CategoryController extends Controller
         $em = $this->getEm();
         
         $category = $em->getRepository('Jobeet2Bundle:Category')
-                ->findOneBy(array('name' => $slug));
+                ->findOneBySlug($slug);
         
         if (!$category) {
             throw new NotFoundHttpException('The Category does not exist.');
