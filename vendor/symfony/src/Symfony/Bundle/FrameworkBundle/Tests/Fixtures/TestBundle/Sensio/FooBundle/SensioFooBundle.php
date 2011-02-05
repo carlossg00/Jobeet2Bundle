@@ -33,6 +33,6 @@ class SensioFooBundle extends Bundle
      */
     public function getPath()
     {
-        return strtr(__DIR__, '\\', '/');
+        return __DIR__;
     }
 }
