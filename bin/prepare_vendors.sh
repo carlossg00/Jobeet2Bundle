@@ -20,12 +20,20 @@ cp $DIR/../symfony-bootstrapper/src/skeleton/application/php/config/config* $DIR
 cp $DIR/../symfony-bootstrapper/src/skeleton/application/yml/config/config* $DIR/app/config/
 cp $DIR/../symfony-bootstrapper/src/skeleton/application/xml/config/config* $DIR/app/config/
 
-# Doctrine
-cd doctrine && rm -rf UPGRADE* build* bin tests tools lib/vendor/doctrine-common/build* lib/vendor/doctrine-common/tests lib/vendor
+# Doctrine ORM
+cd doctrine && rm -rf UPGRADE* build* bin tests tools lib/vendor
+cd $TARGET
+
+# Doctrine DBAL
+cd doctrine-dbal && rm -rf bin build* tests lib/vendor
+cd $TARGET
+
+# Doctrine Common
+cd doctrine-common && rm -rf build* tests lib/vendor
 cd $TARGET
 
 # Doctrine migrations
-cd doctrine-migrations && rm -rf tests build*
+cd doctrine-migrations && rm -rf tests build* lib/vendor
 cd $TARGET
 
 # Doctrine data fixtures
@@ -37,7 +45,7 @@ cd doctrine-mongodb && rm -rf tests build* tools lib/vendor
 cd $TARGET
 
 # Doctrine MongoDB ODM
-cd doctrine-mongodb-odm && rm -rf tests build* tools phpunit.xml.dist build* bin README* lib/vendor
+cd doctrine-mongodb-odm && rm -rf tests build* tools phpunit.xml* build* bin README* lib/vendor
 cd $TARGET
 
 # Swiftmailer
@@ -45,15 +53,15 @@ cd swiftmailer && rm -rf CHANGES README* build* docs notes test-suite tests crea
 cd $TARGET
 
 # Symfony
-cd symfony && rm -rf README phpunit.xml.dist tests *.sh
+cd symfony && rm -rf README phpunit.xml* tests *.sh vendor
 cd $TARGET
 
 # Twig
-cd twig && rm -rf AUTHORS CHANGELOG README.markdown bin doc package.xml.tpl phpunit.xml test
+cd twig && rm -rf AUTHORS CHANGELOG README.markdown bin doc package.xml.tpl phpunit.xml* test
 cd $TARGET
 
 # Twig Extensions
-cd twig-extensions && rm -rf README doc phpunit.xml.dist test
+cd twig-extensions && rm -rf README doc phpunit.xml* test
 cd $TARGET
 
 # Zend Framework
