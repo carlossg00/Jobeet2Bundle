@@ -4,52 +4,36 @@ DIR=`php -r "echo realpath(dirname(\\$_SERVER['argv'][0]));"`
 VENDOR=$DIR/vendor_full
 
 # Symfony
-cd $VENDOR/symfony && git pull
+cd $VENDOR/symfony && git fetch origin && git reset --hard origin/master
 
 # Doctrine ORM
-cd $VENDOR/doctrine
-git checkout master
-git pull
-git checkout -b v2.0.1 2.0.1
+cd $VENDOR/doctrine && git fetch origin && git reset --hard 2.0.1
 
 # Doctrine DBAL
-cd $VENDOR/doctrine-dbal
-git checkout master
-git pull
-git checkout -b v2.0.1 2.0.1
+cd $VENDOR/doctrine-dbal && git fetch origin && git reset --hard 2.0.1
 
 # Doctrine common
-cd $VENDOR/doctrine-common
-git checkout master
-git pull
-git checkout -b v2.0.1 2.0.1
+cd $VENDOR/doctrine-common && git fetch origin && git reset --hard 2.0.1
 
 # Doctrine migrations
-cd $VENDOR/doctrine-migrations && git pull
+cd $VENDOR/doctrine-migrations && git fetch origin && git reset --hard origin/master
 
 # Doctrine data fixtures
-cd $VENDOR/doctrine-data-fixtures && git pull
+cd $VENDOR/doctrine-data-fixtures && git fetch origin && git reset --hard origin/master
 
 # Doctrine MongoDB
-cd $VENDOR/doctrine-mongodb-odm
-git checkout master
-git pull
-#git checkout -b v1.0.0BETA1 1.0.0BETA1
-
-cd $VENDOR/doctrine-mongodb
-git checkout master
-git pull
+cd $VENDOR/doctrine-mongodb-odm && git fetch origin && git reset --hard origin/master
+cd $VENDOR/doctrine-mongodb && git fetch origin && git reset --hard origin/master
 
 # Swiftmailer
-cd $VENDOR/swiftmailer && git pull
-git checkout -b 4.1 origin/4.1
+cd $VENDOR/swiftmailer && git fetch origin && git reset --hard origin/4.1
 
 # Twig
-cd $VENDOR/twig && git pull
+cd $VENDOR/twig && git fetch origin && git reset --hard origin/master
 
 # Twig Extensions
-cd $VENDOR/twig-extensions && git pull
+cd $VENDOR/twig-extensions && git fetch origin && git reset --hard origin/master
 
 # Zend Framework
-cd $VENDOR/zend && git pull
+cd $VENDOR/zend && git fetch origin && git reset --hard origin/master
 git submodule update --recursive --init
