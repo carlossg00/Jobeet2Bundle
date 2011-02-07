@@ -42,8 +42,6 @@ git clone git://github.com/doctrine/data-fixtures.git doctrine-data-fixtures
 # Doctrine MongoDB
 git clone git://github.com/doctrine/mongodb.git doctrine-mongodb
 git clone git://github.com/doctrine/mongodb-odm.git doctrine-mongodb-odm
-cd doctrine-mongodb-odm
-cd $VENDOR
 
 # Swiftmailer
 git clone git://github.com/swiftmailer/swiftmailer.git swiftmailer

@@ -24,7 +24,7 @@ class AppKernel extends Kernel
 
         );
 
-        if ($this->isDebug()) {
+        if ('dev' === $this->getEnvironment()) {
             $bundles[] = new Symfony\Bundle\WebProfilerBundle\WebProfilerBundle();
         }
 
