@@ -15,7 +15,7 @@ class JobRepository extends EntityRepository
         return $this->findOneBy(array('slug' => $slug));
     }
     
-    public function findAllByCategory(Category $category, $asPaginator = true)
+    public function findAllByCategory(Category $category, $asPaginator = false)
     {
         $query = $this->_em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
                                  WHERE j.category = ?1')

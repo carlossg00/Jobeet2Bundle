@@ -4,3 +4,6 @@
 [submodule "vendor/ZendPaginatorAdapter"]
 	path = vendor/ZendPaginatorAdapter
 	url = git://github.com/ornicar/ZendPaginatorAdapter.git
+[submodule "vendor/DoctrineExtensions/lib/DoctrineExtensions/Paginate"]
+	path = vendor/DoctrineExtensions/lib/DoctrineExtensions/Paginate
+	url = git://github.com/knplabs/DoctrineExtensions-Paginate.git

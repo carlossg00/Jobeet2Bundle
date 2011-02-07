@@ -42,18 +42,16 @@ class JobController extends Controller
     public function listAction(Category $category = null)
     {
         if (null !== $category) {            
-            $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAllByCategory($category);
+            $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAllByCategory($category,true);            
         } else {
             $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAll(true);
         }
-
-
+        
         //$jobs->setCurrentPageNumber($page);
         $jobs->setCurrentPageNumber(1);
         //$jobs->setItemCountPerPage($this->container->getParameter('forum.paginator.topics_per_page'));
-        $jobs->setItemCountPerPage(3);
-        $jobs->setPageRange(5);
-              
+        $jobs->setItemCountPerPage(4);
+        $jobs->setPageRange(2);
 
         return $this->render('Jobeet2Bundle:Job:list.twig.html', array(
             'jobs'    => $jobs,
