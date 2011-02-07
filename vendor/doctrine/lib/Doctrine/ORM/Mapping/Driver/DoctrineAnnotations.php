@@ -80,7 +80,6 @@ final class OneToMany extends Annotation {
     public $cascade;
     public $fetch = 'LAZY';
     public $orphanRemoval = false;
-    public $indexBy;
 }
 final class ManyToOne extends Annotation {
     public $targetEntity;
@@ -94,7 +93,6 @@ final class ManyToMany extends Annotation {
     public $inversedBy;
     public $cascade;
     public $fetch = 'LAZY';
-    public $indexBy;
 }
 final class ElementCollection extends Annotation {
     public $tableName;

@@ -22,7 +22,7 @@ class AppKernel extends Kernel
             new Sensio\HelloBundle\HelloBundle(),
         );
 
-        if ($this->isDebug()) {
+        if ('dev' === $this->getEnvironment()) {
             $bundles[] = new Symfony\Bundle\WebProfilerBundle\WebProfilerBundle();
         }
 

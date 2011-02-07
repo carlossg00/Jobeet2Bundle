@@ -22,6 +22,7 @@
         <xsd:attribute name="cache-warmer" type="cache_warmer" />
         <xsd:attribute name="charset" type="xsd:string" />
         <xsd:attribute name="error-handler" type="xsd:string" />
+        <xsd:attribute name="exception-controller" type="xsd:string" />
         <xsd:attribute name="ide" type="xsd:string" />
     </xsd:complexType>
 
@@ -63,7 +64,6 @@
 
     <xsd:complexType name="router">
         <xsd:attribute name="resource" type="xsd:string" />
-        <xsd:attribute name="type" type="xsd:string" />
         <xsd:attribute name="cache-warmer" type="cache_warmer" />
     </xsd:complexType>
 
