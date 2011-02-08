@@ -9,6 +9,9 @@ use Application\Jobeet2Bundle\Form\JobForm;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Bundle\DoctrineBundle\Form\ValueTransformer\EntityToIDTransformer;
 
+use Zend\Paginator\Paginator;
+use ZendPaginatorAdapter\DoctrineORMAdapter;
+
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use Doctrine\ORM\Events;
@@ -30,7 +33,7 @@ class JobController extends Controller
 
         $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllJobsByCategory();
        
-        return $this->render('Jobeet2Bundle:Job:index.twig.html',
+        return $this->render('Jobeet2Bundle:Job:index.html.twig',
                 array('categories'=>$categories));
 
     }
@@ -39,7 +42,7 @@ class JobController extends Controller
      * list jobs by category
      */
     
-    public function listAction(Category $category = null)
+    public function listAction(Category $category = null, $paginate = false, $page = 1 )
     {
         if (null !== $category) {            
             $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAllByCategory($category,true);            
@@ -47,15 +50,19 @@ class JobController extends Controller
             $jobs = $this->getEm()->getRepository('Jobeet2Bundle:Job')->findAll(true);
         }
         
-        //$jobs->setCurrentPageNumber($page);
-        $jobs->setCurrentPageNumber(1);
+        
+        $jobs->setCurrentPageNumber($page);
         //$jobs->setItemCountPerPage($this->container->getParameter('forum.paginator.topics_per_page'));
-        $jobs->setItemCountPerPage(4);
-        $jobs->setPageRange(2);
+        $jobs->setItemCountPerPage(5);
+        $jobs->setPageRange(5);
+        
+        //print_r($jobs->getPages());
 
-        return $this->render('Jobeet2Bundle:Job:list.twig.html', array(
-            'jobs'    => $jobs,
-            'category'  => $category
+        return $this->render('Jobeet2Bundle:Job:list.html.twig', array(
+            'jobs'      => $jobs,
+            'category'  => $category,
+            'page'      => $page,
+            'paginate'  => $paginate 
         ));
         
     }
@@ -72,7 +79,7 @@ class JobController extends Controller
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
-        return $this->render('Jobeet2Bundle:Job:show.twig.html',
+        return $this->render('Jobeet2Bundle:Job:show.html.twig',
             array('job'=>$job));
         
     }
@@ -101,7 +108,7 @@ class JobController extends Controller
             }
         }
 
-        return $this->render('Jobeet2Bundle:Job:update.twig.html',
+        return $this->render('Jobeet2Bundle:Job:update.html.twig',
                 array('form'=>$form));       
 
     }
@@ -142,7 +149,7 @@ class JobController extends Controller
 
         }
 
-        return $this->render('Jobeet2Bundle:Job:new.twig.html',
+        return $this->render('Jobeet2Bundle:Job:new.html.twig',
                 array('form'=>$form));
         
     }

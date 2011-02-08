@@ -35,6 +35,12 @@ class Category implements Sluggable
      * @orm:Column(type="string", length=255)
      */
     private $name;
+    
+    /**
+     * @var integer $nJobs
+     * @orm:Column(type="integer")
+     */
+    private $nJobs;
 
     /**
      * @var Application\Jobeet2Bundle\Entity\Job
@@ -51,6 +57,8 @@ class Category implements Sluggable
      * @orm:ManyToMany(targetEntity="Category", mappedBy="categories")
      */
     private $affiliates;
+    
+    
 
     public function __construct()
     {
@@ -147,10 +155,7 @@ class Category implements Sluggable
     {
         // Add your code here
     }   
-    /**
-     * @var integer $nJobs
-     */
-    private $nJobs;
+    
 
     /**
      * Set nJobs

@@ -15,18 +15,17 @@ class JobRepository extends EntityRepository
         return $this->findOneBy(array('slug' => $slug));
     }
     
-    public function findAllByCategory(Category $category, $asPaginator = false)
-    {
-        $query = $this->_em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
-                                 WHERE j.category = ?1')
-                    ->setParameter(1, $category);
-                    //->setMaxResults(10);
-                    //->getResult();
-                    
+    public function findAllByCategory($category, $asPaginator = false)
+    {        
+        $qb = $this->createQueryBuilder('job')            
+                ->where('job.category = ?1')
+                ->setParameter(1, $category);              
+        
+        
         if ($asPaginator) {
-            return new Paginator(new DoctrineORMAdapter($query));
+            return new Paginator(new DoctrineORMAdapter($qb->getQuery()));
         } else {
-            return $query->execute();
+            return $qb->getQuery()->execute();
         }       
     }
     

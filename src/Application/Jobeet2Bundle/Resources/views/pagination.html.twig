@@ -1,0 +1,54 @@
+{% if pager.pageCount > 1 %}
+<div class="pagination">
+    <a href="{{ url }}?page={{ pager.first }}">
+        <img src={{ asset('./bundles/jobeet2/images/first.png') }}
+             alt="First page" title="First page" />
+    </a>
+    
+    {%if pager.previous is defined %}
+        <a href="{{ url }}?page={{ pager.previous }}">
+            <img src={{ asset('./bundles/jobeet2/images/previous.png') }}
+                 alt="Previous page" title="Previous page" />
+        </a>
+    {% else %}
+        <a href="{{ url }}?page={{ pager.current }}">
+            <img src={{ asset('./bundles/jobeet2/images/previous.png') }}
+                 alt="Previous page" title="Previous page" />
+        </a>   
+    {% endif %}
+    
+    {% for page in pager.pagesInRange %}
+        {% if page == pager.current %}
+            {{ page }}
+        {% else %}
+            <a class="page" href="{{ url }}?page={{ page }}">{{ page }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if pager.next is defined %}
+        <a href="{{ url }}?page={{ pager.next }}">
+            <img src={{ asset('./bundles/jobeet2/images/next.png') }}
+                 alt="Next page" title="Next page" />
+        </a>
+    {% else %}
+        <a href="{{ url }}?page={{ pager.current }}">
+            <img src={{ asset('./bundles/jobeet2/images/next.png') }}
+                 alt="Next page" title="Next page" />
+        </a>
+    {% endif %}
+    
+    <a href="{{ url }}?page={{ pager.last }}">
+        <img src={{ asset('./bundles/jobeet2/images/last.png') }}
+             alt="Last page" title="Last page" />
+    </a>
+    
+</div>
+{% endif %}
+
+<div class="pagination_desc">
+    <strong>{{pager.totalItemCount}}</strong> jobs in this category
+    
+    {% if pager.pageCount > 1 %}
+    - page <strong>{{ pager.current }}/{{ pager.pageCount }}</strong>
+    {% endif %}
+</div>

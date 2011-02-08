@@ -1,6 +1,6 @@
 {# src/Application/Jobeet2Bundle/Resources/view/Category/index.twig.html #}
 
-{% extends "Jobeet2Bundle::layout.twig.html" %}
+{% extends "Jobeet2Bundle::layout.html.twig" %}
 
 {% block title %}Jobs in the {{ category.name }} category {% endblock %}
 
@@ -16,9 +16,8 @@
     </div>
     <h1>{{ category.name }}</h1>
     
-    {% render 'Jobeet2Bundle:Job:list' with {'category': category} %}  
+    {% render 'Jobeet2Bundle:Job:list' with {'category': category , 'paginate' : true, 'page': page} %}   
     
 </div>
-
 
 {% endblock %}

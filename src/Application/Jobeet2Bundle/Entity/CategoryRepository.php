@@ -34,13 +34,10 @@ class CategoryRepository extends EntityRepository
     public function findAllJobsByCategory()
     {
 
-        $date = new \DateTime('now');
-        //$limit = $this->container->getParameter('jobeet2.max_jobs_on_homepage');
+        $date = new \DateTime('now');        
         return $this->_em->createQuery('SELECT c,j FROM Jobeet2Bundle:Category c
             JOIN c.job j' /*WHERE j.expires_at > ?1'*/)
-                //->setParameter(1, $date->format('Y-m-d'))
-        //return $this->_em->createQuery('SELECT c FROM Jobeet2Bundle:Category c')
-                ->setMaxResults(10)
+                //->setParameter(1, $date->format('Y-m-d'))  
                 ->getResult();        
     }
 

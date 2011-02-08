@@ -42,9 +42,12 @@ class CategoryController extends Controller
         if (!$category) {
             throw new NotFoundHttpException('The Category does not exist.');
         }
+        
+        $page = $this->get('request')->query->get('page', 1);
    
-        return $this->render('Jobeet2Bundle:Category:show.twig.html',
-            array('category'=>$category));
+        return $this->render('Jobeet2Bundle:Category:show.html.twig',
+            array('category'    => $category,
+                  'page'        => $page));
         
     }
 }

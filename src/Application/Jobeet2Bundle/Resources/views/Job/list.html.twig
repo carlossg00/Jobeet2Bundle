@@ -14,5 +14,6 @@
      {% endfor %}
 </table>
 
-
-{% include 'Jobeet2Bundle::pagination.twig.html' with {'pager': jobs.pages, 'url': 'pepe'} %}
+{% if paginate %}
+    {% include 'Jobeet2Bundle::pagination.html.twig' with {'pager': jobs.pages , 'url': category.slug} %}
+{% endif %}
