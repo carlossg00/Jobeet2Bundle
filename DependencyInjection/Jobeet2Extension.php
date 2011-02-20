@@ -6,7 +6,7 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class Jobeet2Extension extends Extension
+/*class Jobeet2Extension extends Extension
 {
     public function configLoad($config, ContainerBuilder $container)
     {
@@ -37,4 +37,4 @@ class Jobeet2Extension extends Extension
     {
         return 'jobeet2';
     }
-}
+}*/

@@ -6,25 +6,26 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### clone repository
 
-	git clone git://github.com/carlossg00/symfony2-jobeet.git src/Application
+	git clone git://github.com/carlossg00/symfony2-jobeet.git src/Application/Jobeet2Bundle
 
-### Application Kernel
+### Initializing the bundle
+ To start using the bundle, initialize the bundle in your kernel. This file is usually located at app/AppKernel: 
 
- Add BlogBundle to the 'registerBundles()' method of your application kernel:
- 
+  
  	public function registerBundles()
  	{
  		return array(
- 		...
- 		new Application\Jobeet2Bundle\Jobeet2Bundle(),
- 		...
+ 			// ...
+	 		new Application\Jobeet2Bundle\Jobeet2Bundle(),
+ 		
  		);
  	}
 
 ### Register namespace
  
- Register the Jobeet2Bundle namespace in autoload
+ Add the Application namespace to your autoloader
  
+ 	// app/autoload.php
  	$loader->registerNamespaces(array(
     	...
     	'Application'					 => __DIR__.'/../src',
@@ -34,7 +35,7 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 ### Dependencies
 
 SensioFrameworkExtraBundle
-	git clone git://github.com/sensio/FrameworkExtraBundle.git src/Sensio/FrameworkExtraBundle
+	git clone git://github.com/sensio/FrameworkExtraBundle.git src/Sensio/Bundle/FrameworkExtraBundle
 	
 
 
