@@ -11,28 +11,12 @@ class Jobeet2Bundle extends Bundle
      
      public function boot()
      {
-        $evm = $this->container->get('doctrine.orm.entity_manager')->getEventManager();
+        /**$evm = $this->container->get('doctrine.orm.entity_manager')->getEventManager();
         
         $evm->addEventListener(array(Events::prePersist, Events::preRemove),
-                                 new SluggableListener($evm));        
-
-
+                                 new SluggableListener($evm));
+*/
      } 
     
-     /**
-     * {@inheritdoc}
-     */
-     public function getNamespace()
-     {
-          return __NAMESPACE__;
-     }
-
-    /**
-     * {@inheritdoc}
-     */
-     public function getPath()
-     {
-          return strtr(__DIR__, '\\', '/');
-     }
     
 }
