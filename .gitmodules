@@ -10,3 +10,6 @@
 [submodule "vendor/Doctrine2-Sluggable-Functional-Behaviour"]
 	path = vendor/Doctrine2-Sluggable-Functional-Behaviour
 	url = git://github.com/ornicar/Doctrine2-Sluggable-Functional-Behavior.git
+[submodule "src/Sensio/Bundle/FrameworkExtraBundle"]
+	path = src/Sensio/Bundle/FrameworkExtraBundle
+	url = git://github.com/sensio/FrameworkExtraBundle.git
