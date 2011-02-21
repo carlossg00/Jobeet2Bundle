@@ -1,0 +1,31 @@
+# Application/HelloBundle/Resources/config/doctrine/metadata/orm/Application.HelloBundle.Entity.User.dcm.yml
+Application\Jobeet2Bundle\Entity\Category:
+    type: entity
+    table: category
+    repositoryClass: Application\Jobeet2Bundle\Entity\CategoryRepository
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: string
+            length: 255           
+        nJobs:
+            type: integer
+            nullable: true      
+    oneToMany:
+      job:
+        targetEntity: Job
+        mappedBy: category
+    manyToMany:
+      affiliates:
+        targetEntity: Category
+        mappedBy: categories
+    lifecycleCallbacks:
+        prePersist: [doStuffOnPrePersist]
+        preUpdate:  [doStuffOnPreUpdate] 
+        
+
+    

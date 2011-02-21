@@ -4,7 +4,7 @@ namespace Application\Jobeet2Bundle\Entity;
 
 use Application\Jobeet2bundle\Entity\JobRepository;
 use Doctrine\Common\Collections\ArrayCollections;
-use DoctrineExtensions\Sluggable\Sluggable;
+//use DoctrineExtensions\Sluggable\Sluggable;
 
 /**
  * Application\Jobeet2Bundle\Entity\Category
@@ -13,7 +13,7 @@ use DoctrineExtensions\Sluggable\Sluggable;
  *          indexes={@orm:Index(name="slug_idx", columns={"slug"})})
  * @orm:HasLifecycleCallbacks
  */
-class Category implements Sluggable
+class Category
 {
 
     /**

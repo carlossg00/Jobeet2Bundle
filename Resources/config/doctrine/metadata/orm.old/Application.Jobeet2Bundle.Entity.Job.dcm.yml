@@ -1,0 +1,78 @@
+# Application/HelloBundle/Resources/config/doctrine/metadata/orm/Application.HelloBundle.Entity.User.dcm.yml
+Application\Jobeet2Bundle\Entity\Job:
+    type: entity
+    table: job
+    repositoryClass: Application\Jobeet2Bundle\Entity\JobRepository
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO            
+    fields:
+        type:
+            type: string
+            length: 255
+            nullable: true
+        company:
+            type: string
+            length: 255                        
+        logo:
+            type: string
+            length: 255
+            nullable: true
+        url:
+            type: string
+            length: 255
+            nullable: true
+        position:
+            type: string
+            length: 255            
+        location:
+            type: string
+            length: 255            
+        description:
+            type: string
+            length: 4000
+            nullable: true
+        how_to_apply:
+            type: string
+            length: 255
+            nullable: true
+        token:
+            type: string
+            length: 255
+            nullable: true
+        is_public:
+            type: boolean
+            nullable: true
+        is_activated:
+            type: boolean
+            nullable: true
+        email:
+            type: string
+            nullable: true
+            length: 255
+        expires_at:
+            type: datetime
+            nullable: true
+        created_at:
+            type: datetime
+            nullable: true
+        updated_at:
+            type: datetime
+            nullable: true                     
+    manyToOne:
+        category:
+          targetEntity: Category
+          inversedBy: job
+          JoinColumn:
+            name: category_id
+            referencedColumnName: id
+    lifecycleCallbacks:
+        prePersist: [doStuffOnPrePersist]
+        preUpdate:  [doStuffOnPreUpdate]
+     
+            
+          
+            
+       

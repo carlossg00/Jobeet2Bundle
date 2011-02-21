@@ -2,9 +2,6 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
-use DoctrineExtensions\Sluggable\Sluggable;
-
-
 /**
  * Application\Jobeet2Bundle\Entity\Job
  * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\JobRepository")
@@ -12,7 +9,7 @@ use DoctrineExtensions\Sluggable\Sluggable;
  * @orm:Table(name="job",
  *          indexes={@orm:Index(name="slug_idx", columns={"slug"})})
  */
-class Job implements Sluggable
+class Job
 {
     /**
      * @var integer $id
