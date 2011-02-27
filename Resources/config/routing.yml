@@ -1,35 +1,35 @@
 homepage:
-    pattern:  /
-    defaults: { _controller: Jobeet2Bundle:Job:index, _format: html }
+    pattern:  /job
+    defaults: { _controller: job.controller:indexAction, _format: html }
 
 index:
     pattern: /job/index.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:index, _format: html }
+    defaults: { _controller: job.controller:indexAction, _format: html }
 
 show:
     pattern: /job/{slug}.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:show, _format: html }    
+    defaults: { _controller: job.controller:showAction, _format: html }    
 
 update:
     pattern: /job/update/{id}.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:update, _format: html }
+    defaults: { _controller: job.controller:updateAction, _format: html }
 
 new:
     pattern: /job/new.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:new, _format: html }
+    defaults: { _controller: job.controller:newAction, _format: html }
 
 delete:
     pattern: /job/delete/{id}.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:delete, _format: html }
+    defaults: { _controller: job.controller:deleteAction, _format: html }
 
 edit:
     pattern: /job/edit/{id}.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:edit, _format: html }
+    defaults: { _controller: job.controller:editAction, _format: html }
 
 create:
     pattern: /job/create.{_format}
-    defaults: { _controller: Jobeet2Bundle:Job:create, _format: html }
+    defaults: { _controller: job.controller:createAction, _format: html }
 
 category:
     pattern: /category/{slug}.{_format}
-    defaults: {_controller: Jobeet2Bundle:Category:show, _format: html }
+    defaults: {_controller: category.controller:showAction, _format: html }

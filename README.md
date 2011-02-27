@@ -33,9 +33,21 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### Dependencies
 
-#### SensioFrameworkExtraBundle
+#### SensioFrameworkExtraBundle (Experimental)
 	
 	git clone git://github.com/sensio/FrameworkExtraBundle.git src/Sensio/Bundle/FrameworkExtraBundle
+
+ Register bundle in your kernel	
+ 
+	public function registerBundles()
+ 	{
+ 		return array(
+ 			// ...
+	 		new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
+ 		
+ 		);
+ 	}
+	 
 	
 #### ZendPaginatorAdapter
 	

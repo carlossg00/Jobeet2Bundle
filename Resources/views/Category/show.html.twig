@@ -16,7 +16,7 @@
     </div>
     <h1>{{ category.name }}</h1>
     
-    {% render 'Jobeet2Bundle:Job:list' with {'category': category , 'paginate' : true, 'page': page} %}   
+    {% render 'job.controller:listAction' with {'category': category , 'paginate' : true, 'page': page} %}   
     
 </div>
 

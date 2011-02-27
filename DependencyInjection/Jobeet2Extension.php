@@ -2,24 +2,25 @@
 
 namespace Application\Jobeet2Bundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Config\FileLocator;
 
-/*class Jobeet2Extension extends Extension
+
+class Jobeet2Extension extends Extension
 {
-    public function configLoad($config, ContainerBuilder $container)
+    public function load(array $config, ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('jobeet2.config')) {
-            $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
-            $loader->load('jobeet2.xml');
-                
-            //$loader->load('dbal_events.xml');
-        }
-
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        
+        $loader->load('config.xml');
+    
         foreach($config as $key => $value) {        
             $container->setParameter('jobeet2.'.$key, $value);
         }
+        
+        $loader->load('controller.xml');       
     }
 
     public function getXsdValidationBasePath()
@@ -37,4 +38,4 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
     {
         return 'jobeet2';
     }
-}*/
+}

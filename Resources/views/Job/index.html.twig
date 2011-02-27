@@ -23,7 +23,7 @@
                 {{ category.name }}</a> </h1>
            </div>
 
-           {% render 'Jobeet2Bundle:Job:list' with {'category': category} %}
+           {% render 'job.controller:listAction' with {'category': category} %}
            
            {% set count = category.getNJobs() - 10 %}           
            {% if count > 0 %}
