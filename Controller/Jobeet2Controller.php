@@ -2,6 +2,11 @@
 
 namespace Application\Jobeet2Bundle\Controller;
 
+use Application\Jobeet2Bundle\Entity\Job;
+use Application\Jobeet2Bundle\Entity\User;
+use Application\Jobeet2Bundle\Entity\Category;
+use Application\Jobeet2Bundle\Form\JobForm;
+
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
@@ -10,48 +15,40 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class CategoryController extends ContainerAware
+
+class Jobeet2Controller extends ContainerAware
 {
-	private $request;
-    private $repository;
+	
+	private $request;    
     private $router;
     private $templating;
 	
 	/**
      * Constructor.
      *
-     * @param Request               $request
-     * @param EntityRepository    $repository
+     * @param Request               $request     
      * @param UrlGeneratorInterface $router
+     * @param EntityRepository		$repository
      * @param EngineInterface       $templating
      */
     public function __construct(Request $request, EntityRepository $repository, UrlGeneratorInterface $router, EngineInterface $templating)
     {
-        $this->request = $request;
-        $this->repository = $repository;
+        $this->request = $request;        
         $this->router = $router;
-        $this->templating = $templating;
+        $this->repository = $repository;
+        $this->templating = $templating;        
     }
-    
-    
+	    
+
     public function indexAction()
     {
-    }
 
-    public function showAction($slug)
-    {      
-        
-        $category = $this->repository->findOneBySlug($slug);
-        
-        if (!$category) {
-            throw new NotFoundHttpException('The Category does not exist.');
-        }
-        
-        $page = $this->request->query->get('page', 1);
-   
-        return $this->templating->renderResponse('Jobeet2Bundle:Category:show.html.twig',
-            array('category'    => $category,
-                  'page'        => $page));
-        
-    }
+        $categories = $this->repository->findAll();
+       
+        return $this->templating->renderResponse('Jobeet2Bundle::index.html.twig',
+                array('categories'=>$categories,
+                	  'nJobsPage' =>$this->container->getParameter('jobeet2.max_jobs_on_homepage'),
+                	));
+
+    }    
 }

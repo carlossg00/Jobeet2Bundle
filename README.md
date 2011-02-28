@@ -74,9 +74,6 @@ and register namespace
 	));
 
 
-
-
-
 ### Install assets
 
 	app/console install:assets web --symlink
@@ -97,6 +94,20 @@ and register namespace
        		auto_generate_proxy_classes: %kernel.debug%
        		mappings:
            		Jobeet2Bundle: ~
+           		
+ Modify Resources/orm.xml to your connection
+ 
+    <services>
+        <!-- Object Manager Service -->
+        <service id="jobeet2.object_manager" alias="doctrine.orm.myConnection_entity_manager" />
+    </services>   
+    
+ or default connection if exists only one
+    
+    <services>
+        <!-- Object Manager Service -->
+        <service id="jobeet2.object_manager" alias="doctrine.orm.myConnection_entity_manager" />
+    </services>
 
  create the database schema running the following commands
 	
@@ -117,11 +128,26 @@ Make sure the web folder is document root and visit the site:
 or
 	http://localhost/web/app_dev.php/
 
+## Configuration
+
+ Add following lines to your config.yml to customize your application
+
+## Jobeet2 Configuration
+    jobeet2:
+        max_jobs_on_homepage :  15
+        max_jobs_on_category :  20 
+        active_days:            30
+ 
+ or leave as default
+ 
+    jobeet2: ~   
 
 ## Contributions
 
-Don't ask? just fork it and improve it
-Hope it will be helpfull!
+Don't ask, just fork it and enhance it.
+Any commit/comments will be welcome!!
+
+Hope it helps!!
 
 
 ## TODO

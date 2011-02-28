@@ -23,9 +23,9 @@
                 {{ category.name }}</a> </h1>
            </div>
 
-           {% render 'job.controller:listAction' with {'category': category} %}
+           {% render 'job.controller:listAction' with {'category': category, 'context' : 'homepage'} %}
            
-           {% set count = category.getNJobs() - 10 %}           
+           {% set count = category.getNJobs() -  nJobsPage  %}           
            {% if count > 0 %}
            <div class="more_jobs"> and
                 <a href="{{ path('category', { 'slug': category.slug }) }}">

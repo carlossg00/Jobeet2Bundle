@@ -16,8 +16,9 @@ class CategoryRepository extends EntityRepository
     public function findOneBySlug($slug)
     {
         return $this->findOneBy(array('slug' => $slug));
+        
     }
-
+    
     public function getActiveJobs($max = 10)
     {
        $date = new \DateTime('now');
@@ -31,15 +32,12 @@ class CategoryRepository extends EntityRepository
     }
 
 
-    public function findAllJobsByCategory()
-    {
-
-        $date = new \DateTime('now');        
-        return $this->_em->createQuery('SELECT c,j FROM Jobeet2Bundle:Category c
-            JOIN c.job j' /*WHERE j.expires_at > ?1'*/)
-                //->setParameter(1, $date->format('Y-m-d'))  
-                ->getResult();        
-    }
+    /*public function findAll()
+    {               
+        return $this->createQueryBuilder()
+        		->getQuery()
+        		->execute();                       
+    }*/
 
     public function findAllIndexedById()
     {

@@ -44,29 +44,28 @@ class JobController extends ContainerAware
         $this->router = $router;
         $this->templating = $templating;
     }
-	
-	protected function getEm()
-    {
-        return $this->container->get('doctrine.orm.jobeet2_entity_manager');
-    }    
- 
-
-    public function indexAction()
-    {
-
-        $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllJobsByCategory();
-       
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:index.html.twig',
-                array('categories'=>$categories));
-
-    }
-    
+	        
     /**
-     * list jobs by category
+     * 
+     * List jobs by Category in homepage
+     * @param Category $category
+     * @param string $context
+     * @param integer $page
      */
     
-    public function listAction(Category $category = null, $paginate = false, $page = 1 )
+    public function listAction(Category $category = null, $context = null, $page = 1)
     {
+    	switch ($context) {
+    		case 'homepage':
+    			$jobsPage = $this->container->getParameter('jobeet2.max_jobs_on_homepage');
+    			$pagination = false;
+    			break;
+    		case 'category':
+    			$jobsPage = $this->container->getParameter('jobeet2.max_jobs_on_category');
+    			$pagination = true;
+    			break;
+    	}
+    	
         if (null !== $category) {            
             $jobs = $this->repository->findAllByCategory($category,true);            
         } else {
@@ -75,17 +74,14 @@ class JobController extends ContainerAware
         
         
         $jobs->setCurrentPageNumber($page);
-        //$jobs->setItemCountPerPage($this->container->getParameter('forum.paginator.topics_per_page'));
-        $jobs->setItemCountPerPage(5);
-        $jobs->setPageRange(5);
-        
-        //print_r($jobs->getPages());
+        $jobs->setItemCountPerPage($jobsPage);        
+        $jobs->setPageRange(5);       
 
         return $this->templating->renderResponse('Jobeet2Bundle:Job:list.html.twig', array(
             'jobs'      => $jobs,
             'category'  => $category,
             'page'      => $page,
-            'paginate'  => $paginate 
+            'pagination'  => $pagination 
         ));
         
     }

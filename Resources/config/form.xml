@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://www.symfony-project.org/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.symfony-project.org/schema/dic/services http://www.symfony-project.org/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="jobeet2.form.new_job.class">Application\Jobeet2Bundle\Form\JobForm</parameter>
+        <parameter key="jobeet2.form.new_job.name">jobeet2_new_job_form</parameter>        
+    </parameters>
+
+    <services>
+
+        <service id="jobeet2.form.new_job"
+            class="%jobeet2.form.new_job.class%"
+            factory-class="%jobeet2.form.new_job.class%"
+            factory-method="create">
+            <argument type="service" id="form.context" />
+            <argument>%jobeet2.form.new_job.name%</argument>
+            <argument type="collection">                
+                <argument key="topic_class">\Application\Jobeet2Bundle\Entity\Job</argument>
+                <argument key="category_repository" type="service" id="jobeet2.category.repository" />                
+            </argument>
+        </service>
+        
+    </services>
+
+</container>

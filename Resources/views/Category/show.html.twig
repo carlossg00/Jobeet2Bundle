@@ -16,7 +16,8 @@
     </div>
     <h1>{{ category.name }}</h1>
     
-    {% render 'job.controller:listAction' with {'category': category , 'paginate' : true, 'page': page} %}   
+    {% render 'job.controller:listAction' with {'category': category ,
+                              'context' : 'category', 'page' : page} %}   
     
 </div>
 

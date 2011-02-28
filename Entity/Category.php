@@ -4,7 +4,7 @@ namespace Application\Jobeet2Bundle\Entity;
 
 use Application\Jobeet2bundle\Entity\JobRepository;
 use Doctrine\Common\Collections\ArrayCollections;
-//use DoctrineExtensions\Sluggable\Sluggable;
+
 
 /**
  * Application\Jobeet2Bundle\Entity\Category
@@ -58,6 +58,17 @@ class Category
      */
     private $affiliates;
     
+    /**
+     * @var datetime $created_at
+     * @orm:Column(type="datetime", nullable=true)
+     */
+    private $created_at;
+
+    /**
+     * @var datetime $updated_at
+     * @orm:Column(type="datetime", nullable=true)
+     */
+    private $updated_at;    
     
 
     public function __construct()
@@ -142,18 +153,18 @@ class Category
      * @orm:prePersist
      */
     
-    public function doStuffOnPrePersist()
+    public function touchCreated()
     {
-        // Add your code here
+        $this->createdAt = $this->updatedAt = new \DateTime();
     }
     
     /**
      * @orm:preUpdate
      */
     
-    public function doStuffOnPreUpdate()
+    public function touchUpdated()
     {
-        // Add your code here
+        $this->updatedAt = new \DateTime();
     }   
     
 

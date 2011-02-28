@@ -126,6 +126,22 @@ class Job
      */
     
     private $category;
+    
+    /**
+     * @var integer $active_days
+     */
+    
+    private $active_days;
+    
+    /**
+     * Constructor
+     * @param integer $active_days
+     */
+    
+    function __construct($active_days)
+    {
+    	$this->active_days = $active_days;
+    }
 
     /**
      * Get id
@@ -487,33 +503,49 @@ class Job
     {
         return array('company' , 'location' , 'id' , 'position');
     }
-
     
-
-
+    /**
+     * get active_days
+     * 
+     * @return integer;
+     */
+    
+    function getActiveDays()
+    {
+    	return $this->active_days;
+    }
+    
+    function setActiveDays($active_days)
+    {
+    	$this->active_days = $active_days;
+    }
         
     /**
      * @orm:PrePersist
      */
 
-    public function doStuffOnPrePersist()
+    public function touchCreated()
     {
 
         $this->createdAt = $this->updatedAt = new \DateTime();
-        $str = 'P30D';
+        $str = sprintf('P%sD',$this->active_days);
         $date = new \DateTime('now');
         //@TODO Bug : DateInterval not accepted ?¿?¿?
-        //$this->setExpiresAt($date->add(new \DateInterval($str)));
-        $this->setExpiresAt($date);
+        $this->setExpiresAt($date->add(new \DateInterval($str)));
+        //$this->setExpiresAt($date);
     }
 
     /**
      * @orm:PreUpdate
      */
 
-    public function doStuffOnPreUpdate()
+    public function touchUpdated()
     {
         $this->updatedAt = new \DateTime();
+        $str = sprintf('P%sD',$this->active_days);
+        $date = new \DateTime('now');
+        //@TODO Bug : DateInterval not accepted ?¿?¿?
+        $this->setExpiresAt($date->add(new \DateInterval($str)));        
     }
 
 }

@@ -1,6 +1,6 @@
 homepage:
-    pattern:  /job
-    defaults: { _controller: job.controller:indexAction, _format: html }
+    pattern:  /job.{_format}
+    defaults: { _controller: jobeet2.controller:indexAction, _format: html }
 
 index:
     pattern: /job/index.{_format}
