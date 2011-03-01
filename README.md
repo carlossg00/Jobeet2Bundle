@@ -33,45 +33,11 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### Dependencies
 
-#### SensioFrameworkExtraBundle (Experimental)
-	
-	git clone git://github.com/sensio/FrameworkExtraBundle.git src/Sensio/Bundle/FrameworkExtraBundle
+- [SensioFrameworkExtraBundle](http://github.com/sensio/FrameworkExtraBundle/)	
+ 	
+- [PaginatorBundle](http://github.com/knplabs/PaginatorBundle/)
 
- Register bundle in your kernel	
- 
-	public function registerBundles()
- 	{
- 		return array(
- 			// ...
-	 		new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
- 		
- 		);
- 	}
-	 
-	
-#### ZendPaginatorAdapter
-	
-	git clone git://github.com/ornicar/ZendPaginatorAdapter.git vendor/ZendPaginatorAdapter
-	
-and register namespace
-
-	// app/autoload.php
- 	$loader->registerNamespaces(array(
-    	// ...
-		'ZendPaginatorAdapter'			 => __DIR__.'/../vendor/ZendPaginatorAdapter/src',
-	));
-	
-#### DoctrineExtensions
-
-	git clone git://github.com/Herzult/DoctrineExtensions.git vendor/DoctrineExtensions
-
-and register namespace
-
-	// app/autoload.php
- 	$loader->registerNamespaces(array(
-    	// ...
-		'DoctrineExtensions'			 => __DIR__.'/../vendor/DoctrineExtensions/lib',
-	));
+- [DoctrineExtensions](http://github.com/Herzult/DoctrineExtensions/)	
 
 
 ### Install assets

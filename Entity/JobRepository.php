@@ -4,8 +4,7 @@ namespace Application\Jobeet2Bundle\Entity;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Zend\Paginator\Paginator;
-use ZendPaginatorAdapter\DoctrineORMAdapter;
+
 
 class JobRepository extends EntityRepository
 {
@@ -13,32 +12,66 @@ class JobRepository extends EntityRepository
     public function findOneBySlug($slug)
     {
         return $this->findOneBy(array('slug' => $slug));
-    }
-    
-    public function findAllByCategory($category, $asPaginator = false)
-    {        
-        $qb = $this->createQueryBuilder('job')            
-                ->where('job.category = ?1')
-                ->setParameter(1, $category);              
-        
-        
-        if ($asPaginator) {
-            return new Paginator(new DoctrineORMAdapter($qb->getQuery()));
-        } else {
-            return $qb->getQuery()->execute();
-        }       
-    }
-    
-    
-    
-    public function getActiveJobs($max = 10)
-    {
-       $date = new \DateTime('now');
-     
-       return $this->_em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
-            WHERE j.expires_at > ?1 ORDER BY j.expires_at DESC')
-               ->setParameter(1, $date->format('Y-m-d'))
-               ->setMaxResults($max)
-               ->getResult();
     }    
+    
+    /**
+     * 
+     * Fetch active jobs
+     * @return Array of Job Class
+     */
+    
+    public function  getActiveJobs()
+    {
+    	return $this->addActiveJobsQuery()->getResult();
+    }
+    
+    /**
+     * Number of active jobs
+     * @param QueryBuilder $qb
+     * @return scalar
+     */
+    
+    public function countActiveJobs()
+    {
+    	return $this->addActiveJobsQuery()->count()->getSingleScalarResult();
+    }
+    
+    /**
+     * Build query for active jobs
+     * @param QueryBuilder $qb
+     * @return QueryBuilder
+     */
+    
+    public function addActiveJobsQuery(QueryBuilder $qb = null)
+    {
+    	if ($qb === null)
+    	{
+    		$qb = $this->createQueryBuilder('j')
+    			->select('j');    			
+    	}
+    	//TODO set date to 'now'
+    	$date = new \DateTime('2010-01-01');
+    	
+    	$qb->andWhere('j.expires_at > :date')
+    		->addOrderBy('j.created_at', 'DESC')    		
+    		->setParameter('date', $date->format('Y-m-d'));    		    	
+    		
+    	return $qb->getQuery();    	
+    }    
+    
+	public function getActiveJobsByCategoryQuery(Category $category)
+    {
+    	$qb = $this->createQueryBuilder('j')    	       
+    		->innerJoin('j.category','c','WITH','c = :category')    		
+    		->setParameter('category', $category);
+    	    		
+    	return $this->addActiveJobsQuery($qb);    	
+    }
+    
+    public function getActiveJobsByCategory(Category $category, $max = 10)
+    {
+    	return $this->getActiveJobsByCategoryQuery($category)
+    		->setMaxResults($max)    		
+    		->getResult();
+    }
 }

@@ -15,11 +15,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-use Zend\Paginator\Paginator;
-use ZendPaginatorAdapter\DoctrineORMAdapter;
-
-
-
 
 class JobController extends ContainerAware
 {
@@ -37,6 +32,7 @@ class JobController extends ContainerAware
      * @param UrlGeneratorInterface $router
      * @param EngineInterface       $templating
      */
+    
     public function __construct(Request $request, EntityRepository $repository, UrlGeneratorInterface $router, EngineInterface $templating)
     {
         $this->request = $request;
@@ -53,41 +49,25 @@ class JobController extends ContainerAware
      * @param integer $page
      */
     
-    public function listAction(Category $category = null, $context = null, $page = 1)
+    public function listAction(Category $category = null, $max = 10)
     {
-    	switch ($context) {
-    		case 'homepage':
-    			$jobsPage = $this->container->getParameter('jobeet2.max_jobs_on_homepage');
-    			$pagination = false;
-    			break;
-    		case 'category':
-    			$jobsPage = $this->container->getParameter('jobeet2.max_jobs_on_category');
-    			$pagination = true;
-    			break;
-    	}
-    	
+    	 	
         if (null !== $category) {            
-            $jobs = $this->repository->findAllByCategory($category,true);            
+            $jobs = $this->repository->getActiveJobsByCategory($category, $max);            
         } else {
             $jobs = $this->repository->findAll(true);
         }
         
-        
-        $jobs->setCurrentPageNumber($page);
-        $jobs->setItemCountPerPage($jobsPage);        
-        $jobs->setPageRange(5);       
-
         return $this->templating->renderResponse('Jobeet2Bundle:Job:list.html.twig', array(
             'jobs'      => $jobs,
-            'category'  => $category,
-            'page'      => $page,
-            'pagination'  => $pagination 
+            'category'  => $category,           
         ));
         
     }
     
     /**
      * Show deatiled job info
+     * @param: slug
      */
 
     public function showAction($slug)
@@ -102,37 +82,10 @@ class JobController extends ContainerAware
             array('job'=>$job));
         
     }
-
-    public function updateAction($id)
-    {
-
-        $em = $this->getEm();
-        $job = $em->find("Jobeet2Bundle:Job",$id);
-        
-        if (!$job) {
-            throw new NotFoundHttpException('The Job does not exist.');
-        }
+   
 
 
-        // submmited data
-
-        if ('POST' == $this->get('request')->getMethod()) {
-            $form->bind($this->get('request')->request->get('job'));
-
-            if ($form->isValid()) {
-                // save $job object and redirect
-                $em->flush();
-                return new RedirectResponse($this->router->generate('index'));
-
-            }
-        }
-
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:update.html.twig',
-                array('form'=>$form));       
-
-    }
-
-  
+    //TODO Refactor
     public function newAction()
     {
 

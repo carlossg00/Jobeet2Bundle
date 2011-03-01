@@ -43,7 +43,7 @@ class Jobeet2Controller extends ContainerAware
     public function indexAction()
     {
 
-        $categories = $this->repository->findAll();
+        $categories = $this->repository->getWithJobs();
        
         return $this->templating->renderResponse('Jobeet2Bundle::index.html.twig',
                 array('categories'=>$categories,

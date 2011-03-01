@@ -15,10 +15,13 @@
         <a href="">Feed</a>
     </div>
     <h1>{{ category.name }}</h1>
-    
-    {% render 'job.controller:listAction' with {'category': category ,
-                              'context' : 'category', 'page' : page} %}   
+                          
+    {% include 'Jobeet2Bundle:Job:list.html.twig' with {'jobs': jobs} %} 
     
 </div>
+
+
+{% include 'Jobeet2Bundle::pagination.html.twig' with {'pager': jobs.pages , 'url': category.slug} %}
+
 
 {% endblock %}

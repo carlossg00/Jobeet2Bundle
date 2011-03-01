@@ -13,7 +13,3 @@
          </tr>
      {% endfor %}
 </table>
-
-{% if pagination %}
-    {% include 'Jobeet2Bundle::pagination.html.twig' with {'pager': jobs.pages , 'url': category.slug} %}
-{% endif %}

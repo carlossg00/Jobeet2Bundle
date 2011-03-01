@@ -2,9 +2,10 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
+use Application\Jobeet2Bundle\Entity\Category;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Query;
+
+
 
 class CategoryRepository extends EntityRepository
 {
@@ -19,41 +20,53 @@ class CategoryRepository extends EntityRepository
         
     }
     
-    public function getActiveJobs($max = 10)
+    /**
+     * Fetch categories with jobs in it
+     * @return categories
+     */
+    
+    public function getWithJobs()
     {
-       $date = new \DateTime('now');
-
-       return $this->_em->createQuery('SELECT j FROM Jobeet2Bundle:Job j
-            WHERE
-            AND j.expires_at > ?1 ORDER BY j.expires_at DESC')
-               ->setParameter(1, $date->format('Y-m-d'))
-               ->setMaxResults($max)
-               ->getResult();
+    	$qb = $this->createQueryBuilder('c')
+    		->innerJoin('c.job','j');
+    		
+    	//TODO ActiveJobs
+    	return $qb->getQuery()->getResult();
+    	
     }
-
-
-    /*public function findAll()
-    {               
-        return $this->createQueryBuilder()
-        		->getQuery()
-        		->execute();                       
-    }*/
-
-    public function findAllIndexedById()
+    
+    /**
+     * NumEnter description here ...
+     * @param Category $category
+     * @return QueryBuilder
+     */
+    
+    public function getActiveJobsByCategoryQuery(Category $category)
     {
-        /*$categoryIndexed = $this->_em->createQuery('SELECT c.name FROM Jobeet2Bundle:Category c INDEX BY c.id')
-            ->getResult();
-        print_r($categoryIndexed);
-        */
-        
-        // TODO: find how to INDEX BY id
-        $categories = $this->_em->getRepository('Jobeet2Bundle:Category')->findAll();
-
-        $categoryIndexed = array();
-        foreach ($categories as $category) {
-            $categoryIndexed[$category->getId()] = $category->getName();
-        }
-        
-        return $categoryIndexed;
+    	return $this->_em->getRepository('Jobeet2Bundle:Job')->getActiveJobsByCategoryQuery($category);    	
     }
+        
+    /**
+     * 
+     * Number of active jobs by category
+     * @param	Category $category
+     * @return  integer
+     */
+    
+    public function countActiveByCategoryJobs(Category $category)    
+    {
+    	$this->getActiveJobsByCategoryQuery($category)->count()->getSingleScalarResult();
+    }
+    
+    /**
+     * Fetch jobs by categories
+     * @param unknown_type $category
+     * @return Categories
+     */
+    
+    public function getActiveJobsByCategory(Category $category)
+    {
+    	$this->getActiveJobsByCategoryQuery($category)->getResult();
+    }
+        
 }

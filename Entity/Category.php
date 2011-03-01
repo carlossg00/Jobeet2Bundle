@@ -72,8 +72,7 @@ class Category
     
 
     public function __construct()
-    {
-        $this->createdAt = new \DateTime();
+    {        
         $this->job = new \Doctrine\Common\Collections\ArrayCollection();
         $this->nJobs = 0;  
     }

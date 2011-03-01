@@ -23,7 +23,7 @@
                 {{ category.name }}</a> </h1>
            </div>
 
-           {% render 'job.controller:listAction' with {'category': category, 'context' : 'homepage'} %}
+           {% render 'job.controller:listAction' with {'category': category, 'max' : nJobsPage} %}
            
            {% set count = category.getNJobs() -  nJobsPage  %}           
            {% if count > 0 %}
