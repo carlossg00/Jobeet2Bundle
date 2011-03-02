@@ -59,17 +59,18 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
            		Jobeet2Bundle: ~
            		
  Modify Resources/orm.xml to your connection
+ if multiple connections
  
     <services>
         <!-- Object Manager Service -->
         <service id="jobeet2.object_manager" alias="doctrine.orm.myConnection_entity_manager" />
     </services>   
     
- or default connection if exists only one
+ or default connection if only one
     
     <services>
         <!-- Object Manager Service -->
-        <service id="jobeet2.object_manager" alias="doctrine.orm.myConnection_entity_manager" />
+        <service id="jobeet2.object_manager" alias="doctrine.orm.default_entity_manager" />
     </services>
 
  create the database schema running the following commands
