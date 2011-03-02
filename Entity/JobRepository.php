@@ -9,6 +9,11 @@ use Doctrine\ORM\QueryBuilder;
 class JobRepository extends EntityRepository
 {
     
+	public function findOneById($id)
+	{
+		return $this->findOneBy(array('id' => $id));
+	}
+	
     public function findOneBySlug($slug)
     {
         return $this->findOneBy(array('slug' => $slug));

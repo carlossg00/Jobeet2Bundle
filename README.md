@@ -33,12 +33,9 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### Dependencies
 
-- [SensioFrameworkExtraBundle](http://github.com/sensio/FrameworkExtraBundle/)	
+ - [SensioFrameworkExtraBundle](http://github.com/sensio/FrameworkExtraBundle/)	<-NOT USED RIGHT NOW
  	
-- [PaginatorBundle](http://github.com/knplabs/PaginatorBundle/)
-
-- [DoctrineExtensions](http://github.com/Herzult/DoctrineExtensions/)	
-
+ - [PaginatorBundle](http://github.com/knplabs/PaginatorBundle/)
 
 ### Install assets
 
@@ -91,8 +88,8 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 Make sure the web folder is document root and visit the site:
 
 	http://jobeet2/app_dev.php
-or
-	http://localhost/web/app_dev.php/
+ or
+    http://localhost/web/app_dev.php/
 
 ## Configuration
 
@@ -110,15 +107,8 @@ or
 
 ## Contributions
 
-Don't ask, just fork it and enhance it.
-Any commit/comments will be welcome!!
+ Don't ask, just fork it and enhance it.
+ Any commit/comments will be welcome!!
 
-Hope it helps!!
-
-
-## TODO
-
-cd vendor/doctrine-extensions/lib/DoctrineExtensions
-ln -s ../../../Doctrine2-Sluggable-Functional-Behaviour/lib/DocrineExtensions/Sluggable/ .
-
+ Hope it helps!!
 

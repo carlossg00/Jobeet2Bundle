@@ -1,6 +1,6 @@
 <?php
 
-namespace Bundle\ForumBundle\Util;
+namespace Application\Jobeet2Bundle\Util;
 
 class Inflector
 {

@@ -2,8 +2,10 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
+
 use Application\Jobeet2bundle\Entity\JobRepository;
 use Doctrine\Common\Collections\ArrayCollections;
+use Application\Jobeet2Bundle\Util\SlugNormalizer;
 
 
 /**
@@ -155,6 +157,7 @@ class Category
     public function touchCreated()
     {
         $this->createdAt = $this->updatedAt = new \DateTime();
+        $this->slug = new SlugNormalizer($this->name);
     }
     
     /**
@@ -187,16 +190,7 @@ class Category
         return $this->nJobs;
     }
     
-    /**
-     * Retrieves the slug field name
-     * 
-     * @return string
-    */
-    function getSlugFieldName()
-    {
-        return 'slug';
-    }
-
+   
     /**
      * Retrieves the slug
      *
@@ -207,13 +201,5 @@ class Category
         return $this->slug;
     }
 
-   /**
-    * Retrieves the Entity fields used to generate the slug value
-    *
-    * @return array
-    */
-    function getSlugGeneratorFields()
-    {
-        return array('name');
-    }
+   
 }

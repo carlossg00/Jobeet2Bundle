@@ -2,12 +2,14 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
+use Application\Jobeet2Bundle\Util\SlugNormalizer;
+
 /**
  * Application\Jobeet2Bundle\Entity\Job
  * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\JobRepository")
  * @orm:HasLifecycleCallbacks
- * @orm:Table(name="job",
- *          indexes={@orm:Index(name="slug_idx", columns={"slug"})})
+ * @orm:Table(name="job")
+ *   
  */
 class Job
 {
@@ -19,13 +21,7 @@ class Job
      */
     private $id;
    
-    /**
-     * @orm:Column(type="string", length=255)     
-     */
-    
-    private $slug;
-       
-    
+   
     /**
      * @var string $type
      * @orm:Column(type="string", length=255, nullable=true)
@@ -138,7 +134,7 @@ class Job
      * @param integer $active_days
      */
     
-    function __construct($active_days)
+    function __construct($active_days = 30)
     {
     	$this->active_days = $active_days;
     }
@@ -475,33 +471,33 @@ class Job
     }
     
     /**
-     * Retrieves the slug field name
+     * Retrieves the company slug 
      * 
      * @return string
     */
-    function getSlugFieldName()
+    public function getCompanySlug()
     {
-        return 'slug';
+        return new SlugNormalizer($this->company);
     }
-
-    /**
-     * Retrieves the slug
-     *
+    
+	/**
+     * Retrieves the company slug 
+     * 
      * @return string
     */
-    function getSlug()
+    public function getLocationSlug()
     {
-        return $this->slug;
+        return new SlugNormalizer($this->location);
     }
-
-   /**
-    * Retrieves the Entity fields used to generate the slug value
-    *
-    * @return array
+    
+	/**
+     * Retrieves the company slug 
+     * 
+     * @return string
     */
-    function getSlugGeneratorFields()
+    public function getPositionSlug()
     {
-        return array('company' , 'location' , 'id' , 'position');
+        return new SlugNormalizer($this->position);
     }
     
     /**
@@ -529,10 +525,8 @@ class Job
 
         $this->createdAt = $this->updatedAt = new \DateTime();
         $str = sprintf('P%sD',$this->active_days);
-        $date = new \DateTime('now');
-        //@TODO Bug : DateInterval not accepted ?¿?¿?
-        $this->setExpiresAt($date->add(new \DateInterval($str)));
-        //$this->setExpiresAt($date);
+        $date = new \DateTime('now');        
+        $this->setExpiresAt($date->add(new \DateInterval($str)));        
     }
 
     /**
@@ -543,8 +537,7 @@ class Job
     {
         $this->updatedAt = new \DateTime();
         $str = sprintf('P%sD',$this->active_days);
-        $date = new \DateTime('now');
-        //@TODO Bug : DateInterval not accepted ?¿?¿?
+        $date = new \DateTime('now');        
         $this->setExpiresAt($date->add(new \DateInterval($str)));        
     }
 

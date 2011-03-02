@@ -70,10 +70,10 @@ class JobController extends ContainerAware
      * @param: slug
      */
 
-    public function showAction($slug)
+    public function showAction($id)
     {
 
-        $job = $this->repository->findOneBySlug($slug);
+        $job = $this->repository->findOneById($id);
         
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');

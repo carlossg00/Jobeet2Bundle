@@ -7,7 +7,7 @@ index:
     defaults: { _controller: job.controller:indexAction, _format: html }
 
 show:
-    pattern: /job/{slug}.{_format}
+    pattern: /job/{company}/{location}/{id}/{position}.{_format}
     defaults: { _controller: job.controller:showAction, _format: html }    
 
 update:

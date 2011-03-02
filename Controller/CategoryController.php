@@ -58,7 +58,7 @@ class CategoryController extends ContainerAware
         
         $adapter = $this->container->get('knplabs_paginator.adapter');
 		$adapter->setQuery($this->repository->getActiveJobsByCategoryQuery($category));
-		$adapter->setDistinct(false);
+		$adapter->setDistinct(true);
 		//TODO Bug when setDistinct(true)
 		
         
