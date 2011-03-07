@@ -75,8 +75,7 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
  create the database schema running the following commands
 	
-	php app/console doctrine:database:create
-	php app/console doctrine:generate:entities
+	php app/console doctrine:database:create	
 	php app/console doctrine:generate:schema 
 
  Load data fixtures
@@ -88,9 +87,9 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 Make sure the web folder is document root and visit the site:
 
-	http://jobeet2/app_dev.php
+	http://jobeet2/app_dev.php/job
  or
-    http://localhost/web/app_dev.php/
+    http://localhost/web/app_dev.php/job
 
 ## Configuration
 
