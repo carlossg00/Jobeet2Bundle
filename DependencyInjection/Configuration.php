@@ -35,9 +35,10 @@ class Configuration
         $rootNode = $treeBuilder->root('jobeet2', 'array');
 
         $rootNode
-            ->scalarNode('max_jobs_on_homepage')->defaultValue('10')->end()
-            ->scalarNode('active_days')->defaultValue('30')->end()
-            ->scalarNode('max_jobs_on_category')->defaultValue('20')->end()           
+        	->children()
+            	->scalarNode('max_jobs_on_homepage')->defaultValue('10')->end()
+            	->scalarNode('active_days')->defaultValue('30')->end()
+            	->scalarNode('max_jobs_on_category')->defaultValue('20')->end()           
             ->end();          
             
         return $treeBuilder->buildTree();

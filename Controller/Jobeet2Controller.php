@@ -43,7 +43,9 @@ class Jobeet2Controller extends ContainerAware
     public function indexAction()
     {
 
-        $categories = $this->repository->getWithJobs();
+    	$categories = $this->repository->getWithJobs();
+    	
+    	$d = $this->container->getParameter('jobeet2.max_jobs_on_homepage');
        
         return $this->templating->renderResponse('Jobeet2Bundle::index.html.twig',
                 array('categories'=>$categories,

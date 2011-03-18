@@ -30,7 +30,7 @@ class Jobeet2Extension extends Extension
     	    	
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
                 
-        $loader->load('config.xml');
+        //$loader->load('config.xml');
         
         $configuration = new Configuration();
         $processor = new Processor();
