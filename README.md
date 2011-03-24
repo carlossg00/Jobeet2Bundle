@@ -30,6 +30,13 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
     	// ...
     	'Application'					 => __DIR__.'/../src',    	
     ));
+    
+### Add a reference to the routes of the bundle in app/config/routing.yml
+
+    _job:
+        resource: "@Jobeet2Bundle/Resources/config/routing.yml"
+        prefix: /job
+    
 
 ### Dependencies
 
@@ -76,7 +83,7 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
  create the database schema running the following commands
 	
 	php app/console doctrine:database:create	
-	php app/console doctrine:generate:schema 
+	php app/console doctrine:schema:create 
 
  Load data fixtures
 
