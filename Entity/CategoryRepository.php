@@ -43,7 +43,7 @@ class CategoryRepository extends EntityRepository
     
     public function getActiveJobsByCategoryQuery(Category $category)
     {
-    	return $this->_em->getRepository('Jobeet2Bundle:Job')->getActiveJobsByCategoryQuery($category);    	
+    	return $this->_em->getRepository('Jobeet2:Job')->getActiveJobsByCategoryQuery($category);    	
     }
         
     /**

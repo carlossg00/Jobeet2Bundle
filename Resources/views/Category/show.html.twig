@@ -1,6 +1,6 @@
 {# src/Application/Jobeet2Bundle/Resources/view/Category/index.twig.html #}
 
-{% extends "Jobeet2Bundle::layout.html.twig" %}
+{% extends "Jobeet2::layout.html.twig" %}
 
 {% block title %}Jobs in the {{ category.name }} category {% endblock %}
 
@@ -16,12 +16,12 @@
     </div>
     <h1>{{ category.name }}</h1>
                           
-    {% include 'Jobeet2Bundle:Job:list.html.twig' with {'jobs': jobs} %} 
+    {% include 'Jobeet2:Job:list.html.twig' with {'jobs': jobs} %} 
     
 </div>
 
 
-{% include 'Jobeet2Bundle::pagination.html.twig' with {'pager': jobs.pages , 'url': category.slug} %}
+{% include 'Jobeet2::pagination.html.twig' with {'pager': jobs.pages , 'url': category.slug} %}
 
 
 {% endblock %}

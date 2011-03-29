@@ -58,7 +58,7 @@ class JobController extends ContainerAware
             $jobs = $this->repository->findAll(true);
         }
         
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:list.html.twig', array(
+        return $this->templating->renderResponse('Jobeet2:Job:list.html.twig', array(
             'jobs'      => $jobs,
             'category'  => $category,           
         ));
@@ -78,7 +78,7 @@ class JobController extends ContainerAware
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:show.html.twig',
+        return $this->templating->renderResponse('Jobeet2:Job:show.html.twig',
             array('job'=>$job));
         
     }
@@ -91,7 +91,7 @@ class JobController extends ContainerAware
 
         $em = $this->getEm();
 
-        $categories = $this->getEm()->getRepository('Jobeet2Bundle:Category')->findAllIndexedById();
+        $categories = $this->getEm()->getRepository('Jobeet2:Category')->findAllIndexedById();
         $job = new Job();
 
         $categoryTransformer = new EntityToIDTransformer(array(
@@ -121,7 +121,7 @@ class JobController extends ContainerAware
 
         }
 
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:new.html.twig',
+        return $this->templating->renderResponse('Jobeet2:Job:new.html.twig',
                 array('form'=>$form));
         
     }
@@ -130,7 +130,7 @@ class JobController extends ContainerAware
     public function deleteAction($id)
     {
         $em = $this->getEm();
-        $job = $em->find("Jobeet2Bundle:Job",$id);
+        $job = $em->find("Jobeet2:Job",$id);
 
          if (!$this->job) {
             throw new NotFoundHttpException('The Job does not exist.');

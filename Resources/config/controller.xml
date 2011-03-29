@@ -7,8 +7,8 @@
     <parameters>
         <parameter key="jobeet2.controller.class">Application\Jobeet2Bundle\Controller\Jobeet2Controller</parameter>        
         <parameter key="job.controller.class">Application\Jobeet2Bundle\Controller\JobController</parameter>
-        <parameter key="category.controller.class">Application\Jobeet2Bundle\Controller\CategoryController</parameter>
-        <parameter key="job.repository.class">Doctrine\ORM\EntityRepository</parameter>
+        <parameter key="category.controller.class">Application\Jobeet2Bundle\Controller\CategoryController</parameter>        
+        <parameter key="job.repository.class">Doctrine\ORM\EntityRepository</parameter>        
         <parameter key="category.repository.class">Doctrine\ORM\EntityRepository</parameter>             
     </parameters>
 
