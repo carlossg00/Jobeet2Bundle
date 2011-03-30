@@ -14,34 +14,25 @@
 
      <services>
      
-        <service id="jobeet2.controller" class="%jobeet2.controller.class%" scope="request">
-            <argument type="service" id="request" />            
-            <argument type="service" id="jobeet2.category.repository" />
-            <argument type="service" id="router" />
-            <argument type="service" id="templating" />
+        <service id="jobeet2.controller" class="%jobeet2.controller.class%" scope="request">           
             <call method="setContainer">
                 <argument type="service" id="service_container" />
-            </call>                         
+            </call>
+            <call method="__postConstruct"></call>                         
         </service>
      
-        <service id="job.controller" class="%job.controller.class%" scope="request">
-            <argument type="service" id="request" />
-            <argument type="service" id="jobeet2.job.repository" />
-            <argument type="service" id="router" />
-            <argument type="service" id="templating" />
+        <service id="job.controller" class="%job.controller.class%" scope="request">            
             <call method="setContainer">
                 <argument type="service" id="service_container" />
-            </call>                         
+            </call>        
+            <call method="__postConstruct"></call>                  
         </service>
         
-        <service id="category.controller" class="%category.controller.class%" scope="request">
-            <argument type="service" id="request" />
-            <argument type="service" id="jobeet2.category.repository" />
-            <argument type="service" id="router" />
-            <argument type="service" id="templating" />
+        <service id="category.controller" class="%category.controller.class%" scope="request">            
             <call method="setContainer">
                 <argument type="service" id="service_container" />
             </call>            
+            <call method="__postConstruct"></call> 
         </service>
         
     </services>

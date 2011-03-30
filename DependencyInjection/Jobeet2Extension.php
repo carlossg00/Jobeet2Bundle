@@ -30,7 +30,7 @@ class Jobeet2Extension extends Extension
     	    	
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
                 
-        //$loader->load('config.xml');
+        $loader->load('config.xml');
         
         $configuration = new Configuration();
         $processor = new Processor();
@@ -39,14 +39,12 @@ class Jobeet2Extension extends Extension
         foreach ($config as $k => $v)
         {
         	$container->setParameter('jobeet2.'.$k, $v);
-        }
-        
+        }        
         
         $loader->load('model.xml');
-        $loader->load('orm.xml');        
-        $loader->load('controller.xml');
-        $loader->load('form.xml');  
-         
+        $loader->load('orm.xml');
+        $loader->load('controller.xml');               
+        $loader->load('form.xml');        
     }
 
     public function getXsdValidationBasePath()

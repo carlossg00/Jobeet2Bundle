@@ -25,20 +25,17 @@ class JobController extends ContainerAware
     private $templating;
 	
 	/**
-     * Constructor.
-     *
-     * @param Request               $request
-     * @param EntityRepository    $repository
-     * @param UrlGeneratorInterface $router
-     * @param EngineInterface       $templating
+     * Post Constructor.
+     * Called from DIC after setContainer method
+     * assign values to member variables for better code readability 
      */
-    
-    public function __construct(Request $request, EntityRepository $repository, UrlGeneratorInterface $router, EngineInterface $templating)
+   
+    public function __postConstruct()
     {
-        $this->request = $request;
-        $this->repository = $repository;
-        $this->router = $router;
-        $this->templating = $templating;
+    	$this->request = $this->container->get('request');        
+        $this->router = $this->container->get('router');
+        $this->repository = $this->container->get('jobeet2.job.repository');
+        $this->templating = $this->container->get('templating');
     }
 	        
     /**
@@ -89,40 +86,8 @@ class JobController extends ContainerAware
     public function newAction()
     {
 
-        $em = $this->getEm();
-
-        $categories = $this->getEm()->getRepository('Jobeet2:Category')->findAllIndexedById();
-        $job = new Job();
-
-        $categoryTransformer = new EntityToIDTransformer(array(
-            'em' => $em,
-            'className' => 'Jobeet2Bundle:Category',
-        ));
-
-        $form = new JobForm('job', $job, $this->get('validator'),
-                array('categories' => $categories,'categoryTransformer' => $categoryTransformer));
-
-
-        /*retrieve parameter from container
-        $active_days = $this->container->getParameter('jobeet2.active_days');
-        $job->setActiveDays($active_days);*/
-
-        
-        if ('POST' == $this->get('request')->getMethod()) {
-            $form->bind($this->get('request')->request->get('job'));
-
-            if ($form->isValid()) {
-                // save $job object and redirect   
-                $em->persist($job);
-                $em->flush();
-
-                return new RedirectResponse($this->route->generateUrl('index'));
-            }
-
-        }
-
-        return $this->templating->renderResponse('Jobeet2:Job:new.html.twig',
-                array('form'=>$form));
+        /*return $this->templating->renderResponse('Jobeet2:Job:new.html.twig',
+                array('form'=>$form));*/
         
     }
 
