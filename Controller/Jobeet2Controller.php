@@ -46,7 +46,7 @@ class Jobeet2Controller extends ContainerAware
     	
     	$categories = $this->repository->getWithJobs(); 	   	 
        
-        return $this->templating->renderResponse('Jobeet2::index.html.twig',
+        return $this->templating->renderResponse('Jobeet2Bundle::index.html.twig',
                 array('categories'=>$categories,
                 	  'nJobsPage' =>$this->max_jobs_on_homepage,
                 	));

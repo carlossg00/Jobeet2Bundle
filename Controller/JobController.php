@@ -55,7 +55,7 @@ class JobController extends ContainerAware
             $jobs = $this->repository->findAll(true);
         }
         
-        return $this->templating->renderResponse('Jobeet2:Job:list.html.twig', array(
+        return $this->templating->renderResponse('Jobeet2Bundle:Job:list.html.twig', array(
             'jobs'      => $jobs,
             'category'  => $category,           
         ));
@@ -75,7 +75,7 @@ class JobController extends ContainerAware
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
-        return $this->templating->renderResponse('Jobeet2:Job:show.html.twig',
+        return $this->templating->renderResponse('Jobeet2Bundle:Job:show.html.twig',
             array('job'=>$job));
         
     }
@@ -95,7 +95,7 @@ class JobController extends ContainerAware
     public function deleteAction($id)
     {
         $em = $this->getEm();
-        $job = $em->find("Jobeet2:Job",$id);
+        $job = $em->find("Jobeet2Bundle:Job",$id);
 
          if (!$this->job) {
             throw new NotFoundHttpException('The Job does not exist.');

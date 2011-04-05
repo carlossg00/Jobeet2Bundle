@@ -63,7 +63,7 @@ class CategoryController extends ContainerAware
         $jobs->setItemCountPerPage($this->max_jobs_on_category);        
         $jobs->setPageRange(5);
           
-        return $this->templating->renderResponse('Jobeet2:Category:show.html.twig',
+        return $this->templating->renderResponse('Jobeet2Bundle:Category:show.html.twig',
             array('category'    => $category,
                   'jobs'        => $jobs));
         

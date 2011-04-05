@@ -11,7 +11,7 @@
 	        class="%job.repository.class%"  
 	        factory-service="jobeet2.object_manager"         
 	        factory-method="getRepository">             
-	            <argument>Jobeet2:Job</argument>           
+	            <argument>Jobeet2Bundle:Job</argument>           
 	    </service>
 	        
 	    <!-- Category Repository Service -->
@@ -20,7 +20,7 @@
 	        class="%category.repository.class%"  
 	        factory-service="jobeet2.object_manager"         
 	        factory-method="getRepository">             
-	            <argument>Jobeet2:Category</argument>           
+	            <argument>Jobeet2Bundle:Category</argument>           
 	   </service>
    </services>
        
