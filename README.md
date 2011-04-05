@@ -6,7 +6,7 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### clone repository
 
-	git clone git://github.com/carlossg00/symfony2-jobeet.git src/Application/Jobeet2Bundle
+	git clone git://github.com/carlossg00/Jobeet2Bundle.git src/Application/Jobeet2Bundle
 
 ### Initializing the bundle
  To start using the bundle, initialize the bundle in your kernel. This file is usually located at app/AppKernel: 
