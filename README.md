@@ -46,7 +46,7 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### Install assets
 
-	app/console install:assets web --symlink
+	app/console assets:install web --symlink
 
 
 ### Build the database
