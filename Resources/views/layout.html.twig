@@ -6,10 +6,14 @@
 	{% block head %}
 	    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	    <link href="{{ asset('./bundles/jobeet2/css/main.css') }}" rel="stylesheet" type="text/css" />
-	    <title>{% block title %} title by default layout {% endblock %}</title>   
+        {% block stylesheet %} {% endblock %}
+	    <title>{% block title %} Jobeet2, your best job board {% endblock %}</title>
 	{% endblock %}
 	
 	<body>
+
+        {% block javascript %}{% endblock %}
+
 		{% block body %}
 		<div id="container">
 		    <div id="header">
@@ -23,7 +27,7 @@
 		                <div class="post">
 		                    <h2>Ask for people</h2>
 		                    <div>
-		                        <a href="{{ path('homepage') }}">Post a Job</a>
+		                        <a href="{{ path('create') }}">Post a Job</a>
 		                    </div>
 		                </div>
 		

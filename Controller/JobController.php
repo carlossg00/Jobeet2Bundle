@@ -5,7 +5,7 @@ namespace Application\Jobeet2Bundle\Controller;
 use Application\Jobeet2Bundle\Entity\Job;
 use Application\Jobeet2Bundle\Entity\User;
 use Application\Jobeet2Bundle\Entity\Category;
-use Application\Jobeet2Bundle\Form\JobForm;
+use Application\Jobeet2Bundle\Form\JobType;
 
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Doctrine\ORM\EntityRepository;
@@ -23,6 +23,7 @@ class JobController extends ContainerAware
     private $repository;
     private $router;
     private $templating;
+    private $em;
 	
 	/**
      * Post Constructor.
@@ -36,6 +37,8 @@ class JobController extends ContainerAware
         $this->router = $this->container->get('router');
         $this->repository = $this->container->get('jobeet2.job.repository');
         $this->templating = $this->container->get('templating');
+        $this->em = $this->container->get('jobeet2.object_manager');
+        $this->active_days = $this->container->getParameter('jobeet2.active_days');
     }
 	        
     /**
@@ -64,7 +67,7 @@ class JobController extends ContainerAware
     
     /**
      * Show deatiled job info
-     * @param: slug
+     * @param: id
      */
 
     public function showAction($id)
@@ -76,40 +79,116 @@ class JobController extends ContainerAware
             throw new NotFoundHttpException('The Job does not exist.');
         }
         return $this->templating->renderResponse('Jobeet2Bundle:Job:show.html.twig',
-            array('job'=>$job));
+            array('job'=>$job,
+                 'active_days' => $this->active_days));
         
     }
-   
 
-
-    //TODO Refactor
-    public function newAction()
-    {
-
-        /*return $this->templating->renderResponse('Jobeet2:Job:new.html.twig',
-                array('form'=>$form));*/
-        
-    }
 
 
     public function deleteAction($id)
     {
-        $em = $this->getEm();
-        $job = $em->find("Jobeet2Bundle:Job",$id);
 
-         if (!$this->job) {
+        $this->container->get('session')->setFlash('notice', 'Your changes were saved!');
+
+        $job = $this->repository->findOneById($id);
+
+        if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
 
-        $em->remove($job);
-        $em->flush();
+        $this->em->remove($job);
+        $this->em->flush();
 
-        return new RedirectResponse($this->router->generate('index'));
+        return new RedirectResponse($this->router->generate('homepage'));
+
+        /*$httpKernel = $this->container->get('http_kernel');
+        return $httpKernel->forward('job.controller:listAction');*/
 
     }
 
-    public function editAction($id)
+    public function editAction($id = null)
     {
-               
+        if (isset($id)) {
+            $job = $this->repository->findOneById($id);
+
+            if (!$job) {
+                throw new NotFoundHttpException('The Job does not exist.');
+            }
+
+        } else {
+            $job = new Job();
+        }
+
+        $form = $this->container->get('form.factory')->create(new JobType($this->em),$job);
+
+         if ($this->request->getMethod() == 'POST') {
+
+            $form->bindRequest($this->request);
+
+            if ($form->isValid()) {
+                $this->em->persist($job);
+                $this->em->flush();
+
+                $httpKernel = $this->container->get('http_kernel');
+                return $httpKernel->forward('job.controller:showAction', array(
+                                                'id'  => $job->getID()
+                    ));
+            }
+         }
+
+        return $this->templating->renderResponse('Jobeet2Bundle:Job:create.html.twig',
+        		array('form' => $form->createView(),
+        		));
+    }
+
+    public function publishAction($id)
+    {
+        $job = $this->repository->findOneById($id);
+
+        if (!$job) {
+            throw new NotFoundHttpException('The Job does not exist.');
+        }
+
+        $job->setIsActivated(true);
+
+        $this->em->persist($job);
+        $this->em->flush();
+
+        $this->container->get('session')->setFlash('notice', "Your job is now online for $this->active_days days");
+
+        $httpKernel = $this->container->get('http_kernel');
+                return $httpKernel->forward('job.controller:showAction', array(
+                                                'id'  => $job->getID()
+                    ));
+
+        return new RedirectResponse($this->router->generate('show',array('id'=>$job->getID(),
+                                    'company' => $job->getCompanySlug(),
+                                    'location' => $job->getLocationSlug(),
+                                    'position' => $job->getPositionSlug())
+        ));
+    }
+
+    public function extendAction($id)
+    {
+        $job = $this->repository->findOneById($id);
+
+        if (!$job) {
+            throw new NotFoundHttpException('The Job does not exist.');
+        }
+
+        $str = sprintf('P%sD',$this->active_days);
+        $expirationDate = clone $job->getExpiresAt();
+        $job->setExpiresAt($expirationDate->add(new \DateInterval($str)));
+
+        $this->em->persist($job);
+        $this->em->flush();
+
+        return new RedirectResponse($this->router->generate('show',array('id'=>$job->getID(),
+                                    'company' => $job->getCompanySlug(),
+                                    'location' => $job->getLocationSlug(),
+                                    'position' => $job->getPositionSlug())
+        ));
+
     }
 }

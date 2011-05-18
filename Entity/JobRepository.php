@@ -54,10 +54,10 @@ class JobRepository extends EntityRepository
     		$qb = $this->createQueryBuilder('j')
     			->select('j');    			
     	}
-    	//TODO set date to 'now'
-    	$date = new \DateTime('2010-01-01');
+    	$date = new \DateTime('now');
     	
     	$qb->andWhere('j.expires_at > :date')
+            ->andWhere('j.is_activated = 1')
     		->addOrderBy('j.created_at', 'DESC')    		
     		->setParameter('date', $date->format('Y-m-d'));    		    	
     		

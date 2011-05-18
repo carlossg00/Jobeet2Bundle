@@ -11,32 +11,48 @@ index:
 show:
     pattern:  /{company}/{location}/{id}/{position}.{_format}
     defaults: { _controller: job.controller:showAction, _format: html }
-    requirements:   { _method: "GET" }    
+    requirements:
+       _method: "GET"
+       id : \d+
 
-update:
-    pattern:  /update/{id}.{_format}
-    defaults: { _controller: job.controller:updateAction, _format: html }
-    requirements:   { _method: "GET" }
+tokenized_show:
+    pattern:  /{token}/show.{_format}
+    defaults: { _controller: job.controller:showAction, _format: html }
+    requirements:
+       _method: "GET"
+       token : \w+
 
-new:
-    pattern:  /new.{_format}
-    defaults: { _controller: job.controller:newAction, _format: html }
-    requirements:   { _method: "GET" }
-
-delete:
-    pattern:  /delete/{id}.{_format}
-    defaults: { _controller: job.controller:deleteAction, _format: html }
-    requirements:   { _method: "GET" }
-
-edit:
-    pattern:  /edit/{id}.{_format}
-    defaults: { _controller: job.controller:editAction, _format: html }
-    requirements:   { _method: "GET" }
 
 create:
     pattern:  /create.{_format}
-    defaults: { _controller: job.controller:createAction, _format: html }
+    defaults: { _controller: job.controller:editAction, _format: html }
+    requirements:
+      _method: "GET|POST"
+
+edit:
+    pattern:  /{id}/edit.{_format}
+    defaults: { _controller: job.controller:editAction, _format: html }
+    requirements:
+       _method: "GET|POST"
+       id : \d+
+
+delete:
+    pattern:  /{id}/delete.{_format}
+    defaults: { _controller: job.controller:deleteAction, _format: html }
     requirements:   { _method: "GET" }
+
+publish:
+    pattern:  /{id}/publish.{_format}
+    defaults: { _controller: job.controller:publishAction, _format: html }
+    requirements:
+      id : \d+
+
+extend:
+    pattern:  /{id}/extend.{_format}
+    defaults: { _controller: job.controller:extendAction, _format: html }
+    requirements:
+      id : \d+
+
 
 category:
     pattern:  /category/{slug}.{_format}

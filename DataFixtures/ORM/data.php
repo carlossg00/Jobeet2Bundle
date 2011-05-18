@@ -45,7 +45,7 @@ class LoadJobbetData implements FixtureInterface
         $job1->setHowToApply("Send your resume to fabien.pontecier [at] sensio.com");
         $job1->setIsActivated(true);
         $job1->setIsPublic(true);
-        $job1->setToken("job_sensio_labs");
+        $job1->set_Token("job_sensio_labs");
         $job1->setEmail("job@example.com");
 
 
@@ -68,7 +68,7 @@ class LoadJobbetData implements FixtureInterface
         $job2->setHowToApply("Send your resume to fabien.pontecier [at] sensio.com");
         $job2->setIsActivated(true);
         $job2->setIsPublic(true);
-        $job2->setToken("job_extreme_sensi");
+        $job2->set_Token("job_extreme_sensi");
         $job2->setEmail("job@example.com");
         
                
@@ -104,7 +104,7 @@ class LoadJobbetData implements FixtureInterface
             $jobs[$i]->setHowToApply("Send your resume to lorem.ipsum [at] Company".$i);
             $jobs[$i]->setIsActivated(true);
             $jobs[$i]->setIsPublic(true);
-            $jobs[$i]->setToken("job_".$i);
+            $jobs[$i]->set_Token("job_".$i);
             $jobs[$i]->setEmail("job@example.com");
 
             $manager->persist($jobs[$i]);

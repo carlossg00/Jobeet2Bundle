@@ -31,6 +31,7 @@ class Job
     /**
      * @var string $company
      * @orm:Column(type="string", length=255)
+     * @assert:NotBlank()
      */
     private $company;
 
@@ -49,18 +50,21 @@ class Job
     /**
      * @var string $position
      * @orm:Column(type="string", length=255)
+     * @assert:NotNull()
      */
     private $position;
 
     /**
      * @var string $location
      * @orm:Column(type="string", length=255)
+     * @assert:NotNull()
      */
     private $location;
 
     /**
      * @var string $description
      * @orm:Column(type="string", length=255)
+     * @assert:NotNull()
      */
     private $description;
 
@@ -74,7 +78,7 @@ class Job
      * @var string $token
      * @orm:Column(type="string", length=255, nullable=true)
      */
-    private $token;
+    private $_token;
 
     /**
      * @var boolean $is_public
@@ -91,6 +95,7 @@ class Job
     /**
      * @var string $email
      * @orm:Column(type="string", length=255, nullable=true)
+     * @assert:Email()
      */
     private $email;
 
@@ -119,8 +124,9 @@ class Job
      * owning Side
      * @orm:ManyToOne(targetEntity="Category", inversedBy="job")
      * @orm:JoinColumn(name="category_id", referencedColumnName="id")
-     */
-    
+     * @assert:Type(type="Application\Jobeet2Bundle\Entity\Category")
+      */
+
     private $category;
     
     /**
@@ -137,6 +143,9 @@ class Job
     function __construct($active_days = 30)
     {
     	$this->active_days = $active_days;
+        $this->type = 'full-time';
+        $this->is_public = true;
+        $this->is_activated = false;
     }
 
     /**
@@ -314,9 +323,9 @@ class Job
      *
      * @param string $token
      */
-    public function setToken($token)
+    public function set_Token($token)
     {
-        $this->token = $token;
+        $this->_token = $token;
     }
 
     /**
@@ -324,9 +333,9 @@ class Job
      *
      * @return string $token
      */
-    public function getToken()
+    public function get_Token()
     {
-        return $this->token;
+        return $this->_token;
     }
 
     /**
@@ -515,6 +524,23 @@ class Job
     {
     	$this->active_days = $active_days;
     }
+
+    public function isExpired()
+    {
+        return $this->getDaysBeforeExpires() < 0;
+    }
+
+    public function expiresSoon()
+    {
+        return $this->getDaysBeforeExpires() < 5;
+    }
+
+    public function getDaysBeforeExpires()
+    {
+        $interval = $this->expires_at->diff(new \DateTime('now'));
+        return $interval->format('%a');
+    }
+
         
     /**
      * @orm:PrePersist
@@ -522,11 +548,16 @@ class Job
 
     public function touchCreated()
     {
-
-        $this->createdAt = $this->updatedAt = new \DateTime();
+        $this->created_at = $this->updated_at = new \DateTime();
         $str = sprintf('P%sD',$this->active_days);
-        $date = new \DateTime('now');        
-        $this->setExpiresAt($date->add(new \DateInterval($str)));        
+        $date = new \DateTime('now');
+        $this->setExpiresAt($date->add(new \DateInterval($str)));
+
+        //set token if not
+        if (!isset($this->_token))
+        {
+            $this->set_Token(sha1($this->getEmail().rand(11111,99999)));
+        }
     }
 
     /**
@@ -535,10 +566,15 @@ class Job
 
     public function touchUpdated()
     {
-        $this->updatedAt = new \DateTime();
-        $str = sprintf('P%sD',$this->active_days);
-        $date = new \DateTime('now');        
-        $this->setExpiresAt($date->add(new \DateInterval($str)));        
+        $this->updated_at = new \DateTime('now');             
     }
 
+    static public function getJobTypes()
+    {
+        return array(
+            'full-time' => 'Full time',
+            'part-time' => 'Part time',
+            'freelance' => 'Freelance',
+        );
+    }
 }

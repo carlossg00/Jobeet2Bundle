@@ -1,0 +1,10 @@
+{% extends "Jobeet2Bundle::layout.html.twig" %}
+
+{% block stylesheet %}
+        <link href="{{ asset('./bundles/jobeet2/css/job.css') }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+    <h1>Post a Job</h1>
+    {% include 'Jobeet2Bundle:Job:_form.html.twig' with {'form': form} %}
+{% endblock %}

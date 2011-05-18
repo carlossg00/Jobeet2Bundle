@@ -1,0 +1,29 @@
+{# Application\Jobbet2Bundle\Resources\views\Admin\_admin.html.twig #}
+
+<div id="job_actions">
+    <h3>Admin</h3>
+    <ul>
+        {% if not(job.isActivated) %}
+            <li><a href="{{ path('edit', {'id': job.id}) }}">Edit</a></li>
+            <li><a href="{{ path('publish', {'id': job.id}) }}">Publish</a></li>
+        {% endif %}
+        <li><a href="{{ path('delete', {'id' : job.id }) }}">Delete</a></li>
+        {% if job.isActivated %}
+        <li class='expires_soon'>
+            {% if job.isExpired() %} Expired
+            {% else %} Expires in <strong>{{ job.getDaysBeforeExpires() }}</strong> days
+            {% endif %}
+
+            {% if job.expiresSoon() %}
+                - <a href="{{ path('extend', {'id' : job.id}) }}">Extend</a> for another {{ active_days }} days
+            {% endif %}
+        </li>
+        {% else %}
+            <li>
+                [Bookmark this page <a href="{{ path('show',{'company':job.getCompanySlug, 'location': job.getLocationSlug
+                                ,'id': job.id, 'position':job.getPositionSlug }) }}">URL</a>
+                    to manage this job in the future.]
+            </li>
+        {% endif %}
+    </ul>
+</div>

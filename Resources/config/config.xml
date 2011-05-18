@@ -9,4 +9,21 @@
         <parameter key="jobeet2.max_jobs_on_homepage">10</parameter>
         <parameter key="jobeet2.max_jobs_on_category">20</parameter>
     </parameters>
+    
+    <services>    
+	    <service id="sonata.jobeet2.admin.job" class="Application\Jobeet2Bundle\Admin\JobAdmin">
+	        <tag name="sonata.admin" manager_type="orm" group="jobeet2" label="job"/>
+	        <argument></argument>
+	        <argument>%jobeet2.job.entity.class%</argument>
+	        <argument>Jobeet2Bundle:JobAdmin</argument>
+	    </service>
+	    
+	    <service id="sonata.jobeet2.admin.category" class="Application\Jobeet2Bundle\Admin\CategoryAdmin">
+	        <tag name="sonata.admin" manager_type="orm" group="jobeet2" label="category"/>
+	        <argument></argument>
+	        <argument>%jobeet2.category.entity.class%</argument>
+	        <argument>Jobeet2Bundle:CategoryAdmin</argument>
+	    </service>
+    </services>
+    
 </container>

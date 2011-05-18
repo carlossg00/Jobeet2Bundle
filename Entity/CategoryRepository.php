@@ -31,7 +31,10 @@ class CategoryRepository extends EntityRepository
     		->innerJoin('c.job','j');
     		
     	//TODO ActiveJobs
-    	return $qb->getQuery()->getResult();
+        return $this->_em->getRepository('Jobeet2Bundle:Job')->addActiveJobsQuery($qb)
+                ->getResult();
+        
+    	//return $qb->getQuery()->getResult();
     	
     }
     

@@ -374,3 +374,8 @@ em
 {
   display: inline;
 }
+
+.required
+{
+    color: #dc143c;
+}

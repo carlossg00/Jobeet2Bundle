@@ -4,6 +4,12 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
+    <parameters>
+        <parameter key="jobeet2.job.entity.class">Application\Jobeet2Bundle\Entity\Job</parameter>        
+        <parameter key="jobeet2.category.entity.class">Application\Jobeet2Bundle\Entity\Category</parameter>
+        <parameter key="jobeet2.affiliate.entity.class">Application\Jobeet2Bundle\Enity\Affiliate</parameter>                    
+    </parameters>
+
     <services>
         <!-- Job Repository Service -->
 	    <service id="jobeet2.job.repository"

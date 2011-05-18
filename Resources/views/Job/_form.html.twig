@@ -1,0 +1,28 @@
+{% form_theme form 'Jobeet2Bundle:Form:fields.html.twig' %}
+{# form_theme form _self #}
+{# use 'TwigBundle:Form:div_layout.html.twig' #}
+
+<form action="{{ app.request.requestUri }}" method="post" {{ form_enctype(form) }}>
+        <table id='job_form'>
+            <tfoot>
+                <tr>
+                    <td collspan="2">
+                        <input type="submit" value="Preview your job"/>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                {{form_row(form.category) }}
+                {{form_row(form.type) }}
+                {{form_row(form.company) }}
+                {{form_row(form.logo) }}
+                {{form_row(form.url) }}
+                {{form_row(form.position) }}
+                {{form_row(form.location) }}
+                {{form_row(form.description) }}
+                {{form_row(form.how_to_apply) }}
+                {{form_row(form.is_public) }}
+                {{form_row(form.email , { 'help' : 'email' }) }}
+            </tbody>
+        </table>
+</form>

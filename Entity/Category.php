@@ -200,6 +200,16 @@ class Category
     {
         return $this->slug;
     }
+    
+	/**
+     * To String
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->name;
+    }
 
    
 }
