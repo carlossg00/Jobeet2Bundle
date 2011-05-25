@@ -2,52 +2,56 @@
 
 namespace Application\Jobeet2Bundle\Entity;
 
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 use Application\Jobeet2bundle\Entity\JobRepository;
 use Doctrine\Common\Collections\ArrayCollections;
 use Application\Jobeet2Bundle\Util\SlugNormalizer;
 
 
+
+
 /**
  * Application\Jobeet2Bundle\Entity\Category
- * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\CategoryRepository")
- * @orm:Table(name="category",
- *          indexes={@orm:Index(name="slug_idx", columns={"slug"})})
- * @orm:HasLifecycleCallbacks
+ * @ORM\Entity(repositoryClass="Application\Jobeet2Bundle\Entity\CategoryRepository")
+ * @ORM\Table(name="category",
+ *          indexes={@ORM\Index(name="slug_idx", columns={"slug"})})
+ * @ORM\HasLifecycleCallbacks
  */
 class Category
 {
 
     /**
      * @var integer $id
-     * @orm:Id
-     * @orm:Column(type="integer")
-     * @orm:GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
      * @var string $slug
-     * @orm:Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255)
      */
     private $slug;
 
     /**
      * @var string $name
-     * @orm:Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255)
      */
     private $name;
     
     /**
      * @var integer $nJobs
-     * @orm:Column(type="integer")
+     * @ORM\Column(type="integer")
      */
     private $nJobs;
 
     /**
      * @var Application\Jobeet2Bundle\Entity\Job
      * Inverse Side
-     * @orm:OneToMany(targetEntity="Job", mappedBy="category")
+     * @ORM\OneToMany(targetEntity="Job", mappedBy="category")
      */
     
     private $job;
@@ -56,19 +60,19 @@ class Category
      * @var Application\Jobeet2Bundle\Entity\Category
      *
      * Inverse Side
-     * @orm:ManyToMany(targetEntity="Category", mappedBy="categories")
+     * @ORM\ManyToMany(targetEntity="Category", mappedBy="categories")
      */
     private $affiliates;
     
     /**
      * @var datetime $created_at
-     * @orm:Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $created_at;
 
     /**
      * @var datetime $updated_at
-     * @orm:Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $updated_at;    
     
@@ -151,7 +155,7 @@ class Category
     }  
     
     /**
-     * @orm:prePersist
+     * @ORM\prePersist
      */
     
     public function touchCreated()
@@ -161,7 +165,7 @@ class Category
     }
     
     /**
-     * @orm:preUpdate
+     * @ORM\preUpdate
      */
     
     public function touchUpdated()

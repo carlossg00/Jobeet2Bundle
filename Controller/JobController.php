@@ -67,7 +67,7 @@ class JobController extends ContainerAware
     
     /**
      * Show deatiled job info
-     * @param: id
+     * @param id
      */
 
     public function showAction($id)

@@ -1,119 +1,123 @@
 <?php
 
+
+
 namespace Application\Jobeet2Bundle\Entity;
 
 use Application\Jobeet2Bundle\Util\SlugNormalizer;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Application\Jobeet2Bundle\Entity\Job
- * @orm:Entity(repositoryClass="Application\Jobeet2Bundle\Entity\JobRepository")
- * @orm:HasLifecycleCallbacks
- * @orm:Table(name="job")
- *   
+ * @ORM\Entity(repositoryClass="Application\Jobeet2Bundle\Entity\JobRepository")
+ * @ORM\HasLifecycleCallbacks
+ * @ORM\Table(name="job")
+ *
  */
 class Job
 {
     /**
      * @var integer $id
-     * @orm:Id
-     * @orm:Column(type="integer")
-     * @orm:GeneratedValue(strategy="IDENTITY")
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
    
    
     /**
      * @var string $type
-     * @orm:Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $type;
 
     /**
      * @var string $company
-     * @orm:Column(type="string", length=255)
-     * @assert:NotBlank()
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
      */
     private $company;
 
     /**
      * @var string $logo
-     * @orm:Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $logo;
 
     /**
      * @var string $url
-     * @orm:Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $url;
 
     /**
      * @var string $position
-     * @orm:Column(type="string", length=255)
-     * @assert:NotNull()
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotNull()
      */
     private $position;
 
     /**
      * @var string $location
-     * @orm:Column(type="string", length=255)
-     * @assert:NotNull()
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotNull()
      */
     private $location;
 
     /**
      * @var string $description
-     * @orm:Column(type="string", length=255)
-     * @assert:NotNull()
+     * @ORM\Column(type="string", length=255)
+     * @Assert\NotNull()
      */
     private $description;
 
     /**
      * @var string $how_to_apply
-     * @orm:Column(type="string", length=4000, nullable=true)
+     * @ORM\Column(type="string", length=4000, nullable=true)
      */
     private $how_to_apply;
 
     /**
      * @var string $token
-     * @orm:Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $_token;
 
     /**
      * @var boolean $is_public
-     * @orm:Column(type="boolean", nullable=true)
+     * @ORM\Column(type="boolean", nullable=true)
      */
     private $is_public;
 
     /**
      * @var boolean $is_activated
-     * @orm:Column(type="boolean", nullable=true)
+     * @ORM\Column(type="boolean", nullable=true)
      */
     private $is_activated;
 
     /**
      * @var string $email
-     * @orm:Column(type="string", length=255, nullable=true)
-     * @assert:Email()
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Assert\Email()
      */
     private $email;
 
     /**
      * @var datetime $expires_at
-     * @orm:Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $expires_at;
 
     /**
      * @var datetime $created_at
-     * @orm:Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $created_at;
 
     /**
      * @var datetime $updated_at
-     * @orm:Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $updated_at;
 
@@ -122,9 +126,9 @@ class Job
      * @var Application\Jobeet2Bundle\Entity\Category
      *
      * owning Side
-     * @orm:ManyToOne(targetEntity="Category", inversedBy="job")
-     * @orm:JoinColumn(name="category_id", referencedColumnName="id")
-     * @assert:Type(type="Application\Jobeet2Bundle\Entity\Category")
+     * @ORM\ManyToOne(targetEntity="Category", inversedBy="job")
+     * @ORM\JoinColumn(name="category_id", referencedColumnName="id")
+     * @Assert\Type(type="Application\Jobeet2Bundle\Entity\Category")
       */
 
     private $category;
@@ -469,7 +473,7 @@ class Job
         $this->category->addJob($this);    
     }
 
-    /**
+    /**ORM\
      * Get category
      *
      * @return Application\Jobeet2Bundle\Entity\Category $category
@@ -543,7 +547,7 @@ class Job
 
         
     /**
-     * @orm:PrePersist
+     * @ORM\PrePersist
      */
 
     public function touchCreated()
@@ -561,7 +565,7 @@ class Job
     }
 
     /**
-     * @orm:PreUpdate
+     * @ORM\PreUpdate
      */
 
     public function touchUpdated()
