@@ -42,8 +42,7 @@ class Jobeet2Extension extends Extension
         }        
         
         $loader->load('model.xml');
-        $loader->load('orm.xml');
-        $loader->load('controller.xml');               
+        $loader->load('controller.xml');
        // $loader->load('form.xml');
     }
 

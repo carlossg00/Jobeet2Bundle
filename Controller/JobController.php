@@ -37,7 +37,7 @@ class JobController extends ContainerAware
         $this->router = $this->container->get('router');
         $this->repository = $this->container->get('jobeet2.job.repository');
         $this->templating = $this->container->get('templating');
-        $this->em = $this->container->get('jobeet2.object_manager');
+        $this->em = $this->container->get('doctrine')->getEntityManager();
         $this->active_days = $this->container->getParameter('jobeet2.active_days');
     }
 	        
