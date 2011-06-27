@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-{% if true %}
+{% if app.request.attributes.get('token') == job._token %}
     {% include 'Jobeet2Bundle:Admin:_admin.html.twig' with {'job': job} %}
 {% endif %}
 <div id="job">

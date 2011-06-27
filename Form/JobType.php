@@ -22,7 +22,7 @@ class JobType extends AbstractType
     }
     public function buildForm(FormBuilder $builder, array $options)
     {
-        $builder->add('category','entity',array('class' => 'Application\Jobeet2Bundle\Entity\Category'));
+       $builder->add('category','entity',array('class' => 'Application\Jobeet2Bundle\Entity\Category'));
        /*$builder->add(
             $builder->create('category','choice')
                 ->appendClientTransformer(new EntityToIdTransformer(

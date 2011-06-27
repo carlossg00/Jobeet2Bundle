@@ -17,7 +17,12 @@ class JobRepository extends EntityRepository
     public function findOneBySlug($slug)
     {
         return $this->findOneBy(array('slug' => $slug));
-    }    
+    }
+
+    public function findOneByToken($token)
+    {
+        return $this->findOneBy(array('_token' => $token));
+    }
     
     /**
      * 

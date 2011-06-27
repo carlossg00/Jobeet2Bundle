@@ -552,10 +552,13 @@ class Job
 
     public function touchCreated()
     {
-        $this->created_at = $this->updated_at = new \DateTime();
-        $str = sprintf('P%sD',$this->active_days);
-        $date = new \DateTime('now');
-        $this->setExpiresAt($date->add(new \DateInterval($str)));
+        if (isset ($this->active_days))
+        {
+            $this->created_at = $this->updated_at = new \DateTime();
+            $str = sprintf('P%sD',$this->active_days);
+            $date = new \DateTime('now');
+            $this->setExpiresAt($date->add(new \DateInterval($str)));
+        }
 
         //set token if not
         if (!isset($this->_token))

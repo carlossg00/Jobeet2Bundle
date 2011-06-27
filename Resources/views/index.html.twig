@@ -17,16 +17,16 @@
                <div class="feed">
                    <a href=""> Feed</a>
                </div>
-               <h1><a href="{{ path('category', { 'slug': category.slug }) }}">
+               <h1><a href="{{ path('_category_job_show', { 'slug': category.slug }) }}">
                 {{ category.name }}</a> </h1>
            </div>
 
-           {% render 'job.controller:listAction' with {'category': category, 'max' : nJobsPage} %}
+           {% render 'Jobeet2Bundle:Job:list' with {'category': category, 'max' : nJobsPage} %}
            
            {% set count = category.getNJobs() -  nJobsPage  %}           
            {% if count > 0 %}
            <div class="more_jobs"> and
-                <a href="{{ path('category', { 'slug': category.slug }) }}">
+                <a href="{{ path('_category_job_show', { 'slug': category.slug }) }}">
                     {{ count }}
                </a> more...
            {% endif %}

@@ -41,19 +41,14 @@ class Jobeet2Extension extends Extension
         	$container->setParameter('jobeet2.'.$k, $v);
         }        
         
-        $loader->load('model.xml');
-        $loader->load('controller.xml');
-       // $loader->load('form.xml');
+      //  $loader->load('model.xml');
+      //  $loader->load('controller.xml');
+ //       $loader->load('form.xml');
     }
 
-    public function getXsdValidationBasePath()
-    {
-        return null;
-        //return __DIR__.'/../Resources/config/';
-    }
 
-    public function getNamespace()
+    public function getAlias()
     {
-        return 'http://www.symfony-project.org/schema/dic/symfony';
+        return 'jobeet2';
     }   
 }

@@ -13,14 +13,14 @@ show:
     defaults: { _controller: job.controller:showAction, _format: html }
     requirements:
        _method: "GET"
-       id : \d+
+       id: \d+
 
 tokenized_show:
     pattern:  /{token}/show.{_format}
-    defaults: { _controller: job.controller:showAction, _format: html }
+    defaults: { _controller: job.controller:showTokenizedAction, _format: html }
     requirements:
        _method: "GET"
-       token : \w+
+       token: \w+
 
 
 create:
@@ -30,29 +30,30 @@ create:
       _method: "GET|POST"
 
 edit:
-    pattern:  /{id}/edit.{_format}
+    pattern:  /{token}/edit.{_format}
     defaults: { _controller: job.controller:editAction, _format: html }
     requirements:
        _method: "GET|POST"
-       id : \d+
+       token: \w+
 
 delete:
-    pattern:  /{id}/delete.{_format}
+    pattern:  /{token}/delete.{_format}
     defaults: { _controller: job.controller:deleteAction, _format: html }
-    requirements:   { _method: "GET" }
+    requirements:
+      _method: "GET"
+      token: \w+
 
 publish:
-    pattern:  /{id}/publish.{_format}
+    pattern:  /{token}/publish.{_format}
     defaults: { _controller: job.controller:publishAction, _format: html }
     requirements:
-      id : \d+
+      token: \w+
 
 extend:
-    pattern:  /{id}/extend.{_format}
+    pattern:  /{token}/extend.{_format}
     defaults: { _controller: job.controller:extendAction, _format: html }
     requirements:
-      id : \d+
-
+      token: \w+
 
 category:
     pattern:  /category/{slug}.{_format}

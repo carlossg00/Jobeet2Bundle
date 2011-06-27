@@ -7,110 +7,121 @@ use Application\Jobeet2Bundle\Entity\User;
 use Application\Jobeet2Bundle\Entity\Category;
 use Application\Jobeet2Bundle\Form\JobType;
 
-use Symfony\Component\DependencyInjection\ContainerAware;
-use Doctrine\ORM\EntityRepository;
-use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 
-class JobController extends ContainerAware
+
+class JobController extends Controller
 {
-	
-	private $request;
-    private $repository;
-    private $router;
-    private $templating;
-    private $em;
-	
-	/**
-     * Post Constructor.
-     * Called from DIC after setContainer method
-     * assign values to member variables for better code readability 
-     */
-   
-    public function __postConstruct()
-    {
-    	$this->request = $this->container->get('request');        
-        $this->router = $this->container->get('router');
-        $this->repository = $this->container->get('jobeet2.job.repository');
-        $this->templating = $this->container->get('templating');
-        $this->em = $this->container->get('doctrine')->getEntityManager();
-        $this->active_days = $this->container->getParameter('jobeet2.active_days');
-    }
-	        
     /**
-     * 
-     * List jobs by Category in homepage
-     * @param Category $category
-     * @param string $context
-     * @param integer $page
+     * @Route("/", name="_job_category_list")
      */
     
     public function listAction(Category $category = null, $max = 10)
     {
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
     	 	
         if (null !== $category) {            
-            $jobs = $this->repository->getActiveJobsByCategory($category, $max);            
+            $jobs = $repository->getActiveJobsByCategory($category, $max);
         } else {
-            $jobs = $this->repository->findAll(true);
+            $jobs = $repository->findAll(true);
         }
         
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:list.html.twig', array(
+        return $this->render('Jobeet2Bundle:Job:list.html.twig', array(
             'jobs'      => $jobs,
             'category'  => $category,           
         ));
         
     }
     
+
     /**
-     * Show deatiled job info
-     * @param id
+     * @Route("/show/{company}/{location}/{id}/{position}", name="_job_show")
      */
+
 
     public function showAction($id)
     {
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
 
-        $job = $this->repository->findOneById($id);
+        $job = $repository->findOneById($id);
         
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:show.html.twig',
+        return $this->render('Jobeet2Bundle:Job:show.html.twig',
             array('job'=>$job,
-                 'active_days' => $this->active_days));
+                 'active_days' => $this->container->getParameter('jobeet2.active_days')
+            ));
         
     }
 
+    /**
+     * @Route("/{token}/show", name="_job_show_tokenized")
+     */
 
-
-    public function deleteAction($id)
+    public function showTokenizedAction($token)
     {
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
+
+        $job = $repository->findOneByToken($token);
+
+        if (!$job) {
+            throw new NotFoundHttpException('The Job does not exist.');
+        }
+        return $this->render('Jobeet2Bundle:Job:show.html.twig',
+            array('job'=>$job,
+                 'active_days' => $this->active_days));
+
+    }
+
+
+    /**
+     * @Route("/{token}/delete", name="_job_delete")
+     */
+
+    public function deleteAction($token)
+    {
+
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
 
         $this->container->get('session')->setFlash('notice', 'Your changes were saved!');
 
-        $job = $this->repository->findOneById($id);
+        $job = $repository->findOneByToken($token);
 
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
         }
 
-        $this->em->remove($job);
-        $this->em->flush();
+        $em->remove($job);
+        $em->flush();
 
-        return new RedirectResponse($this->router->generate('homepage'));
+        return $this->redirect($this->generateUrl('_homepage'));
 
-        /*$httpKernel = $this->container->get('http_kernel');
-        return $httpKernel->forward('job.controller:listAction');*/
+
 
     }
 
-    public function editAction($id = null)
+    /**
+     * @Route("/create", name="_job_create")
+     * @Route("{id}/edit", name="_job_edit")
+     */
+
+
+    public function editAction($token = null)
     {
-        if (isset($id)) {
-            $job = $this->repository->findOneById($id);
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
+
+        if (isset($token)) {
+            $job = $repository->findOneByToken($token);
 
             if (!$job) {
                 throw new NotFoundHttpException('The Job does not exist.');
@@ -120,31 +131,37 @@ class JobController extends ContainerAware
             $job = new Job();
         }
 
-        $form = $this->container->get('form.factory')->create(new JobType($this->em),$job);
+        $form = $this->createForm(new JobType($this->em),$job);
 
-         if ($this->request->getMethod() == 'POST') {
+         if ($this->getRequest()->getMethod() == 'POST') {
 
-            $form->bindRequest($this->request);
+            $form->bindRequest($this->getRequest());
 
             if ($form->isValid()) {
-                $this->em->persist($job);
-                $this->em->flush();
+                $em->persist($job);
+                $em->flush();
 
-                $httpKernel = $this->container->get('http_kernel');
-                return $httpKernel->forward('job.controller:showAction', array(
-                                                'id'  => $job->getID()
-                    ));
+                return $this->redirect($this->generateUrl('_job_show_tokenized'
+                                ,array('token'=>$job->get_Token())
+                ));
             }
          }
 
-        return $this->templating->renderResponse('Jobeet2Bundle:Job:create.html.twig',
+        return $this->render('Jobeet2Bundle:Job:create.html.twig',
         		array('form' => $form->createView(),
         		));
     }
 
-    public function publishAction($id)
+    /**
+     * @Route("/{token}/publish", name="_job_publish")
+     */
+
+    public function publishAction($token)
     {
-        $job = $this->repository->findOneById($id);
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
+
+        $job = $repository->findOneByToken($token);
 
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
@@ -152,26 +169,27 @@ class JobController extends ContainerAware
 
         $job->setIsActivated(true);
 
-        $this->em->persist($job);
-        $this->em->flush();
+        $em->persist($job);
+        $em->flush();
 
-        $this->container->get('session')->setFlash('notice', "Your job is now online for $this->active_days days");
+        $this->get('session')->setFlash('notice', "Your job is now online for $this->active_days days");
 
-        $httpKernel = $this->container->get('http_kernel');
-                return $httpKernel->forward('job.controller:showAction', array(
-                                                'id'  => $job->getID()
-                    ));
 
-        return new RedirectResponse($this->router->generate('show',array('id'=>$job->getID(),
-                                    'company' => $job->getCompanySlug(),
-                                    'location' => $job->getLocationSlug(),
-                                    'position' => $job->getPositionSlug())
-        ));
+        return $this->redirect($this->generateUrl('_job_show_tokenized'
+                                ,array('token'=>$job->get_Token())
+                ));
     }
 
-    public function extendAction($id)
+    /**
+     * @Route("/{token}/extend", name="_job_extend")
+     */
+
+    public function extendAction($token)
     {
-        $job = $this->repository->findOneById($id);
+        $em = $this->get('doctrine')->getEntityManager();
+        $repository = $em->getRepository('Jobeet2Bundle:Job');
+
+        $job = $repository->findOneById($token);
 
         if (!$job) {
             throw new NotFoundHttpException('The Job does not exist.');
@@ -181,14 +199,12 @@ class JobController extends ContainerAware
         $expirationDate = clone $job->getExpiresAt();
         $job->setExpiresAt($expirationDate->add(new \DateInterval($str)));
 
-        $this->em->persist($job);
-        $this->em->flush();
+        $em->persist($job);
+        $em->flush();
 
-        return new RedirectResponse($this->router->generate('show',array('id'=>$job->getID(),
-                                    'company' => $job->getCompanySlug(),
-                                    'location' => $job->getLocationSlug(),
-                                    'position' => $job->getPositionSlug())
-        ));
+        return $this->redirect($this->generateUrl('_job_show_tokenized'
+                                ,array('token'=>$job->get_Token())
+                ));
 
     }
 }
