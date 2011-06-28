@@ -77,7 +77,8 @@ class JobController extends Controller
         }
         return $this->render('Jobeet2Bundle:Job:show.html.twig',
             array('job'=>$job,
-                 'active_days' => $this->active_days));
+                 'active_days' => $this->container->getParameter('jobeet2.active_days')
+            ));
 
     }
 
@@ -111,7 +112,7 @@ class JobController extends Controller
 
     /**
      * @Route("/create", name="_job_create")
-     * @Route("{id}/edit", name="_job_edit")
+     * @Route("{token}/edit", name="_job_edit")
      */
 
 
@@ -131,18 +132,17 @@ class JobController extends Controller
             $job = new Job();
         }
 
-        $form = $this->createForm(new JobType($this->em),$job);
+        $form = $this->createForm(new JobType(),$job);
+        $request = $this->get('request');
 
-         if ($this->getRequest()->getMethod() == 'POST') {
-
-            $form->bindRequest($this->getRequest());
-
+        if ($request->getMethod() == 'POST') {
+            $form->bindRequest($request);
             if ($form->isValid()) {
                 $em->persist($job);
                 $em->flush();
 
                 return $this->redirect($this->generateUrl('_job_show_tokenized'
-                                ,array('token'=>$job->get_Token())
+                                ,array('token'=>$job->getToken())
                 ));
             }
          }
@@ -172,11 +172,13 @@ class JobController extends Controller
         $em->persist($job);
         $em->flush();
 
-        $this->get('session')->setFlash('notice', "Your job is now online for $this->active_days days");
+        $active_days = $this->container->getParameter('jobeet2.active_days');
+        $this->get('session')->setFlash('notice',
+                "Your job is now online for $active_days days");
 
 
         return $this->redirect($this->generateUrl('_job_show_tokenized'
-                                ,array('token'=>$job->get_Token())
+                                ,array('token'=>$job->getToken())
                 ));
     }
 
@@ -203,7 +205,7 @@ class JobController extends Controller
         $em->flush();
 
         return $this->redirect($this->generateUrl('_job_show_tokenized'
-                                ,array('token'=>$job->get_Token())
+                                ,array('token'=>$job->getToken())
                 ));
 
     }

@@ -4,10 +4,10 @@
     <h3>Admin</h3>
     <ul>
         {% if not(job.isActivated) %}
-            <li><a href="{{ path('edit', {'token': job._token}) }}">Edit</a></li>
-            <li><a href="{{ path('publish', {'token': job._token}) }}">Publish</a></li>
+            <li><a href="{{ path('_job_edit', {'token': job.token}) }}">Edit</a></li>
+            <li><a href="{{ path('_job_publish', {'token': job.token}) }}">Publish</a></li>
         {% endif %}
-        <li><a href="{{ path('delete', {'token' : job._token }) }}">Delete</a></li>
+        <li><a href="{{ path('_job_delete', {'token' : job.token }) }}">Delete</a></li>
         {% if job.isActivated %}
         <li class='expires_soon'>
             {% if job.isExpired() %} Expired
@@ -15,12 +15,12 @@
             {% endif %}
 
             {% if job.expiresSoon() %}
-                - <a href="{{ path('extend', {'token' : job._token}) }}">Extend</a> for another {{ active_days }} days
+                - <a href="{{ path('_job_extend', {'token' : job.token}) }}">Extend</a> for another {{ active_days }} days
             {% endif %}
         </li>
         {% else %}
             <li>
-                [Bookmark this page <a href="{{ path('tokenized_show',{'token':job._token}) }}">URL</a>
+                [Bookmark this page <a href="{{ path('_job_show_tokenized',{'token':job.token}) }}">URL</a>
                     to manage this job in the future.]
             </li>
         {% endif %}

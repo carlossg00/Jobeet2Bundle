@@ -4,6 +4,8 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ## Installation
 
+Jobeet2Bundle is mantained to be installed with the latest symfony-standard version (at this time RC3)
+
 ### clone repository
 
 	git clone git://github.com/carlossg00/Jobeet2Bundle.git src/Application/Jobeet2Bundle
@@ -31,18 +33,29 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
     	'Application'					 => __DIR__.'/../src',    	
     ));
     
-### Add a reference to the routes in app/config/routing.yml
+### Add the following routes to your global routing file (app/config/routing.yml or app/config/routing_dev.yml)
+
+    _jobeet:
+        resource: "@Jobeet2Bundle/Controller/Jobeet2Controller.php"
+        type:   annotation
+        prefix: /jobeet
 
     _job:
-        resource: "@Jobeet2Bundle/Resources/config/routing.yml"
+        resource: "@Jobeet2Bundle/Controller/JobController.php"
+        type:   annotation
         prefix: /job
+
+    _category:
+        resource: "@Jobeet2Bundle/Controller/CategoryController.php"
+        type:   annotation
+        prefix: /category
     
 
 ### Dependencies
 
- - [SensioFrameworkExtraBundle](http://github.com/sensio/FrameworkExtraBundle/)	<-NOT USED RIGHT NOW
- 	
- - [PaginatorBundle](http://github.com/knplabs/PaginatorBundle/)
+Jobeet2Bundle uses:
+
+  - [PaginatorBundle](http://github.com/knplabs/PaginatorBundle/) <<-- needs Zend (see KnplabsPaginator readme)
 
 ### Install assets
 
@@ -51,7 +64,9 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
 ### Build the database
  
- Modify config.yml to your doctrine configuration
+ In SE modify parameters.ini to your database settings
+
+ You can set them manually in config.yml
  
 	## Doctrine Configuration
 	doctrine:
@@ -64,21 +79,7 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
        		auto_generate_proxy_classes: %kernel.debug%
        		mappings:
            		Jobeet2Bundle: ~
-           		
- Modify Resources/orm.xml to your connection
- if multiple connections
- 
-    <services>
-        <!-- Object Manager Service -->
-        <service id="jobeet2.object_manager" alias="doctrine.orm.myConnection_entity_manager" />
-    </services>   
-    
- or default connection if only one
-    
-    <services>
-        <!-- Object Manager Service -->
-        <service id="jobeet2.object_manager" alias="doctrine.orm.default_entity_manager" />
-    </services>
+
 
  create the database schema running the following commands
 	
@@ -87,16 +88,16 @@ Jobeet2Bundle is the well known day by day tutorial for symfony 1.4 ported to Sy
 
  Load data fixtures
 
-	php app/console doctrine:data:load
+	php app/console doctrine:fixtures:load
 
 
 ### Try the application
 
 Make sure the web folder is document root and visit the site:
 
-	http://jobeet2/app_dev.php/job
+	http://jobeet2/app_dev.php/jobeet
  or
-    http://localhost/web/app_dev.php/job
+    http://localhost/web/app_dev.php/jobeet
 
 ## Configuration
 

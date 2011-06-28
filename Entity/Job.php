@@ -82,7 +82,7 @@ class Job
      * @var string $token
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $_token;
+    private $token;
 
     /**
      * @var boolean $is_public
@@ -327,9 +327,9 @@ class Job
      *
      * @param string $token
      */
-    public function set_Token($token)
+    public function setToken($token)
     {
-        $this->_token = $token;
+        $this->token = $token;
     }
 
     /**
@@ -337,9 +337,9 @@ class Job
      *
      * @return string $token
      */
-    public function get_Token()
+    public function getToken()
     {
-        return $this->_token;
+        return $this->token;
     }
 
     /**
@@ -561,9 +561,9 @@ class Job
         }
 
         //set token if not
-        if (!isset($this->_token))
+        if (!isset($this->token))
         {
-            $this->set_Token(sha1($this->getEmail().rand(11111,99999)));
+            $this->setToken(sha1($this->getEmail().rand(11111,99999)));
         }
     }
 

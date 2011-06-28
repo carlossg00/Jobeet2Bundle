@@ -14,12 +14,6 @@ use Doctrine\ORM\EntityManager;
 
 class JobType extends AbstractType
 {
-    protected $em;
-
-    public function __construct(EntityManager $em)
-    {
-        $this->em = $em;
-    }
     public function buildForm(FormBuilder $builder, array $options)
     {
        $builder->add('category','entity',array('class' => 'Application\Jobeet2Bundle\Entity\Category'));
@@ -40,15 +34,14 @@ class JobType extends AbstractType
         $builder->add('how_to_apply','textarea',array('label' => 'How to apply?'));
         $builder->add('is_public','checkbox',array('required'=>false,'label' => 'Public?'));
         $builder->add('email','text');
-        $builder->add('_token');
     }
 
     public function getDefaultOptions(array $options)
     {
         return array(
             'data_class' => 'Application\Jobeet2Bundle\Entity\Job',
-            'csrf_protection'   => true,
-            'csrf_field_name'   => '_token',
+            //'csrf_protection'   => true,
+            //'csrf_field_name'   => '_token',
         );
     }
 }
