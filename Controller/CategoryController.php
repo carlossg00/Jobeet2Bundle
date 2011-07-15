@@ -31,7 +31,7 @@ class CategoryController extends Controller
         $page = $this->getRequest()->query->get('page', 1);
         
         
-        $adapter = $this->get('knplabs_paginator.adapter');
+        $adapter = $this->get('knp_paginator.adapter');
 		$adapter->setQuery($repository->getActiveJobsByCategoryQuery($category));
 		$adapter->setDistinct(true);	
         

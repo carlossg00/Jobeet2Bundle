@@ -40,8 +40,11 @@ class JobType extends AbstractType
     {
         return array(
             'data_class' => 'Application\Jobeet2Bundle\Entity\Job',
-            //'csrf_protection'   => true,
-            //'csrf_field_name'   => '_token',
         );
+    }
+
+    public function getName()
+    {
+        return 'job';
     }
 }

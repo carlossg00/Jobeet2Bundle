@@ -20,4 +20,9 @@ class CategoryType extends AbstractType
             'data_class' => 'Application\Jobeet2Bundle\Entity\Category',
         );
     }
+
+    public function getName()
+    {
+        return 'category';
+    }
 }
