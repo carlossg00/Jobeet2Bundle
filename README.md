@@ -55,7 +55,7 @@ Jobeet2Bundle is mantained to be installed with the latest symfony-standard vers
 
 Jobeet2Bundle uses:
 
-  - [PaginatorBundle](http://github.com/knplabs/PaginatorBundle/) <<-- needs Zend (see KnplabsPaginator readme)
+  - [PaginatorBundle](http://github.com/knplabs/KnpPaginatorBundle) <<-- needs Zend (see KnpPaginatorBundle readme)
 
 ### Install assets
 
