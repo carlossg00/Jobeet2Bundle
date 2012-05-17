@@ -6,11 +6,12 @@ use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\ORM\EntityManager,
     Doctrine\Common\DataFixtures\FixtureInterface;
 use Application\Jobeet2Bundle\Entity;
+use Doctrine\Common\Persistence\ObjectManager;
 
 
 class LoadJobbetData implements FixtureInterface
 {
-    public function load($manager)
+    public function load(ObjectManager $manager)
     {
 
         $cat1 = new Entity\Category();
